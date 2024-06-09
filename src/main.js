@@ -1,5 +1,6 @@
 import Mini from "../Mini/lib";
 import Home from "./pages/Home/home";
+import "./global.css"
 
 function Main() {
   return (

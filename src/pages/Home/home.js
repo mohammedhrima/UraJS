@@ -1,32 +1,38 @@
 import Mini from "../../../Mini/lib"
 import Login from "../Login/login"
 import Navbar from "../_utils/Navbar/navbar"
-import Avatar from "../_utils/Avatars/001.svg"
+import Avatar from "../_utils/Images/001.svg"
 import "./home.css"
 
-function Div1() {
+function UserCart() {
     return (
-        <div className="user_info">
-            <img src={Avatar} />
-            <div className="infos">
-                <h2>Mohammed hrima</h2>
+        <div className="user_container">
+            <div className="user_info">
+                <img src={Avatar} />
+                <div className="infos">
+                    <h2>Mohammed hrima</h2>
+                </div>
             </div>
         </div>
     )
 }
 
-function Div2() {
+function MatchInfos() {
     return (
-        <div className="game_info">
-            this div 2
+        <div className="game_container">
+            <div className="game_info">
+                this div 2
+            </div>
         </div>
     )
 }
 
-function Div3() {
+function Chat() {
     return (
-        <div className="chat">
-            this div 3
+        <div className="chat_container">
+            <div className="chat_info">
+                this div 3
+            </div>
         </div>
     )
 }
@@ -36,9 +42,9 @@ function Home() {
         <div id="home">
             <Navbar />
             <div className="components">
-                <Div1 />
-                <Div2 />
-                <Div3 />
+                <UserCart />
+                <MatchInfos />
+                <Chat />
             </div>
         </div>
     )

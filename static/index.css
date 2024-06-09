@@ -16,34 +16,68 @@
   display: flex;
   flex-direction: column;
 }
-#home > .components {
+#home .components {
   display: flex;
   justify-content: space-between;
   height: inherit;
   flex: 12;
 }
-#home > .components > .user_info {
+#home .user_container {
   background-color: red;
   flex: 2;
+  display: flex;
+  padding: 20px;
 }
-#home > .components > .game_info {
+#home .game_container {
   background-color: green;
   flex: 5;
+  display: flex;
+  padding: 10px;
 }
-#home > .components > .chat {
+#home .chat_container {
   background-color: blue;
   flex: 4;
+  display: flex;
+  padding: 10px;
 }
-#home > .components > .user_info {
+#home .user_info {
+  flex: 1;
+  background-color: violet;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 10px;
+  gap: 20px;
+  padding: 20px;
 }
-#home > .components > .user_info > img {
-  height: 160px;
-}
-#home > .components > .user_info > .infos {
+#home .user_info > img {
+  width: 100%;
   flex: 1;
+}
+#home .user_info > .infos {
+  flex: 3;
+}
+
+/* src/global.css */
+:root {
+  --blue0: #00273F;
+  --blue1: #004974;
+  --blue2: #016D9E;
+  --blue3: #0295C0;
+  --blue4: #00B5FA;
+  --blue5: #EAFAFD;
+  --brown0: #2F2725;
+  --brown1: #C76742;
+  --brown2: #C77E42;
+  --brown3: #C69442;
+  --brown4: #C7A442;
+  --brown6: #F9F8F4;
+  --red: #D24848;
+  --green: #00FA37;
+}
+* {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings: "slnt" 0;
 }

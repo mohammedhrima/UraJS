@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    #circle {
+        width: 100%;
+        height: 100%;
+        transform: rotate(135deg);
+    }
+
+    #circle-percentage {
+        position: absolute;
+        color: #444;
+        top: -3em;
+        left: 0.3em;
+        right: 0;
+        font-size: 4em;
+    }
+</style>
+
+<body>
+    <svg id="circle">
+        <circle r="140" cx="50%" cy="50%" stroke="gray" fill="none" stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="660, 660">
+        </circle>
+        <circle id="success-value" r="140" cx="50%" cy="50%" stroke="red" fill="none" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="660, 660">
+        </circle>
+    </svg>
+    <div style="position: relative;">
+        <div id="circle-percentage"></div>
+    </div>
+    <input type="text" id="circleValue">%
+    <p>Type the number in above input and see the output</p>
+</body>
+<script>
+    document.getElementById('circleValue').addEventListener('change', ({ target }) => {
+        let { value: circleValue } = target;
+        if (circleValue > 100) {
+            circleValue = 100;
+        }
+        let successValue = (circleValue / 100) * 660;
+        document.getElementById('circle-percentage').innerHTML = `${circleValue}%`;
+        document.getElementById('success-value').setAttribute('stroke-dasharray', `${successValue}, 660`);
+    });
+</script>
+
+</html>

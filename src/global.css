@@ -1,0 +1,23 @@
+:root {
+    --blue0: #00273F;
+    --blue1: #004974;
+    --blue2: #016D9E;
+    --blue3: #0295C0;
+    --blue4: #00B5FA;
+    --blue5: #EAFAFD;
+    --brown0: #2F2725;
+    --brown1: #C76742;
+    --brown2: #C77E42;
+    --brown3: #C69442;
+    --brown4: #C7A442;
+    --brown6: #F9F8F4;
+    --red: #D24848;
+    --green: #00FA37;
+}
+
+* {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "slnt" 0;
+}
