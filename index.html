@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/static/index.css" />
+    <title>Mini js</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+      .Mini_Error_Not_Found {
+        font-family: sans-serif;
+        font-size: 10vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
+      #app {
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/javascript">
+      if ("WebSocket" in window) {
+        // console.log("WebSocket is supported by your Browser!");
+        var ws = new WebSocket("ws://localhost:5000/");
+
+        ws.onopen = function () {
+          // ws.send("Message to send");
+          // console.log("Message is sent...");
+        };
+
+        ws.onmessage = function (event) {
+          if (event.data === "refresh") {
+            ws.close();
+            window.location.reload();
+          }
+        };
+
+        ws.onclose = function () {
+          // console.log("Connection is closed...");
+        };
+      } else {
+        console.log("WebSocket NOT supported by your Browser!");
+      }
+    </script>
+    <script type="module" src="/static/index.js"></script>
+  </body>
+</html>

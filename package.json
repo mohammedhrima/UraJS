@@ -1,0 +1,24 @@
+{
+  "name": "MiniJs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "transpile": "nodemon --watch './Mini/lib.js' --watch './src' --ext '.js,.css' --exec 'node esbuild.config.js && echo reload'",
+    "serve": "node server.js",
+    "start": "npm run serve & npm run transpile",
+    "build": "node esbuild.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.3",
+    "mime": "^4.0.3",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.1",
+    "esbuild-css-modules-plugin": "^3.1.0",
+    "nodemon": "^3.1.0"
+  }
+}

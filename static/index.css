@@ -1,0 +1,49 @@
+/* src/pages/Login/login.css */
+#Login {
+  background-color: gold;
+}
+
+/* src/pages/_utils/Navbar/navbar.css */
+#Navbar {
+  background-color: rgb(0, 255, 251);
+  flex: 1;
+}
+
+/* src/pages/Home/home.css */
+#home {
+  height: 100%;
+  background-color: blueviolet;
+  display: flex;
+  flex-direction: column;
+}
+#home > .components {
+  display: flex;
+  justify-content: space-between;
+  height: inherit;
+  flex: 12;
+}
+#home > .components > .user_info {
+  background-color: red;
+  flex: 2;
+}
+#home > .components > .game_info {
+  background-color: green;
+  flex: 5;
+}
+#home > .components > .chat {
+  background-color: blue;
+  flex: 4;
+}
+#home > .components > .user_info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+#home > .components > .user_info > img {
+  height: 160px;
+}
+#home > .components > .user_info > .infos {
+  flex: 1;
+}
