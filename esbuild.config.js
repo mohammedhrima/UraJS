@@ -10,6 +10,13 @@ function loadJpg(filePath) {
   return dataUri;
 }
 
+function loadPng(filePath) {
+  const data = fs.readFileSync(filePath);
+  const base64Data = Buffer.from(data).toString("base64");
+  const dataUri = `data:image/png;base64,${base64Data}`;
+  return dataUri;
+}
+
 function loadSvg(filePath) {
   const data = fs.readFileSync(filePath, "utf8");
   const dataUri = `data:image/svg+xml;base64,${Buffer.from(data).toString("base64")}`;
@@ -38,6 +45,19 @@ esbuild
             // Use the custom loader function to load JPG files
             return {
               contents: `export default "${loadJpg(args.path)}";`,
+              loader: "js",
+            };
+          });
+        },
+      },
+      {
+        name: "png-loader",
+        setup(build) {
+          // Handle JPG files
+          build.onLoad({ filter: /\.png$/ }, async (args) => {
+            // Use the custom loader function to load JPG files
+            return {
+              contents: `export default "${loadPng(args.path)}";`,
               loader: "js",
             };
           });

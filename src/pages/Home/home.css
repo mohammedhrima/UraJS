@@ -1,57 +1,137 @@
 #home {
-    height: 100%;
-    background-color: blueviolet;
-    display: flex;
-    flex-direction: column;
+  height: 100%;
+  background-color: blueviolet;
+  display: flex;
+  flex-direction: column;
 }
 
 #home .components {
-    display: flex;
-    justify-content: space-between;
-    height: inherit;
-    flex: 12;
+  display: flex;
+  justify-content: space-between;
+  height: inherit;
+  flex: 12;
 }
 
 /* containers */
-#home .user_container {
-    background-color: red;
-    flex: 2;
-    display: flex;
-    padding: 20px;
+#home .user {
+  background-color: red;
+  flex: 2;
+  display: flex;
+  padding: 15px;
 }
 
-#home .game_container {
-    background-color: green;
-    flex: 5;
-    display: flex;
-    padding: 10px;
+#home .game {
+  background-color: green;
+  flex: 5;
+  display: flex;
+  padding: 15px;
 }
 
-#home .chat_container {
-    background-color: blue;
-    flex: 4;
-    display: flex;
-    padding: 10px;
+#home .chat {
+  background-color: blue;
+  flex: 4;
+  display: flex;
+  padding: 15px;
 }
 
 /* user info */
-#home .user_info {
-    flex: 1;
-    background-color: violet;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
+#home .user > .info {
+  flex: 1;
+  background-color: violet;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
 }
 
-#home .user_info>img {
-    width: 100%;
-    /* height: 160px; */
-    flex: 1;
+#home .user > .info > img {
+  width: 100%;
+  /* height: 160px; */
+  flex: 1;
 }
 
-#home .user_info>.infos {
-    flex: 3;
+#home .user > .info > .infos {
+  flex: 3;
+}
+
+/* game */
+#home .game {
+  flex-direction: column;
+}
+
+#home .game > .infos {
+  background-color: antiquewhite;
+  flex: 2;
+}
+
+#home .game > .play {
+  background-color: burlywood;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  /* justify-content: space-between; */
+  /* padding: 20px;*/
+  gap: 20px;
+}
+
+#home .game > .play > .play_game {
+  flex: 1;
+  background-color: blueviolet;
+  border: 1px solid black;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Percentage circle */
+
+.pie {
+  /* --p: 20; */
+  --b: 10px;
+  --c: darkred;
+  --w: 150px;
+
+  width: var(--w);
+  aspect-ratio: 1;
+  position: relative;
+  display: inline-grid;
+  margin: 5px;
+  place-content: center;
+  font-size: 25px;
+  font-weight: bold;
+  font-family: sans-serif;
+}
+
+.pie:before,
+.pie:after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.pie:before {
+  inset: 0;
+  background: 
+    radial-gradient(farthest-side, var(--c) 98%, #0000) 
+    top/var(--b) var(--b) no-repeat,
+    conic-gradient(var(--c) calc(var(--p) * 1%), #0000 0);
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    #0000 calc(99% - var(--b)),
+    #000 calc(100% - var(--b))
+  );
+  mask: radial-gradient(
+    farthest-side,
+    #0000 calc(99% - var(--b)),
+    #000 calc(100% - var(--b))
+  );
+}
+
+.pie:after {
+  inset: calc(50% - var(--b) / 2);
+  background: var(--c);
+  transform: rotate(calc(var(--p) * 3.6deg))
+    translateY(calc(50% - var(--w) / 2));
 }

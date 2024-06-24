@@ -1,53 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<style>
-    #circle {
-        width: 100%;
-        height: 100%;
-        transform: rotate(135deg);
+  </head>
+  <style>
+    /* @property --p {
+      syntax: "<number>";
+      inherits: true;
+      initial-value: 0;
+    } */
+
+    .pie {
+      --p: 20;
+      --b: 10px;
+      --c: darkred;
+      --w: 150px;
+
+      background-color: blue;
+
+      width: var(--w);
+      aspect-ratio: 1;
+      position: relative;
+      display: inline-grid;
+      margin: 5px;
+      place-content: center;
+      font-size: 25px;
+      font-weight: bold;
+      font-family: sans-serif;
+    }
+    .pie:before,
+    .pie:after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+    .pie:before {
+      inset: 0;
+      background: radial-gradient(farthest-side, var(--c) 98%, #0000)
+          top/var(--b) var(--b) no-repeat,
+        conic-gradient(var(--c) calc(var(--p) * 1%), #0000 0);
+      -webkit-mask: radial-gradient(
+        farthest-side,
+        #0000 calc(99% - var(--b)),
+        #000 calc(100% - var(--b))
+      );
+      mask: radial-gradient(
+        farthest-side,
+        #0000 calc(99% - var(--b)),
+        #000 calc(100% - var(--b))
+      );
+    }
+    .pie:after {
+      inset: calc(50% - var(--b) / 2);
+      background: var(--c);
+      transform: rotate(calc(var(--p) * 3.6deg))
+        translateY(calc(50% - var(--w) / 2));
     }
 
-    #circle-percentage {
-        position: absolute;
-        color: #444;
-        top: -3em;
-        left: 0.3em;
-        right: 0;
-        font-size: 4em;
+    body {
+      background: #f2f2f2;
     }
-</style>
-
-<body>
-    <svg id="circle">
-        <circle r="140" cx="50%" cy="50%" stroke="gray" fill="none" stroke-width="10" stroke-linecap="round"
-            stroke-dasharray="660, 660">
-        </circle>
-        <circle id="success-value" r="140" cx="50%" cy="50%" stroke="red" fill="none" stroke-width="10"
-            stroke-linecap="round" stroke-dasharray="660, 660">
-        </circle>
-    </svg>
-    <div style="position: relative;">
-        <div id="circle-percentage"></div>
-    </div>
-    <input type="text" id="circleValue">%
-    <p>Type the number in above input and see the output</p>
-</body>
-<script>
-    document.getElementById('circleValue').addEventListener('change', ({ target }) => {
-        let { value: circleValue } = target;
-        if (circleValue > 100) {
-            circleValue = 100;
-        }
-        let successValue = (circleValue / 100) * 660;
-        document.getElementById('circle-percentage').innerHTML = `${circleValue}%`;
-        document.getElementById('success-value').setAttribute('stroke-dasharray', `${successValue}, 660`);
-    });
-</script>
-
+  </style>
+  <body>
+    <div class="pie" style="--p: 50">20%</div>
+    <!-- <div class="pie" style="--p: 40; --c: darkblue; --b: 10px">40%</div>
+    <div class="pie no-round" style="--p: 60; --c: purple; --b: 15px">60%</div>
+    <div class="pie animate no-round" style="--p: 80; --c: orange">80%</div>
+    <div class="pie animate" style="--p: 90; --c: lightgreen">90%</div> -->
+  </body>
 </html>
