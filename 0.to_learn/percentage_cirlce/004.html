@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centered SVG Circle Example</title>
+  <style>
+    /* Style the SVG container to control its size */
+    .svg-container {
+      width: 200px;
+      height: 200px;
+      border: 1px solid black;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- SVG Container -->
+  <div class="svg-container" id="svg-container"></div>
+
+  <script>
+    // Function to create an SVG circle
+    function createSvgCircle() {
+      // Create an SVG element
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      svg.setAttribute("viewBox", "0 0 200 200");
+
+      // Create a circle element
+      const circle = document.createElementNS(svgNS, "circle");
+      circle.setAttribute("r", "50");
+      circle.setAttribute("fill", "blue");
+      circle.setAttribute("stroke", "black");
+      circle.setAttribute("stroke-width", "2");
+
+      // Use transform to translate the circle to the center
+      circle.setAttribute("transform", "translate(100, 100)");
+
+      // Append the circle to the SVG element
+      svg.appendChild(circle);
+
+      // Append the SVG element to the container
+      const container = document.getElementById("svg-container");
+      container.appendChild(svg);
+    }
+
+    // Call the function to create and append the SVG circle
+    createSvgCircle();
+  </script>
+</body>
+</html>

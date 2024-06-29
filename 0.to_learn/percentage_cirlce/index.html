@@ -4,70 +4,101 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style></style>
   </head>
   <style>
-    /* @property --p {
-      syntax: "<number>";
-      inherits: true;
-      initial-value: 0;
-    } */
-
-    .pie {
-      --p: 20;
-      --b: 10px;
-      --c: darkred;
-      --w: 150px;
-
-      background-color: blue;
-
-      width: var(--w);
-      aspect-ratio: 1;
-      position: relative;
-      display: inline-grid;
-      margin: 5px;
-      place-content: center;
-      font-size: 25px;
-      font-weight: bold;
-      font-family: sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
     }
-    .pie:before,
-    .pie:after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-    }
-    .pie:before {
-      inset: 0;
-      background: radial-gradient(farthest-side, var(--c) 98%, #0000)
-          top/var(--b) var(--b) no-repeat,
-        conic-gradient(var(--c) calc(var(--p) * 1%), #0000 0);
-      -webkit-mask: radial-gradient(
-        farthest-side,
-        #0000 calc(99% - var(--b)),
-        #000 calc(100% - var(--b))
-      );
-      mask: radial-gradient(
-        farthest-side,
-        #0000 calc(99% - var(--b)),
-        #000 calc(100% - var(--b))
-      );
-    }
-    .pie:after {
-      inset: calc(50% - var(--b) / 2);
-      background: var(--c);
-      transform: rotate(calc(var(--p) * 3.6deg))
-        translateY(calc(50% - var(--w) / 2));
-    }
-
     body {
-      background: #f2f2f2;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+      min-height: 100vh;
+      background: #03a9f4;
+    }
+    .box {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: #fff;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    }
+    .box .perecent {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .box .perecent svg {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .box .perecent svg circle {
+      width: 150px;
+      height: 150px;
+      fill: none;
+      stroke-width: 10;
+      stroke: #000;
+      transform: translate(5px, 5px);
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      stroke-linecap: round;
+    }
+    .box .perecent svg circle:nth-child(1) {
+      stroke-dashoffset: 0;
+      stroke: #f3f3f3;
+    }
+    .box .perecent svg circle:nth-child(2) {
+      stroke-dashoffset: calc(440 - (440 * 87) / 100);
+      stroke: #03a9f4;
+    }
+    .box .perecent .number {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #111;
+    }
+    .box .perecent .number h2 {
+      color: #999;
+      font-size: 48px;
+    }
+    .box .perecent .number h2 span {
+      font-size: 24px;
+    }
+    .box .perecent .text {
+      padding: 10px 0 0;
+      color: #999;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
   </style>
   <body>
-    <div class="pie" style="--p: 50">20%</div>
-    <!-- <div class="pie" style="--p: 40; --c: darkblue; --b: 10px">40%</div>
-    <div class="pie no-round" style="--p: 60; --c: purple; --b: 15px">60%</div>
-    <div class="pie animate no-round" style="--p: 80; --c: orange">80%</div>
-    <div class="pie animate" style="--p: 90; --c: lightgreen">90%</div> -->
+    <div class="box">
+      <div class="perecent">
+        <svg>
+          <circle cx="70" cy="70" r="70"></circle>
+          <circle cx="70" cy="70" r="70"></circle>
+        </svg>
+        <div class="number">
+          <h2>
+            87
+            <span>%</span>
+          </h2>
+        </div>
+        <h2 class="text">Progress</h2>
+      </div>
+    </div>
   </body>
 </html>

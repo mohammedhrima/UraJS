@@ -23,42 +23,85 @@ function User() {
 }
 
 function History() {
-  return <div>vs Username</div>;
+  return (
+    <div className="history">
+      <h3>vs </h3>
+      <img src={game1} />
+      <h3>User_name</h3>
+      <h3>17:05</h3>
+      <span></span>
+    </div>
+  )
 }
 
 function Play({ path }) {
+  const hover = new Mini.Variable(true);
+  const name_value = new Mini.Variable("play_game bright");
+  const styling = new Mini.Variable({ display: "block" });
+
+  const check = (event) => {
+    hover.value = !hover.value;
+    name_value.value = name_value.value == "play_game bright" ?
+      "play_game dark" : "play_game bright";
+    styling.value = { display: styling.value.display == "block" ? "none" : "block" };
+    // console.log("event is ", event, " value: ", hover.value);
+  }
+
   return (
-    <div className="play_game">
+    <div
+      className={name_value}
+      onmouseenter={() => check("mouse over")}
+      onmouseleave={() => check("mouse out")}
+    >
       <img src={path} />
-      <button>play me</button>
+      <h2 style={styling} >
+        Play
+      </h2>
     </div>
   );
 }
 
-function Pie({ perce }) {
-  return (
-    <div className="pie" style={{ "--p": perce }}>
-      {perce}%
-    </div>
-  );
-}
 
 function Game({ UserLevel }) {
+
+  const styling = new Mini.Variable({ backgroundColor: "blue" });
   return (
-    <div className="game">
+    <div className="game" style={styling}>
       <div className="infos">
-        <div className="level">
-          <Pie perce={UserLevel}>{UserLevel}%</Pie>
+        <div className="box">
+          <div className="perecent">
+            <svg style={{ width: "150px", height: "150px" }}>
+              <circle
+                cx="70" cy="70" r="70"
+              ></circle>
+              <circle
+                cx="70" cy="70" r="70"
+                style={{
+                  strokeDashoffset: `calc(440 - (440 * ${UserLevel}) / 100)`
+                }}
+              ></circle>
+            </svg>
+            <div className="number">
+              <h2>
+                87
+                <span>%</span>
+              </h2>
+            </div>
+          </div>
         </div>
-        <div className="history">
-          <History />
-          <History />
+        <div className="histories">
+          <h2>History</h2>
+          <div className="table">
+            <History />
+            <History />
+          </div>
         </div>
       </div>
       <div className="play">
         <Play path={game1} />
         <Play path={game2} />
         <Play path={game3} />
+
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import validTags from "./validTags";
 class Variable {
   constructor(initialValue) {
     this.aInternal = initialValue;
-    this.aListener = function (new_val) {};
+    this.aListener = function (new_val) { };
   }
 
   set value(new_val) {
@@ -80,11 +80,13 @@ function render(vdom, parent) {
 
     /*============== VARIABLE ==============*/
     case "variable": {
-    //   console.log("found var", vdom.value);
+      //   console.log("found var", vdom.value);
       vdom.value.registerListener(function (val) {
-        // console.log("Someone changed the value of x.value to " + val);
-        parent.innerHTML = "";
-        parent?.appendChild(document.createTextNode(vdom.value.value));
+        console.log("Someone changed the value of value to " + val);
+        console.log("vdom.value: ", vdom.value.value);
+        parent.innerHTML = val;
+        // vdom.value.value = val;
+        // parent?.appendChild(document.createTextNode(vdom.value.value));
       });
       parent?.appendChild(document.createTextNode(vdom.value.value));
       break;
@@ -94,19 +96,95 @@ function render(vdom, parent) {
     case "element": {
       if (!validTags.hasOwnProperty(tag))
         throw new Error(`Invalid tag "${tag}"`);
-      const dom = document.createElement(tag);
+      let dom;
+      const svgNS = "http://www.w3.org/2000/svg";
+      if (tag == "svg") {
+        // console.log("is svg");
+        dom = document.createElementNS(svgNS, "svg");
+      }
+      else {
+        if (parent?.tagName == "svg") {
+          // console.log("parent is svg");
+          dom = document.createElementNS(svgNS, tag);
+        }
+        else
+          dom = document.createElement(tag);
+      }
       const style = {};
       Object.keys(props || {})
         .filter((key) => key != "children")
         .forEach((key) => {
+          // console.log(key, ":", props[key]);
           if (validTags[vdom?.tag].includes(key)) {
-            if (key.startsWith("on")) dom[key] = props[key];
-            else if (key === "style") Object.assign(style, props[key]);
-            else dom[key] = props[key];
+            if (key.startsWith("on")) {
+              dom[key] = props[key];
+            }
+            else if (key === "style") {
+              Object.assign(style, props[key]);
+
+              if (props[key] instanceof Variable) {
+                props[key].registerListener(function (val) {
+                  // dom[key] = val;
+                  // console.log("set style: ", props[key]);
+                  console.log("lib: set style: ", props[key].value);
+                  dom.style = {
+                    ...val,
+                    ...dom.style,
+                  };
+                  console.log(dom.style);
+                })
+                Object.keys(props[key].value).map(skey=>{
+                  console.log("map: ", skey , " -> ", props[key].value[skey]);
+                  dom.style[skey] = props[key].value[skey];
+                })
+                // console.log(props[key].value);
+                // dom.style = props[key].value;
+                // dom.style = {
+                //   ...dom.style,
+                //   ...props[key].value
+                // }
+                // dom.style = props[key].value
+                // props[key].registerListener(function (val) {
+                //   dom.style = {
+                //     ...dom.style,
+                //     ...val
+                //   }
+                // })
+              }
+              else {
+                dom.style = {
+                  ...dom.style,
+                  ...props[key]
+                }
+              }
+            }
+            else {
+              if (tag == "svg" || parent.tagName == "svg") {
+                if (props[key] instanceof Variable) {
+                  props[key].registerListener(function (val) {
+                    dom.setAttribute(key, val);
+                  })
+                }
+                else {
+                  dom.setAttribute(key, props[key]);
+                }
+              }
+              else {
+                if (props[key] instanceof Variable) {
+                  props[key].registerListener(function (val) {
+                    dom[key] = val;
+                  })
+                }
+                else {
+                  dom[key] = props[key];
+                }
+              }
+            }
           } else {
             console.warn(`Invalid attribute "${key}" ignored.`);
           }
         });
+
       if (Object.keys(style).length > 0) {
         dom.style.cssText = Object.keys(style)
           .map((styleProp) => {
@@ -118,6 +196,7 @@ function render(vdom, parent) {
           })
           .join(";");
       }
+
       children?.map((child) => {
         render(child, dom);
       });
