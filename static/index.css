@@ -79,23 +79,16 @@
   align-items: center;
   cursor: pointer;
 }
-#home .game > .play > .play_game > h2 {
-  position: absolute;
-}
-#home .game > .play > .play_game > img {
-  transition: filter 0.35s ease;
-  width: 100%;
-  min-width: 100px;
-  border-radius: 10px;
-}
-.bright {
+#home .game > .play > .play_game {
   filter: brightness(1);
 }
-.dark {
+#home .game > .play > .play_game:hover {
   filter: brightness(0.25);
   opacity: 1;
 }
-#home .game > .play > .play_game > img:hover {
+#home .game > .play > .play_game > h2 {
+  filter: 0.45s ease;
+  position: absolute;
 }
 #home .game > .infos {
   display: flex;

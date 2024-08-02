@@ -20,9 +20,6 @@
 
 
 + responsivity
++ lazy loading
 
-
-Target: 07/07/2024
-    30/06 -> 01/07 : finish home page
-    02/07 -> 04/07 : chat
-    05/07 -> 07/07 : game
++ building command npx swc ./src -d dist --strip-leading-paths

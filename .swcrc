@@ -1,0 +1,15 @@
+{
+    "jsc": {
+      "parser": {
+        "syntax": "ecmascript",
+        "jsx": true
+      },
+      "transform": {
+        "react": {
+          "pragma": "Mini.createElement",
+          "pragmaFrag": "Mini.Fragment"
+        }
+      }
+    }
+  }
+  

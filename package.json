@@ -4,10 +4,13 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "transpile": "nodemon --watch './Mini/lib.js' --watch './src' --ext '.js,.css' --exec 'node esbuild.config.js && echo reload'",
-    "serve": "node server.js",
-    "start": "npm run serve & npm run transpile",
-    "build": "node esbuild.config.js"
+    "serve": "nodemon server.js",
+    "build:swc": "npx swc ./src -d dist --strip-leading-paths",
+    "build:copy": "copyfiles -u 1 'src/**/*.{html,css}' dist",
+    "watch:swc": "npx swc src -w -d dist --strip-leading-paths",
+    "watch:copy": "chokidar 'src/**/*.{html,css}' -c 'npm run build:copy'",
+    "watch": "npm run watch:swc & npm run watch:copy",
+    "build": "npm run build:swc && npm run build:copy"
   },
   "author": "",
   "license": "ISC",
@@ -18,8 +21,10 @@
     "ws": "^8.16.0"
   },
   "devDependencies": {
-    "esbuild": "^0.20.1",
-    "esbuild-css-modules-plugin": "^3.1.0",
+    "@swc/cli": "^0.4.0",
+    "@swc/core": "^1.7.4",
+    "chokidar-cli": "^3.0.0",
+    "copyfiles": "^2.4.1",
     "nodemon": "^3.1.0"
   }
 }
