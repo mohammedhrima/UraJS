@@ -1,4 +1,3 @@
-      
 const validTags = {
   children: [],
   nav: ["props", "path"],
@@ -558,10 +557,10 @@ const validTags = {
     "display",
     "transform",
     "transform-origin",
-    "d",  // for path element
+    "d", // for path element
     "cx", // for circle and ellipse elements
     "cy", // for circle and ellipse elements
-    "r",  // for circle element
+    "r", // for circle element
     "rx", // for ellipse and rect elements
     "ry", // for ellipse and rect elements
     "x1", // for line element
@@ -583,7 +582,7 @@ const validTags = {
     "tabindex",
     "focusable",
     "title",
-    "desc"
+    "desc",
   ],
   circle: [
     "style",
@@ -617,15 +616,15 @@ const validTags = {
     "tabindex",
     "focusable",
     "title",
-    "desc"
-  ]
+    "desc",
+  ],
 };
 
 // RENDERING
 class Variable {
   constructor(initialValue) {
     this.aInternal = initialValue;
-    this.aListener = function (new_val) { };
+    this.aListener = function (new_val) {};
   }
 
   set value(new_val) {
@@ -658,10 +657,31 @@ function check(child) {
   return child;
 }
 
+function Src(props, ...children) {
+  const element = {
+    tag: "",
+    type: "selector",
+    props: props,
+    children: children,
+  };
+  return element;
+}
+
 function createElement(tag = null, props = {}, ...children) {
+  //   console.log(tag);
   if (typeof tag === "function") {
     let funcTag = tag(props || {});
-    if (funcTag.length == 0) {
+    if (funcTag.type == "selector") {
+      // funcTag.props = {
+      // 	...funcTag.props,
+      // 	...props
+      // }
+      funcTag.children = [...funcTag.children, ...children];
+      //   console.log("the selector is: ", funcTag);
+      // funcTag.children = children;
+      return funcTag;
+    } else if (funcTag.length == 0) {
+      console.log(tag);
       return {
         type: "fragment",
         props: props || {},
@@ -684,7 +704,7 @@ function createElement(tag = null, props = {}, ...children) {
   return element;
 }
 
-function render(vdom, parent) {
+function render(vdom, parent = null) {
   if (!vdom) return;
   if (typeof vdom === "function") {
     let func = vdom();
@@ -722,42 +742,37 @@ function render(vdom, parent) {
       if (tag == "svg") {
         // console.log("is svg");
         dom = document.createElementNS(svgNS, "svg");
-      }
-      else {
+      } else {
         if (parent?.tagName == "svg") {
           // console.log("parent is svg");
           dom = document.createElementNS(svgNS, tag);
-        }
-        else
-          dom = document.createElement(tag);
+        } else dom = document.createElement(tag);
       }
       const style = {};
       Object.keys(props || {})
         .filter((key) => key != "children")
         .forEach((key) => {
           // console.log(key, ":", props[key]);
-          if (validTags[vdom?.tag].includes(key)) {
+          if (validTags[vdom?.tag].includes(key) || key == "parent") {
             if (key.startsWith("on")) {
               dom[key] = props[key];
-            }
-            else if (key === "style") {
+            } else if (key === "style") {
               Object.assign(style, props[key]);
-
               if (props[key] instanceof Variable) {
                 props[key].registerListener(function (val) {
                   // dom[key] = val;
                   // console.log("set style: ", props[key]);
-                  console.log("lib: set style: ", props[key].value);
+                  //   console.log("lib: set style: ", props[key].value);
                   dom.style = {
                     ...val,
                     ...dom.style,
                   };
-                  console.log(dom.style);
-                })
-                Object.keys(props[key].value).map(skey=>{
-                  console.log("map: ", skey , " -> ", props[key].value[skey]);
+                  //   console.log(dom.style);
+                });
+                Object.keys(props[key].value).map((skey) => {
+                  //   console.log("map: ", skey, " -> ", props[key].value[skey]);
                   dom.style[skey] = props[key].value[skey];
-                })
+                });
                 // console.log(props[key].value);
                 // dom.style = props[key].value;
                 // dom.style = {
@@ -771,32 +786,32 @@ function render(vdom, parent) {
                 //     ...val
                 //   }
                 // })
-              }
-              else {
+              } else {
                 dom.style = {
                   ...dom.style,
-                  ...props[key]
-                }
+                  ...props[key],
+                };
               }
             }
+            // else if (key == "parent") {
+            // 	parent = document.querySelector(`[data-tag=${props[key]}]`)
+            // 	// parent = document.querySelector(parent);
+            // }
             else {
-              if (tag == "svg" || parent.tagName == "svg") {
+              if (tag == "svg" || parent?.tagName == "svg") {
                 if (props[key] instanceof Variable) {
                   props[key].registerListener(function (val) {
                     dom.setAttribute(key, val);
-                  })
-                }
-                else {
+                  });
+                } else {
                   dom.setAttribute(key, props[key]);
                 }
-              }
-              else {
+              } else {
                 if (props[key] instanceof Variable) {
                   props[key].registerListener(function (val) {
                     dom[key] = val;
-                  })
-                }
-                else {
+                  });
+                } else {
                   dom[key] = props[key];
                 }
               }
@@ -821,7 +836,11 @@ function render(vdom, parent) {
       children?.map((child) => {
         render(child, dom);
       });
-      parent.appendChild(dom);
+      if (parent) parent.appendChild(dom);
+      else {
+        console.warn("Parent is NULL");
+        console.log(children);
+      }
       break;
     }
 
@@ -832,6 +851,14 @@ function render(vdom, parent) {
       });
       break;
     }
+    case "selector":
+      let parentTag = document.querySelector(`[data-tag=${props.name}]`);
+      // console.log("children: ", children);
+      children?.map((child) => {
+        render(child, parentTag);
+      });
+      //   console.log("found selector: ", tag);
+      break;
     default:
       break;
   }
@@ -843,10 +870,10 @@ function Fragment(props, ...children) {
 
 // ROUTING
 // let app = document.getElementById("app");
-const routes = [
+let routes = [
   {
     path: "",
-    element: () => "" /*<h4 className="Mini_Error_Not_Found">Error: Not Found</h4>*/,
+    page: "",
   },
 ];
 
@@ -868,43 +895,157 @@ function getParams(match) {
   );
 }
 
-// async function router() {
-//   // Test routes
-//   const matches = routes.map((route) => {
-//     return {
-//       route: route,
-//       result: location.pathname.match(pathToRegex(route.path)),
-//     };
-//   });
-//   // find the matche object for the current route
-//   let match = matches.find((elem) => elem.result !== null);
-//   if (!match) {
-//     // if route doesn't exists
-//     match = {
-//       route: routes[0],
-//       result: [location.pathname],
-//     };
-//   }
-//   let element = match.route.element(getParams(match));
-//   // console.log("router: ", element);
-//   app = document.getElementById("app");
-//   app.innerHTML = "";
-//   Mini.render(element, app);
-// }
+async function router() {
+  // Test routes
+  const matches = routes.map((route) => {
+    return {
+      route: route,
+      result: location.pathname.match(pathToRegex(route.path)),
+    };
+  });
+  // find the matche object for the current route
+  let match = matches.find((elem) => elem.result !== null);
+  if (!match) {
+    // if route doesn't exists
+    match = {
+      route: routes[0],
+      result: [location.pathname],
+    };
+  }
+  //   console.log("mathc is: ", match);
+  // let element = match.route.element(getParams(match));
+  // console.log("router: ", element);
+  //   app = document.getElementById("app");
+  //   app.innerHTML = "";
+  //   Mini.render(element, app);
+  //   console.log("pathname is", location.pathname);
+  //   let pageRoute = routes.find((route) => route.path == location.pathname);
+  //   console.log("res: ", pageRoute);
 
-// // when going back and forward
-// window.addEventListener("popstate", router);
-// // on loading
-// document.addEventListener("DOMContentLoaded", () => {
-//   router();
-// });
-
-function Routes({ path, element }) {
-  if (path === "*") routes[0].element = element;
-  else routes.push({ path, element });
-  return "" /*<></>*/;
+  //   const interval = setInterval(() => {
+  //     const iframe = document.getElementById("frame");
+  //     if (iframe) {
+  //       iframe.src = "dist/pages/Home/home.html";
+  //       clearInterval(interval);
+  //     }
+  //   }, 100);
 }
 
-const Mini = { createElement, Fragment, render, Routes, Variable };
-export default Mini;
-window.Mini = Mini;
+let CurrentRoute = null;
+
+function waitForIframe(selector) {
+  return new Promise((resolve, reject) => {
+    const interval = 100;
+    const maxAttempts = 50;
+    let attempts = 0;
+
+    const checkIframe = setInterval(() => {
+      const iframe = document.querySelector(selector);
+      if (iframe) {
+        clearInterval(checkIframe);
+        resolve(iframe);
+        console.log("found");
+        return;
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkIframe);
+        reject(new Error("Iframe not found after maximum attempts"));
+      }
+      attempts++;
+    }, interval);
+  });
+}
+
+// Usage with async/await
+let Page = {
+  iframe: "",
+};
+
+function Navigate(path, src) {
+  // console.log("call navigate function from ", src);
+
+  // const storedRoute = sessionStorage.getItem(path);
+  // if (storedRoute) {
+  //   let page = JSON.parse(storedRoute);
+  //   console.log("route is", page, "get it from ", routes);
+  //   // console.log(parent.window.frames[0].location.pathname);
+  //   // parent.window.frames[0].location.pathname = page
+  //   (async () => {
+  //     try {
+  //       const iframe = await waitForIframe("#frame");
+  //       iframe.src = page;
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //   })();
+  //   CurrentRoute = path;
+  //   // let iframe = document.getElementById("frame");
+  //   // 	if(iframe) iframe.src = page;
+  //   // 	else console.warn("iframe not found");
+  // } else {
+  //   console.warn(path, " Not found");
+  // }
+  let page = sessionStorage.getItem(path);
+  console.log("page: ", page);
+  // const iframe = document.getElementById("frame");
+  // iframe.src = page;
+  console.log(Page);
+  // console.log("iframe: ", iframe);
+}
+
+// window.addEventListener("load", (e) => {
+//   e.preventDefault();
+//   Navigate("/", "load");
+// });
+window.onload = () => {
+  console.log("onload");
+  //  let  iframe = document.getElementById("frame");
+  // iframe.src = "dist/pages/Home/home.html";
+  //   if (!CurrentRoute) Navigate("/", "load");
+};
+
+// Listen for manual URI changes
+window.addEventListener("popstate", (e) => {
+  e.preventDefault();
+});
+
+// on loading
+document.addEventListener("DOMContentLoaded", (e) => {
+  e.preventDefault();
+});
+
+function Routes({ path, element }) {
+  //   if (path === "*") routes[0].element = element;
+  //   else routes.push({ path, element });
+  //   return "" /*<></>*/;
+}
+
+function setRoute(path, page) {
+  sessionStorage.setItem(path, page);
+  //   routes.push({ path, page });
+  console.log("setRoutes:", path);
+}
+
+// function Byclass(name) {
+//   return document.getElementsByClassName(name)[0];
+// }
+
+// function Byid(name) {
+//   return document.getElementById(name);
+// }
+const Byclass = (className) => document.querySelector("." + className);
+const Byid = (id) => document.querySelector("#" + id);
+
+export const Mini = {
+  createElement,
+  Fragment,
+  render,
+  Src,
+  Routes,
+  Byclass,
+  Byid,
+  Variable,
+  setRoute,
+  Navigate,
+  routes,
+  Page,
+};

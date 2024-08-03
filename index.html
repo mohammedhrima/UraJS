@@ -3,9 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="/static/icon.ico" />
-    <link rel="stylesheet" type="text/css" href="/static/index.css" />
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="dist/pages/icon.ico" />
     <title>Mini js</title>
     <style>
       * {
@@ -33,21 +31,17 @@
         --red: #d24848;
         --green: #00fa37;
       }
+      iframe {
+        display: flex;
+        width: 100%;
+        height: 100%;
+      }
     </style>
   </head>
-  <body>
-    <div id="app"></div>
-    <iframe id="frame">
-    </iframe>
-    <script>
-      var iframe = document.getElementById('frame');
-      iframe.src = 'dist/pages/Home/home.html';
-      console.log(iframe);
-    </script>
+  <body style="height: 100vh">
+    <script type="module" src="./Mini/lib.js"></script>
+    <script type="module" src="dist/pages/router.js"></script>
+    <!-- <script type="module" src="dist/pages/router.js"></script> -->
+    <iframe id="frame" scrolling="no" name="mini-frame"> </iframe>
   </body>
 </html>
-
-<!-- <div id="root"> -->
-<!-- <iframe src="/src/pages/Home/home.html" name="targetframe">
-    </iframe> -->
-<!-- </div> -->

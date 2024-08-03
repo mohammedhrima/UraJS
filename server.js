@@ -4,7 +4,7 @@ const WebSocket = require("ws");
 const path = require("path");
 
 // Define the port
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 const serveStaticFile = (filePath, contentType, res) => {
 	fs.readFile(filePath, (err, data) => {
@@ -41,6 +41,9 @@ const server = http.createServer((req, res) => {
 			case ".html":
 				contentType = "text/html";
 				break;
+			case ".svg":
+				contentType = "image/svg+xml";
+				break
 		}
 		serveStaticFile(filePath, contentType, res);
 	}
@@ -51,24 +54,50 @@ const server = http.createServer((req, res) => {
 	}
 });
 
+let index = 0;
 const wss = new WebSocket.Server({ server });
-
 function listenOnChange(filePath) {
+	let timeout;
 	fs.watch(filePath, (eventType, filename) => {
-		if (eventType === "change") {
-			console.log(filePath, "has been modified.");
-			wss.clients.forEach((client) => {
-				if (client.readyState === WebSocket.OPEN) {
-					client.send("refresh");
-				}
-			});
+		if (eventType === 'change') {
+			clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                console.log(index, filePath, 'has been modified.');
+                index++;
+                // Uncomment to notify clients
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send('refresh');
+                    }
+                });
+            }, 1); // 1 ms debounce time
 		}
 	});
 }
 
-listenOnChange(path.resolve(__dirname, "static", "index.js"));
-listenOnChange(path.resolve(__dirname, "static", "index.css"));
-listenOnChange(path.resolve(__dirname, "index.html"));
+// Function to recursively watch files in a directory
+function watchDirectory(directoryPath) {
+	console.log("watch", directoryPath);
+	fs.readdir(directoryPath, { withFileTypes: true }, (err, files) => {
+		if (err) {
+			console.error('Error reading directory:', err);
+			return;
+		}
+		// console.log(files);
+
+		files.forEach((file) => {
+			const fullPath = path.join(directoryPath, file.name);
+			if (file.isDirectory()) {
+				watchDirectory(fullPath);
+			} else {
+				listenOnChange(fullPath);
+			}
+		});
+	});
+}
+
+watchDirectory(path.resolve(__dirname, 'dist/pages'));
+listenOnChange(path.resolve(__dirname, 'index.html'))
 
 wss.on("connection", (ws) => {
 	console.log("Client connected");

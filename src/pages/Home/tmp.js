@@ -1,33 +1,37 @@
 /** @jsx Mini.createElement */
 /** @jsxFrag Mini.Fragment */
 
-import { Mini } from "../../../Mini/lib.js";
+import Mini from "../../../Mini/lib.js";
+import Login from "../Login/login.js";
+import Navbar from "../_utils/Navbar/navbar.js";
+import Avatar from "../_utils/Images/001.svg";
+import game1 from "../_utils/Images/001.png";
+import game2 from "../_utils/Images/002.png";
+import game3 from "../_utils/Images/003.png";
+import styled from "styled-components";
+
+import "./home.css";
+
 
 function User() {
-  const Go = (e) => {
-    // e.preventDefault();
-    Mini.Navigate("/login", "Go function");
-
-    // iframe.src = "dist/pages/Login/login.html";
-  };
   return (
-    <Mini.Src name="user">
+    <div className="user">
       <div className="info">
-        <img src={"../Images/001.svg"} />
+        {/* <img src={Avatar} /> */}
         <div className="infos">
           <h2>Mohammed hrima</h2>
-          <button onclick={(e) => Go(e)}>Clique me</button>
         </div>
       </div>
-    </Mini.Src>
+    </div>
   );
 }
+
 
 function History() {
   return (
     <div className="history">
       <h3>vs </h3>
-      <img src={"../Images/001.png"} />
+      <img src={game1} />
       <h3>User_name</h3>
       <h3>17:05</h3>
       <span></span>
@@ -43,12 +47,11 @@ function Play({ path }) {
   });
 
   const setHover = () => {
-    // console.log("set hover to ", !hover.value);
+    console.log("set hover to ", !hover.value);
     hover.value = !hover.value;
-    if (hover.value)
-      styling.value = { ...styling.value, visibility: "visible" };
+    if (hover.value) styling.value = { ...styling.value, visibility: "visible" };
     else styling.value = { ...styling.value, visibility: "hidden" };
-    // console.log(styling.value);
+    console.log(styling.value);
   };
 
   return (
@@ -71,7 +74,7 @@ function Play({ path }) {
 function Game({ UserLevel }) {
   const styling = new Mini.Variable({ backgroundColor: "blue" });
   return (
-    <Mini.Src name="game">
+    <div className="game" style={styling}>
       <div className="infos">
         <div className="box">
           <div className="perecent">
@@ -103,24 +106,33 @@ function Game({ UserLevel }) {
         </div>
       </div>
       <div className="play">
-        <Play path={"../Images/001.png"} />
-        <Play path={"../Images/002.png"} />
-        <Play path={"../Images/003.png"} />
+        <Play path={game1} />
+        <Play path={game2} />
+        <Play path={game3} />
       </div>
-    </Mini.Src>
+    </div>
   );
 }
 
 function Chat() {
   return (
-    <Mini.Src name="chat">
+    <div className="chat">
       <div className="chat_info">this div 3</div>
-    </Mini.Src>
+    </div>
   );
 }
 
-const Components = [<User />, <Game UserLevel={60} />, <Chat />];
+function Home() {
+  return (
+    <div id="home">
+      <Navbar />
+      <div className="components">
+        <User />
+        <Game UserLevel={60} />
+        <Chat />
+      </div>
+    </div>
+  );
+}
 
-Components.forEach((Comp) => {
-  Mini.render(Comp);
-});
+export default Home;

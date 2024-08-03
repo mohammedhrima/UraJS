@@ -1,5 +1,5 @@
-import Mini from "../../../../Mini/lib";
-import "./navbar.css"
+// import Mini from "../../../../Mini/lib";
+// import "./navbar.css"
 
 function Navbar() {
     return (
@@ -9,4 +9,4 @@ function Navbar() {
     )
 }
 
-export default Navbar;
+// export default Navbar;

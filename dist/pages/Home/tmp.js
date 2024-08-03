@@ -50,32 +50,29 @@ function _object_spread_props(target, source) {
     }
     return target;
 }
-import { Mini } from "../../../Mini/lib.js";
+import Mini from "../../../Mini/lib.js";
+import Login from "../Login/login.js";
+import Navbar from "../_utils/Navbar/navbar.js";
+import Avatar from "../_utils/Images/001.svg";
+import game1 from "../_utils/Images/001.png";
+import game2 from "../_utils/Images/002.png";
+import game3 from "../_utils/Images/003.png";
+import styled from "styled-components";
+import "./home.css";
 function User() {
-    var Go = function(e) {
-        // e.preventDefault();
-        Mini.Navigate("/login", "Go function");
-    // iframe.src = "dist/pages/Login/login.html";
-    };
-    return /*#__PURE__*/ Mini.createElement(Mini.Src, {
-        name: "user"
+    return /*#__PURE__*/ Mini.createElement("div", {
+        className: "user"
     }, /*#__PURE__*/ Mini.createElement("div", {
         className: "info"
-    }, /*#__PURE__*/ Mini.createElement("img", {
-        src: "../Images/001.svg"
-    }), /*#__PURE__*/ Mini.createElement("div", {
+    }, /*#__PURE__*/ Mini.createElement("div", {
         className: "infos"
-    }, /*#__PURE__*/ Mini.createElement("h2", null, "Mohammed hrima"), /*#__PURE__*/ Mini.createElement("button", {
-        onclick: function(e) {
-            return Go(e);
-        }
-    }, "Clique me"))));
+    }, /*#__PURE__*/ Mini.createElement("h2", null, "Mohammed hrima"))));
 }
 function History() {
     return /*#__PURE__*/ Mini.createElement("div", {
         className: "history"
     }, /*#__PURE__*/ Mini.createElement("h3", null, "vs "), /*#__PURE__*/ Mini.createElement("img", {
-        src: "../Images/001.png"
+        src: game1
     }), /*#__PURE__*/ Mini.createElement("h3", null, "User_name"), /*#__PURE__*/ Mini.createElement("h3", null, "17:05"), /*#__PURE__*/ Mini.createElement("span", null));
 }
 function Play(param) {
@@ -86,7 +83,7 @@ function Play(param) {
         visibility: "hidden"
     });
     var setHover = function() {
-        // console.log("set hover to ", !hover.value);
+        console.log("set hover to ", !hover.value);
         hover.value = !hover.value;
         if (hover.value) styling.value = _object_spread_props(_object_spread({}, styling.value), {
             visibility: "visible"
@@ -94,7 +91,7 @@ function Play(param) {
         else styling.value = _object_spread_props(_object_spread({}, styling.value), {
             visibility: "hidden"
         });
-    // console.log(styling.value);
+        console.log(styling.value);
     };
     return /*#__PURE__*/ Mini.createElement("div", {
         className: "play_game",
@@ -118,8 +115,9 @@ function Game(param) {
     var styling = new Mini.Variable({
         backgroundColor: "blue"
     });
-    return /*#__PURE__*/ Mini.createElement(Mini.Src, {
-        name: "game"
+    return /*#__PURE__*/ Mini.createElement("div", {
+        className: "game",
+        style: styling
     }, /*#__PURE__*/ Mini.createElement("div", {
         className: "infos"
     }, /*#__PURE__*/ Mini.createElement("div", {
@@ -151,27 +149,27 @@ function Game(param) {
     }, /*#__PURE__*/ Mini.createElement(History, null), /*#__PURE__*/ Mini.createElement(History, null)))), /*#__PURE__*/ Mini.createElement("div", {
         className: "play"
     }, /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/001.png"
+        path: game1
     }), /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/002.png"
+        path: game2
     }), /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/003.png"
+        path: game3
     })));
 }
 function Chat() {
-    return /*#__PURE__*/ Mini.createElement(Mini.Src, {
-        name: "chat"
+    return /*#__PURE__*/ Mini.createElement("div", {
+        className: "chat"
     }, /*#__PURE__*/ Mini.createElement("div", {
         className: "chat_info"
     }, "this div 3"));
 }
-var Components = [
-    /*#__PURE__*/ Mini.createElement(User, null),
-    /*#__PURE__*/ Mini.createElement(Game, {
+function Home() {
+    return /*#__PURE__*/ Mini.createElement("div", {
+        id: "home"
+    }, /*#__PURE__*/ Mini.createElement(Navbar, null), /*#__PURE__*/ Mini.createElement("div", {
+        className: "components"
+    }, /*#__PURE__*/ Mini.createElement(User, null), /*#__PURE__*/ Mini.createElement(Game, {
         UserLevel: 60
-    }),
-    /*#__PURE__*/ Mini.createElement(Chat, null)
-];
-Components.forEach(function(Comp) {
-    Mini.render(Comp);
-});
+    }), /*#__PURE__*/ Mini.createElement(Chat, null)));
+}
+export default Home;
