@@ -1,13 +1,15 @@
-import Mini from "../../../Mini/lib";
-import "./login.css"
+// import Mini from "../../../Mini/lib";
+// import "./login.css"
 
-function Login()
-{
-    return (
-        <div id="Login" >
-            this is Login
-        </div>
-    )
-}
+// function Login()
+// {
+//     return (
+//         <div id="Login" >
+//             this is Login
+//         </div>
+//     )
+// }
 
-export default Login;
+document.getElementById("login").innerHTML = "this js login text"
+
+// export default Login;

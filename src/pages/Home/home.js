@@ -13,7 +13,7 @@ function User() {
   return (
     <Mini.Src name="user">
       <div className="info">
-        <img src={"../Images/001.svg"} />
+        <img src={"assets/images/001.svg"} />
         <div className="infos">
           <h2>Mohammed hrima</h2>
           <button onclick={(e) => Go(e)}>Clique me</button>
@@ -27,7 +27,7 @@ function History() {
   return (
     <div className="history">
       <h3>vs </h3>
-      <img src={"../Images/001.png"} />
+      <img src={"assets/images/001.png"} />
       <h3>User_name</h3>
       <h3>17:05</h3>
       <span></span>
@@ -103,9 +103,9 @@ function Game({ UserLevel }) {
         </div>
       </div>
       <div className="play">
-        <Play path={"../Images/001.png"} />
-        <Play path={"../Images/002.png"} />
-        <Play path={"../Images/003.png"} />
+        <Play path={"assets/images/001.png"} />
+        <Play path={"assets/images/002.png"} />
+        <Play path={"assets/images/003.png"} />
       </div>
     </Mini.Src>
   );

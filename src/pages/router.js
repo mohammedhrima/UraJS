@@ -3,13 +3,31 @@
 
 import { Mini } from "../../Mini/lib.js";
 
+const Routes = {
+  home: "/pages/Home/home.html",
+  login: "/pages/Login/login.html",
+};
+
+function loadPage(url) {
+  fetch(url)
+    .then((response) => response.text())
+    .then((data) => {
+      const element = document.getElementById("content");
+      element.innerHTML = data;
+      const scripts = element.querySelectorAll("script");
+      scripts.forEach(async (script) => {
+        await import(script.src);
+      });
+    })
+    .catch((error) => console.error("Error loading page:", error));
+}
+
 const PORT = 5000;
 if ("WebSocket" in window) {
   const ws = new WebSocket(`ws://localhost:${PORT}/`);
   ws.onopen = function () {};
   ws.onmessage = function (event) {
     if (event.data === "refresh") {
-      document.getElementById("frame").contentWindow.location.reload(true);
       console.log("refresh");
     }
   };
@@ -17,10 +35,7 @@ if ("WebSocket" in window) {
 } else {
   console.log("WebSocket NOT supported by your Browser!");
 }
+loadPage(Routes["home"]);
 
-const iframe = document.getElementById("frame");
-iframe.src = "dist/pages/Home/home.html";
-Mini.Page.iframe = iframe;
-
-Mini.setRoute("/login", "dist/pages/Login/login.html");
-Mini.setRoute("/", "dist/pages/Home/home.html");
+// Mini.setRoute("/login", "/pages/Login/login.html");
+// Mini.setRoute("/", "/pages/Home/home.html");

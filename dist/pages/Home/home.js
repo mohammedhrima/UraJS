@@ -62,7 +62,7 @@ function User() {
     }, /*#__PURE__*/ Mini.createElement("div", {
         className: "info"
     }, /*#__PURE__*/ Mini.createElement("img", {
-        src: "../Images/001.svg"
+        src: "assets/images/001.svg"
     }), /*#__PURE__*/ Mini.createElement("div", {
         className: "infos"
     }, /*#__PURE__*/ Mini.createElement("h2", null, "Mohammed hrima"), /*#__PURE__*/ Mini.createElement("button", {
@@ -75,7 +75,7 @@ function History() {
     return /*#__PURE__*/ Mini.createElement("div", {
         className: "history"
     }, /*#__PURE__*/ Mini.createElement("h3", null, "vs "), /*#__PURE__*/ Mini.createElement("img", {
-        src: "../Images/001.png"
+        src: "assets/images/001.png"
     }), /*#__PURE__*/ Mini.createElement("h3", null, "User_name"), /*#__PURE__*/ Mini.createElement("h3", null, "17:05"), /*#__PURE__*/ Mini.createElement("span", null));
 }
 function Play(param) {
@@ -151,11 +151,11 @@ function Game(param) {
     }, /*#__PURE__*/ Mini.createElement(History, null), /*#__PURE__*/ Mini.createElement(History, null)))), /*#__PURE__*/ Mini.createElement("div", {
         className: "play"
     }, /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/001.png"
+        path: "assets/images/001.png"
     }), /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/002.png"
+        path: "assets/images/002.png"
     }), /*#__PURE__*/ Mini.createElement(Play, {
-        path: "../Images/003.png"
+        path: "assets/images/003.png"
     })));
 }
 function Chat() {

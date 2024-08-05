@@ -3,45 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="dist/pages/icon.ico" />
+    <link rel="icon" type="image/x-icon" href="/pages/icon.ico" />
+    <!-- <link rel="stylesheet" href="global.css" /> -->
     <title>Mini js</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-family: "Inter", sans-serif;
-        font-optical-sizing: auto;
-        font-style: normal;
-        font-variation-settings: "slnt" 0;
-      }
-      :root {
-        --blue0: #00273f;
-        --blue1: #004974;
-        --blue2: #016d9e;
-        --blue3: #0295c0;
-        --blue4: #00b5fa;
-        --blue5: #eafafd;
-        --brown0: #2f2725;
-        --brown1: #c76742;
-        --brown2: #c77e42;
-        --brown3: #c69442;
-        --brown4: #c7a442;
-        --brown6: #f9f8f4;
-        --red: #d24848;
-        --green: #00fa37;
-      }
-      iframe {
-        display: flex;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
   </head>
-  <body style="height: 100vh">
+  <style>
+  * { margin: 0; padding: 0; border: 0; font-family: "Inter", sans-serif;
+      font-optical-sizing: auto; font-style: normal;
+      font-variation-settings: "slnt" 0; }
+    :root {
+      --blue0: #00273f; --blue1: #004974; --blue2: #016d9e;
+      --blue3: #0295c0; --blue4: #00b5fa; --blue5: #eafafd;
+      --brown0: #2f2725; --brown1: #c76742; --brown2: #c77e42;
+      --brown3: #c69442; --brown4: #c7a442; --brown6: #f9f8f4;
+      --red: #d24848; --green: #00fa37; }
+    #content { width: 100vw; height: 100vh;}
+    /* iframe { display: flex; width: 100%; height: 100%;} */
+  </style>
+  <body >
     <script type="module" src="./Mini/lib.js"></script>
-    <script type="module" src="dist/pages/router.js"></script>
+    <script type="module" src="/pages/router.js"></script>
     <!-- <script type="module" src="dist/pages/router.js"></script> -->
-    <iframe id="frame" scrolling="no" name="mini-frame"> </iframe>
+    <!-- <iframe id="frame" scrolling="no" name="mini-frame"> </iframe> -->
+    <!-- <iframe id="frame" scrolling="no" name="mini-frame"> </iframe> -->
+    <div id="content"></div>
+ 
   </body>
 </html>

@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 const serveStaticFile = (filePath, contentType, res) => {
 	fs.readFile(filePath, (err, data) => {
 		if (err) {
-			console.log("file not found", filePath);
+			console.error("file not found", filePath);
 			res.writeHead(404, { "Content-Type": "text/plain" });
 			res.end("404 Not Found");
 		} else {
@@ -23,12 +23,16 @@ const server = http.createServer((req, res) => {
 	console.log("send ", req.url);
 	if (req.method === "GET" && req.url === "/") 
 	{
-		const indexPath = path.resolve(__dirname, "index.html");
+		const indexPath = path.resolve(__dirname, "./index.html");
 		serveStaticFile(indexPath, "text/html", res);
 	}
 	else if (req.method === "GET")
 	{
-		const filePath = path.resolve(__dirname, "." + req.url);
+		let filePath;
+		if(req.url == "/Mini/lib.js" )
+			filePath = path.resolve(__dirname, "."+  req.url);
+		else
+			filePath = path.resolve(__dirname, "."+ "/dist/" + req.url);
 		const ext = path.extname(filePath);
 		let contentType = "text/plain";
 		switch (ext) {
@@ -83,8 +87,6 @@ function watchDirectory(directoryPath) {
 			console.error('Error reading directory:', err);
 			return;
 		}
-		// console.log(files);
-
 		files.forEach((file) => {
 			const fullPath = path.join(directoryPath, file.name);
 			if (file.isDirectory()) {
@@ -97,7 +99,7 @@ function watchDirectory(directoryPath) {
 }
 
 watchDirectory(path.resolve(__dirname, 'dist/pages'));
-listenOnChange(path.resolve(__dirname, 'index.html'))
+listenOnChange(path.resolve(__dirname, './index.html'))
 
 wss.on("connection", (ws) => {
 	console.log("Client connected");

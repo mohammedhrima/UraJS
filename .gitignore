@@ -1,3 +1,4 @@
-**/node_modules
+/node_modules/
 **/.parcel-cache/
 **/package-lock.json
+/dist/
