@@ -23,3 +23,13 @@
 + lazy loading
 
 + building command npx swc ./src -d dist --strip-leading-paths
+
++ listenOnDir:
+    + loop on content:
+        + if isDir:
+            + listenOnDir
+        + elif isFile:
+            + if file not js:
+                + copy file if changed
+            + elif is js:
+                + execute npx swc file -d dist

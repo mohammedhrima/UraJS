@@ -1,7 +1,5 @@
-/** @jsx Mini.createElement */
-/** @jsxFrag Mini.Fragment */
 
-import { Mini } from "../../../Mini/lib.js";
+import { Mini } from "../../Mini/lib.js";
 
 function User() {
   const Go = (e) => {

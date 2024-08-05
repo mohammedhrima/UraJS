@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="/pages/icon.ico" />
     <!-- <link rel="stylesheet" href="global.css" /> -->
-    <title>Mini js</title>
+    <title>the new index file</title>
   </head>
   <style>
   * { margin: 0; padding: 0; border: 0; font-family: "Inter", sans-serif;
@@ -21,8 +21,24 @@
     /* iframe { display: flex; width: 100%; height: 100%;} */
   </style>
   <body >
-    <script type="module" src="./Mini/lib.js"></script>
+    <!-- <script type="module" src="../../Mini/lib.js"></script> -->
     <script type="module" src="/pages/router.js"></script>
+    <script>
+      const PORT = 5000;
+      if ("WebSocket" in window) {
+        const ws = new WebSocket('ws://localhost:5000/');
+        ws.onopen = function () {};
+        ws.onmessage = function (event) {
+          if (event.data === "refresh") {
+            console.log("refresh");
+          }
+        };
+        ws.onclose = function () {};
+      } else {
+        console.log("WebSocket NOT supported by your Browser!");
+      }
+    </script>
     <div id="content"></div>
+    
   </body>
 </html>

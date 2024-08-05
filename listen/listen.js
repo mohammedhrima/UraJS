@@ -1,74 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 const swc = require("@swc/core");
-const http = require("http");
-const WebSocket = require("ws");
 
-// Webserving
-const PORT = process.env.PORT || 5000;
-const serveStaticFile = (filePath, contentType, res) => {
-  console.log("serve", filePath);
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      console.error("file not found", filePath);
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("404 Not Found");
-    } else {
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(data);
-    }
-  });
-};
+let reload = false;
 
-const server = http.createServer((req, res) => {
-  console.log("send ", req.url);
-  if (req.method === "GET" && req.url === "/") {
-    const indexPath = path.resolve(__dirname, "./dist/pages/index.html");
-    serveStaticFile(indexPath, "text/html", res);
-  } else if (req.method === "GET") {
-    let filePath;
-    if (req.url == "Mini")
-      filePath = path.resolve(__dirname, "./Mini/lib.js");
-    else filePath = path.resolve(__dirname, "." + "/dist/" + req.url);
-    const ext = path.extname(filePath);
-    let contentType = "text/plain";
-    switch (ext) {
-      case ".js":
-        contentType = "application/javascript";
-        break;
-      case ".css":
-        contentType = "text/css";
-        break;
-      case ".html":
-        contentType = "text/html";
-        break;
-      case ".svg":
-        contentType = "image/svg+xml";
-        break;
-    }
-    serveStaticFile(filePath, contentType, res);
-  } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("404 Not Found");
-  }
-});
-
-const wss = new WebSocket.Server({ server });
-
-function refresh() {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send("refresh");
-    }
-  });
-}
-// Transpilation
 function removeComments(code) {
   return code.replace(/\/\*\*?[\s\S]*?\*\/|\/\/.*/g, "");
 }
 
 function transpileFile(filePath) {
-  console.log("transpile: ", filePath);
   const content = fs.readFileSync(filePath, "utf8");
   swc
     .transform(content, {
@@ -98,7 +38,6 @@ function transpileFile(filePath) {
       }
       fs.writeFileSync(distPath, transpiledCode);
       console.log(`Transpiled ${filePath} to ${distPath}`);
-      refresh();
     })
     .catch((err) => {
       console.error(`Error transpiling ${filePath}:`, err);
@@ -112,14 +51,12 @@ function copyFile(src, dest) {
   }
   fs.copyFileSync(src, dest);
   console.log(`Copied ${src} to ${dest}`);
-  refresh();
 }
 
 function deleteFile(filePath) {
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
     console.log(`Deleted ${filePath}`);
-    refresh();
   }
 }
 
@@ -127,7 +64,6 @@ function deleteDirectory(directoryPath) {
   if (fs.existsSync(directoryPath)) {
     fs.rmdirSync(directoryPath, { recursive: true });
     console.log(`Deleted directory ${directoryPath}`);
-    refresh();
   }
 }
 
@@ -151,7 +87,7 @@ function watchFile(filePath) {
             break;
         }
       }
-    }, process.env.TIMING || 10);
+    }, 5);
   });
 }
 
@@ -187,7 +123,7 @@ function watchDirectory(directoryPath) {
           }
         }
       }
-    }, process.env.TIMING || 10);
+    }, 5);
   });
 }
 
@@ -238,15 +174,15 @@ function syncDirectories(srcDir, destDir) {
     });
   });
 }
+
 const srcDirectory = path.resolve(__dirname, "./src");
 const destDirectory = path.resolve(__dirname, "./dist");
 syncDirectories(srcDirectory, destDirectory);
 watchDirectory(srcDirectory);
 
-wss.on("connection", (ws) => {
-  console.log("Client connected");
-});
-
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = {
+  syncDirectories,
+  watchDirectory,
+  watchFile,
+  reload,
+};
