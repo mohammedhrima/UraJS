@@ -1,16 +1,21 @@
 const fs = require("fs");
-const path = require("path");
+const _path = require("path");
 const swc = require("@swc/core");
 const http = require("http");
 const WebSocket = require("ws");
+require("dotenv").config();
+
+function relativePath(path) {
+  return _path.relative(process.cwd(), path);
+}
 
 // Webserving
 const PORT = process.env.PORT || 5000;
-const serveStaticFile = (filePath, contentType, res) => {
-  console.log("serve", filePath);
-  fs.readFile(filePath, (err, data) => {
+const serveStaticFile = (path, contentType, res) => {
+  console.log("serve", relativePath(path));
+  fs.readFile(path, (err, data) => {
     if (err) {
-      console.error("file not found", filePath);
+      console.error("file not found", relativePath(path));
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("404 Not Found");
     } else {
@@ -23,17 +28,17 @@ const serveStaticFile = (filePath, contentType, res) => {
 const server = http.createServer((req, res) => {
   console.log("send ", req.url);
   if (req.method === "GET" && req.url === "/") {
-    const indexPath = path.resolve(__dirname, "./dist/pages/index.html");
+    const indexPath = _path.resolve(__dirname, "./dist/pages/index.html");
     serveStaticFile(indexPath, "text/html", res);
   } else if (req.method === "GET") {
-    let filePath;
-    if (req.url == "Mini")
-      filePath = path.resolve(__dirname, "./Mini/lib.js");
-    else filePath = path.resolve(__dirname, "." + "/dist/" + req.url);
-    const ext = path.extname(filePath);
+    let path;
+    if (req.url == "Mini") path = _path.resolve(__dirname, "./Mini/lib.js");
+    else path = _path.resolve(__dirname, "." + "/dist/" + req.url);
+    const ext = _path.extname(path);
     let contentType = "text/plain";
     switch (ext) {
       case ".js":
+      case ".ts":
         contentType = "application/javascript";
         break;
       case ".css":
@@ -46,7 +51,7 @@ const server = http.createServer((req, res) => {
         contentType = "image/svg+xml";
         break;
     }
-    serveStaticFile(filePath, contentType, res);
+    serveStaticFile(path, contentType, res);
   } else {
     res.writeHead(404, { "Content-Type": "text/plain" });
     res.end("404 Not Found");
@@ -64,15 +69,15 @@ function refresh() {
 }
 // Transpilation
 function removeComments(code) {
-  return code.replace(/\/\*\*?[\s\S]*?\*\/|\/\/.*/g, "");
+  return code;
+  // return code.replace(/\/\*\*?[\s\S]*?\*\/|\/\/.*/g, "");
 }
 
-function transpileFile(filePath) {
-  console.log("transpile: ", filePath);
-  const content = fs.readFileSync(filePath, "utf8");
+function transpileFile(path) {
+  const content = fs.readFileSync(path, "utf8");
   swc
     .transform(content, {
-      filename: path.basename(filePath),
+      filename: _path.basename(path),
       jsc: {
         parser: {
           syntax: "ecmascript",
@@ -89,36 +94,35 @@ function transpileFile(filePath) {
       },
     })
     .then((result) => {
-      let transpiledCode = result.code;
-      transpiledCode = removeComments(transpiledCode);
-      const distPath = filePath.replace(/src/, "dist");
-      const distDir = path.dirname(distPath);
+      let transpiledCode = removeComments(result.code);
+      const distPath = path.replace(/src/, "dist");
+      const distDir = _path.dirname(distPath);
       if (!fs.existsSync(distDir)) {
         fs.mkdirSync(distDir, { recursive: true });
       }
       fs.writeFileSync(distPath, transpiledCode);
-      console.log(`Transpiled ${filePath} to ${distPath}`);
+      console.log(`Transpiled to ${relativePath(distPath)}`);
       refresh();
     })
     .catch((err) => {
-      console.error(`Error transpiling ${filePath}:`, err);
+      console.error(`Error transpiling ${path}:`, err);
     });
 }
 
 function copyFile(src, dest) {
-  const destDir = path.dirname(dest);
+  const destDir = _path.dirname(dest);
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
   fs.copyFileSync(src, dest);
-  console.log(`Copied ${src} to ${dest}`);
+  console.log(`Copied to ${relativePath(dest)}`);
   refresh();
 }
 
-function deleteFile(filePath) {
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-    console.log(`Deleted ${filePath}`);
+function deleteFile(path) {
+  if (fs.existsSync(path)) {
+    fs.unlinkSync(path);
+    console.log(`Deleted ${relativePath(path)}`);
     refresh();
   }
 }
@@ -126,28 +130,29 @@ function deleteFile(filePath) {
 function deleteDirectory(directoryPath) {
   if (fs.existsSync(directoryPath)) {
     fs.rmdirSync(directoryPath, { recursive: true });
-    console.log(`Deleted directory ${directoryPath}`);
+    console.log(`Deleted directory ${relativePath(directoryPath)}`);
     refresh();
   }
 }
 
-function watchFile(filePath) {
-  console.log("watch file", filePath);
+function watchFile(path) {
+  console.log("watch file", path);
   let timeout;
-  fs.watch(filePath, (eventType, filename) => {
+  fs.watch(path, (eventType, filename) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      console.log(filePath, "has been modified.");
-      if (!fs.existsSync(filePath)) {
-        deleteFile(filePath.replace(/src/, "dist"));
+      console.log(relativePath(path), "has been modified.");
+      if (!fs.existsSync(path)) {
+        deleteFile(path.replace(/src/, "dist"));
       } else {
-        const ext = path.extname(filePath);
+        const ext = _path.extname(path);
         switch (ext) {
           case ".js":
-            transpileFile(filePath);
+          case ".ts":
+            transpileFile(path);
             break;
           default:
-            copyFile(filePath, filePath.replace(/src/, "dist"));
+            copyFile(path, path.replace(/src/, "dist"));
             break;
         }
       }
@@ -161,9 +166,9 @@ function watchDirectory(directoryPath) {
   fs.watch(directoryPath, { recursive: true }, (eventType, filename) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      console.log(directoryPath, "directory modified");
+      console.log(relativePath(directoryPath), "directory modified");
       if (filename) {
-        const fullPath = path.join(directoryPath, filename);
+        const fullPath = _path.join(directoryPath, filename);
         if (!fs.existsSync(fullPath)) {
           if (fs.lstatSync(fullPath).isDirectory()) {
             deleteDirectory(fullPath.replace(/src/, "dist"));
@@ -175,9 +180,10 @@ function watchDirectory(directoryPath) {
             watchDirectory(fullPath);
           } else {
             watchFile(fullPath);
-            const ext = path.extname(fullPath);
+            const ext = _path.extname(fullPath);
             switch (ext) {
               case ".js":
+              case ".ts":
                 transpileFile(fullPath);
                 break;
               default:
@@ -203,16 +209,17 @@ function syncDirectories(srcDir, destDir) {
     }
 
     items.forEach((item) => {
-      const srcPath = path.join(srcDir, item.name);
-      const destPath = path.join(destDir, item.name);
+      const srcPath = _path.join(srcDir, item.name);
+      const destPath = _path.join(destDir, item.name);
 
       if (item.isDirectory()) {
         syncDirectories(srcPath, destPath);
       } else {
         if (!fs.existsSync(destPath)) {
-          const ext = path.extname(srcPath);
+          const ext = _path.extname(srcPath);
           switch (ext) {
             case ".js":
+            case ".ts":
               transpileFile(srcPath);
               break;
             default:
@@ -223,9 +230,10 @@ function syncDirectories(srcDir, destDir) {
           const srcStats = fs.statSync(srcPath);
           const destStats = fs.statSync(destPath);
           if (srcStats.mtime > destStats.mtime) {
-            const ext = path.extname(srcPath);
+            const ext = _path.extname(srcPath);
             switch (ext) {
               case ".js":
+              case ".ts":
                 transpileFile(srcPath);
                 break;
               default:
@@ -238,8 +246,8 @@ function syncDirectories(srcDir, destDir) {
     });
   });
 }
-const srcDirectory = path.resolve(__dirname, "./src");
-const destDirectory = path.resolve(__dirname, "./dist");
+const srcDirectory = _path.resolve(__dirname, "./src");
+const destDirectory = _path.resolve(__dirname, "./dist");
 syncDirectories(srcDirectory, destDirectory);
 watchDirectory(srcDirectory);
 

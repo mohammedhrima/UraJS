@@ -738,7 +738,7 @@ function render(vdom, parent = null) {
       if (!validTags.hasOwnProperty(tag))
         throw new Error(`Invalid tag "${tag}"`);
       let dom;
-      const svgNS = "http://www.w3.org/2000/svg";
+      const svgNS =  JSON.stringify("www.w3.org/2000/svg");
       if (tag == "svg") {
         // console.log("is svg");
         dom = document.createElementNS(svgNS, "svg");
@@ -817,7 +817,7 @@ function render(vdom, parent = null) {
               }
             }
           } else {
-            console.warn(`Invalid attribute "${key}" ignored.`);
+            console.warn("Invalid attribute ", key, " ignored.");
           }
         });
 
@@ -828,7 +828,7 @@ function render(vdom, parent = null) {
               /[A-Z]/g,
               (match) => `-${match.toLowerCase()}`
             );
-            return `${Camelkey}:${style[styleProp]}`;
+            return Camelkey + ":" + style[styleProp];
           })
           .join(";");
       }
@@ -864,24 +864,22 @@ function render(vdom, parent = null) {
   }
 }
 
+function display(vdom, attr) {
+  render(vdom, document.querySelector(attr));
+}
+
 function Fragment(props, ...children) {
   return children || [];
 }
 
 // ROUTING
-// let app = document.getElementById("app");
-let routes = [
-  {
-    path: "",
-    page: "",
-  },
-];
 
-function pathToRegex(path) {
-  return new RegExp(
-    "^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$"
-  );
-}
+// function pathToRegex(path) {
+  
+//   return new RegExp(
+//     "^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$"
+//   );
+// }
 
 function getParams(match) {
   const values = match.result.slice(1);
@@ -897,22 +895,22 @@ function getParams(match) {
 
 async function router() {
   // Test routes
-  const matches = routes.map((route) => {
-    return {
-      route: route,
-      result: location.pathname.match(pathToRegex(route.path)),
-    };
-  });
-  // find the matche object for the current route
-  let match = matches.find((elem) => elem.result !== null);
-  if (!match) {
-    // if route doesn't exists
-    match = {
-      route: routes[0],
-      result: [location.pathname],
-    };
-  }
-  //   console.log("mathc is: ", match);
+  // const matches = routes.map((route) => {
+  //   return {
+  //     route: route,
+  //     result: location.pathname.match(pathToRegex(route.path)),
+  //   };
+  // });
+  // // find the matche object for the current route
+  // let match = matches.find((elem) => elem.result !== null);
+  // if (!match) {
+  //   // if route doesn't exists
+  //   match = {
+  //     route: routes[0],
+  //     result: [location.pathname],
+  //   };
+  // }
+  // //   console.log("mathc is: ", match);
   // let element = match.route.element(getParams(match));
   // console.log("router: ", element);
   //   app = document.getElementById("app");
@@ -931,107 +929,64 @@ async function router() {
   //   }, 100);
 }
 
-let CurrentRoute = null;
-
-function waitForIframe(selector) {
-  return new Promise((resolve, reject) => {
-    const interval = 100;
-    const maxAttempts = 50;
-    let attempts = 0;
-
-    const checkIframe = setInterval(() => {
-      const iframe = document.querySelector(selector);
-      if (iframe) {
-        clearInterval(checkIframe);
-        resolve(iframe);
-        console.log("found");
-        return;
-      } else if (attempts >= maxAttempts) {
-        clearInterval(checkIframe);
-        reject(new Error("Iframe not found after maximum attempts"));
-      }
-      attempts++;
-    }, interval);
-  });
-}
-
 // Usage with async/await
-let Page = {
-  iframe: "",
-};
+let CurrentPath = "";
+let Routes = {};
 
-function Navigate(path, src) {
-  // console.log("call navigate function from ", src);
+function navigate(path) {
+  let url = Routes[path];
+  console.log("request: ", url);
+  if (!url) {
+    console.error("Error: No URL found for path", path);
+    return;
+  }
 
-  // const storedRoute = sessionStorage.getItem(path);
-  // if (storedRoute) {
-  //   let page = JSON.parse(storedRoute);
-  //   console.log("route is", page, "get it from ", routes);
-  //   // console.log(parent.window.frames[0].location.pathname);
-  //   // parent.window.frames[0].location.pathname = page
-  //   (async () => {
-  //     try {
-  //       const iframe = await waitForIframe("#frame");
-  //       iframe.src = page;
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   })();
-  //   CurrentRoute = path;
-  //   // let iframe = document.getElementById("frame");
-  //   // 	if(iframe) iframe.src = page;
-  //   // 	else console.warn("iframe not found");
-  // } else {
-  //   console.warn(path, " Not found");
-  // }
-  let page = sessionStorage.getItem(path);
-  console.log("page: ", page);
-  // const iframe = document.getElementById("frame");
-  // iframe.src = page;
-  console.log(Page);
-  // console.log("iframe: ", iframe);
+  CurrentPath = path;
+
+  fetch(url)
+    .then((response) => response.text())
+    .then((data) => {
+      const element = document.getElementById("content");
+      element.innerHTML = data;
+      const scripts = element.querySelectorAll("script");
+      scripts.forEach((script) => {
+        // const newScript = document.createElement('script');
+        // newScript.src = script.src;
+        // document.body.appendChild(newScript);
+        import(script.src)
+      });
+    })
+    .catch((error) => console.error("Error loading page:", error));
 }
 
-// window.addEventListener("load", (e) => {
-//   e.preventDefault();
-//   Navigate("/", "load");
-// });
-window.onload = () => {
-  console.log("onload");
-  //  let  iframe = document.getElementById("frame");
-  // iframe.src = "dist/pages/Home/home.html";
-  //   if (!CurrentRoute) Navigate("/", "load");
-};
+document.addEventListener("DOMContentLoaded", () => {
+  const initialPath = window.location.hash.substring(1) || 'home';
+  navigate(initialPath);
 
-// Listen for manual URI changes
-window.addEventListener("popstate", (e) => {
-  e.preventDefault();
+  window.addEventListener('popstate', (event) => {
+    console.log("pop state: ", event);
+    const path = window.location.hash.substring(1);
+    navigate(path);
+  });
 });
+
+window.navigate = (path) => {
+  window.history.pushState({}, path, path);
+  navigate(path);
+};
 
 // on loading
-document.addEventListener("DOMContentLoaded", (e) => {
-  e.preventDefault();
-});
-
-function Routes({ path, element }) {
-  //   if (path === "*") routes[0].element = element;
-  //   else routes.push({ path, element });
-  //   return "" /*<></>*/;
+function onload(path) {
+  window.onload = () => {
+    CurrentPath = path;
+    navigate(path);
+  };
 }
 
-function setRoute(path, page) {
-  sessionStorage.setItem(path, page);
-  //   routes.push({ path, page });
-  console.log("setRoutes:", path);
+function setRoutes(value) {
+  Routes = value;
 }
 
-// function Byclass(name) {
-//   return document.getElementsByClassName(name)[0];
-// }
-
-// function Byid(name) {
-//   return document.getElementById(name);
-// }
 const Byclass = (className) => document.querySelector("." + className);
 const Byid = (id) => document.querySelector("#" + id);
 
@@ -1039,13 +994,12 @@ export const Mini = {
   createElement,
   Fragment,
   render,
+  display,
   Src,
-  Routes,
   Byclass,
   Byid,
   Variable,
-  setRoute,
-  Navigate,
-  routes,
-  Page,
+  setRoutes,
+  navigate,
+  onload,
 };

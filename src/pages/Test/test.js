@@ -4,4 +4,4 @@ function Compenent() {
   return <div>test Compenent</div>;
 }
 
-Mini.render(<Compenent />, Mini.Byid("test"));
+Mini.display(<Compenent />, "#test");

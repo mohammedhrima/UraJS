@@ -4,17 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "serve": "nodemon server.js",
-    "clean": "rm -rf ./dist/*",
-    
-    "build:swc": "npx swc ./src -d dist --strip-leading-paths",
-    "build:copy": "copyfiles -u 1 'src/**/*.{html,js,css,svg,png}' dist",
-
-    "watch:swc": "npx swc src/* -w -d dist --strip-leading-paths",
-    "watch:build": "chokidar 'src/**/*.{html,js,css,svg,png}' -c 'npm run build'",
-
-    "watch": "npm run clean && concurrently 'npm run watch:swc' 'npm run watch:copy'",
-    "build": "npm run clean && npm run build:swc && npm run build:copy"
+    "start": "npm run clean && node server.js",
+    "clean": "rm -rf ./dist/*"
   },
   "author": "",
   "license": "ISC",

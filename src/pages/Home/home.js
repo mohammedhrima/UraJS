@@ -1,17 +1,18 @@
 
 import { Mini } from "../../Mini/lib.js";
 
+
 function User() {
   const Go = (e) => {
     // e.preventDefault();
-    Mini.Navigate("/login", "Go function");
+    Mini.navigate("login");
 
     // iframe.src = "dist/pages/Login/login.html";
   };
   return (
     <Mini.Src name="user">
       <div className="info">
-        <img src={"assets/images/001.svg"} />
+        <img src={"assets/images/001.svg"} loading="lazy" />
         <div className="infos">
           <h2>Mohammed hrima</h2>
           <button onclick={(e) => Go(e)}>Clique me</button>
@@ -119,6 +120,6 @@ function Chat() {
 
 const Components = [<User />, <Game UserLevel={60} />, <Chat />];
 
-Components.forEach((Comp) => {
-  Mini.render(Comp);
+Components.forEach((comp) => {
+  Mini.render(comp);
 });

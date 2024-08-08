@@ -33,3 +33,6 @@
                 + copy file if changed
             + elif is js:
                 + execute npx swc file -d dist
+
+
++ search for slots ???
