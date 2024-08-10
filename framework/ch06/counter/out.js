@@ -1,22 +1,16 @@
-import { createApp, createElement, createFragment, State } from "../lib/mini.js";
- function Com() {
-    const states = new State();
-    const component = ()=> createElement("h1", null, "Comaa");
-    return {
-        states,
-        component
-    };
-}
-function View() {
+import { createApp, createElement, createFragment, Routes, State } from "../lib/mini.js";
+ function View() {
     const states = new State();
     states.setItem("x", 1);
-    const component = ()=> createElement("div", {
-            id: "abc"
-        },  createElement(Com, null),  createElement("h1", null, "value ", states.getItem("x")));
-    return {
-        states,
-        component
-    };
+    return  createElement("state", {
+        state: states
+    },  createElement("div", null,  createElement("button", {
+        onclick: ()=>{
+            states.setItem("x", states.getItem("x") + 1);
+        }
+    }, "clique me"),  createElement("div", {
+        id: "abc"
+    },  createElement("h1", null, "this is ", ()=>states.getItem("x")))));
 }
 
 createApp({

@@ -622,7 +622,7 @@ const validTags = {
 
 function assert(condition, message = "Assertion failed") {
   if (!condition) {
-    throw new Error(message);
+    throw message;
   }
 }
 
@@ -635,11 +635,13 @@ class State {
     this.render = func;
   }
   setItem(key, value) {
+    console.log("set item", this.render);
     this.map.set(key, value);
     if (this.render) this.render();
   }
   // TODO: if key not found throw an Error
   getItem(key) {
+    if (!this.map.get(key)) throw `State ${key} not found`;
     return this.map.get(key);
   }
   removeItem(key) {
@@ -651,65 +653,45 @@ class State {
 }
 
 function check(child) {
-  // console.log("child:", child, "typeof:", typeof child);
-  if (!child) throw Error("check found NULL child");
+  if (!child) throw "check found NULL child";
   else if (typeof child === "string" || typeof child === "number") {
     return {
       type: "text",
       value: child,
     };
   }
-  // else if(typeof child === "function")
-  // {
-  //   console.log("child is function");
-  //   return child();
-  // }
   return child;
 }
 
-function createFragment(...children) {
-  //   return children;
-  // return children || [];
-  return {
-    type: "fragment",
-    children: children,
-  };
+function createFragment(props, ...children) {
+  return children || [];
 }
 
-function createElement(tag, props = {}, ...children) {
-  console.log("createElement: ", tag, ", has children: ", children);
+function createElement(tag = null, props = {}, ...children) {
   if (typeof tag === "function") {
     let funcTag = tag(props || {});
-    console.log("createElement: ", funcTag, ", has children: ", children);
-    // const res = {
-    //   funcTag.component,
-    // }
-    console.log(funcTag.component());
-    // console.log("found function", funcTag);
-    if (funcTag.type == "fragment") {
-      // console.log("found fragment");
-      // console.log(funcTag);
+    if (funcTag.length == 0) {
       return {
         type: "fragment",
         props: props || {},
         children: (children || []).map(check),
       };
-    } else if (typeof funcTag === "function") {
-      // console.log("hello", funcTag.component);
-      return funcTag;
-    } else {
-      // console.log(funcTag);
-      return funcTag;
     }
+    return createElement(funcTag.tag, funcTag.props, ...funcTag.children);
   }
-  return {
-    type: "element",
+  if (children && children.length) children = children.map(check);
+  const element = {
     tag: tag,
+    type: tag && tag != "Route" && tag != "state" ? "element" : "fragment",
     props: props,
-    children: (children || []).map(check),
+    children: children,
   };
+  return element;
 }
 
+function Routes({ path, element }) {
+  return "";
+}
 // TODO: remove event listen like onclick
 function destroyDOM(vdom) {
   // console.log("destory: ", vdom);
@@ -722,6 +704,7 @@ function destroyDOM(vdom) {
     }
     case "element": {
       vdom.element.remove();
+      vdom.children.map(destroyDOM);
       break;
     }
     case "fragment": {
@@ -740,6 +723,7 @@ function mountDOM(vdom, parentDOM) {
   switch (vdom.type) {
     case "element": {
       const { tag, props } = vdom;
+
       vdom.element = document.createElement(tag);
       console.log(vdom.children);
 
@@ -768,11 +752,36 @@ function mountDOM(vdom, parentDOM) {
       break;
     }
     case "fragment": {
+      const { tag, props } = vdom;
+      if (tag == "state") console.log("foud state");
+      console.log(vdom);
+      vdom.props.state.render = () => {
+        console.log("call render");
+        vdom.children.map((child) => {
+          destroyDOM(child);
+        });
+        vdom.children.map((child) => {
+          mountDOM(child, parentDOM);
+        });
+        console.log(vdom.props.state);
+      };
       vdom.children.map((child) => {
         mountDOM(child, parentDOM);
       });
       break;
     }
+    // case "state": {
+    //   console.log("mount state", vdom);
+    //   vdom.props.state.render = () => {
+    //     console.log("call render");
+    //     destroyDOM(vdom);
+    //     // mountDOM(vdom, parentDOM);
+    //   };
+
+    //   vdom.children.map((child) => {
+    //     mountDOM(child, parentDOM);
+    //   });
+    // }
     case "text": {
       const { value } = vdom;
       vdom.element = document.createTextNode(value);
@@ -806,17 +815,17 @@ function createApp({ viewfunc }) {
     vdom = view;
     vdom.parent = {};
     vdom.parent.element = parent;
-    vdom.states = view.states;
+    // vdom.states = view.states;
 
     // console.log("mount:", vdom);
     // console.log("to parent:", parent);
     mountDOM(vdom, vdom.parent.element);
 
-    vdom.states.render = () => {
-      console.log("call render", parent);
-      renderApp(parent);
-      // mountDOM(vdom, vdom.parent.element);
-    };
+    // vdom.states.render = () => {
+    //   console.log("call render", parent);
+    //   renderApp(parent);
+    //   // mountDOM(vdom, vdom.parent.element);
+    // };
   }
   return {
     mount(parent) {
@@ -831,4 +840,4 @@ function createApp({ viewfunc }) {
   };
 }
 
-export { createApp, createElement, createFragment, State };
+export { createApp, createElement, createFragment, State, Routes };
