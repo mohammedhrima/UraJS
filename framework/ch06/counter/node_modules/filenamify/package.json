@@ -1,0 +1,55 @@
+{
+	"name": "filenamify",
+	"version": "5.1.1",
+	"description": "Convert a string to a valid safe filename",
+	"license": "MIT",
+	"repository": "sindresorhus/filenamify",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "https://sindresorhus.com"
+	},
+	"type": "module",
+	"exports": {
+		".": "./index.js",
+		"./browser": "./filenamify.js"
+	},
+	"engines": {
+		"node": ">=12.20"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"filenamify-path.d.ts",
+		"filenamify-path.js",
+		"filenamify.d.ts",
+		"filenamify.js",
+		"index.d.ts",
+		"index.js"
+	],
+	"keywords": [
+		"filename",
+		"safe",
+		"sanitize",
+		"file",
+		"name",
+		"string",
+		"path",
+		"filepath",
+		"convert",
+		"valid",
+		"dirname"
+	],
+	"dependencies": {
+		"filename-reserved-regex": "^3.0.0",
+		"strip-outer": "^2.0.0",
+		"trim-repeated": "^2.0.0"
+	},
+	"devDependencies": {
+		"ava": "^3.15.0",
+		"tsd": "^0.18.0",
+		"xo": "^0.45.0"
+	}
+}
