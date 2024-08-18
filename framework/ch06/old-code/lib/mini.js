@@ -635,7 +635,7 @@ class State {
     this.render = func;
   }
   setItem(key, value) {
-    console.log("set item", this.render);
+    console.log("set item", key);
     this.map.set(key, value);
     if (this.render) this.render();
   }
@@ -753,7 +753,7 @@ function mountDOM(vdom, parentDOM) {
     }
     case "fragment": {
       const { tag, props } = vdom;
-      if (tag == "state") console.log("foud state");
+      if (tag == "state") console.log("found state");
       console.log(vdom);
       vdom.props.state.render = () => {
         console.log("call render");
