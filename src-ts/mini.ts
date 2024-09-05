@@ -7,6 +7,9 @@ enum TYPE {
   ELEMENT = 1,
   FRAGMENT,
   TEXT,
+  SELECTOR,
+  STATE,
+  FUNCTION,
 }
 
 type VDOM = {
@@ -14,11 +17,12 @@ type VDOM = {
   type: TYPE;
   props?: Props;
   index?: number;
-  children?: VDOMNode[];
+  children?: Array<VDOMNode>;
   value?: string | number;
   element?: HTMLElement;
   parent?: any | VDOM;
   events: Record<string, EventListener> | {};
+  func?: Function;
 };
 
 class State {
@@ -61,10 +65,15 @@ const watchedArray = createArrayWatcher(
     );
     // Only update state array, Proxy will handle watchedArray
     state[index] = newValue;
-    console.log("Updated state: ", state);
-    console.log("Watched array: ", watchedArray);
+    // console.log("Updated state: ", state);
+    // console.log("Watched array: ", watchedArray);
   }
 );
+
+function logState() {
+  console.log(">", state);
+  console.log(">", watchedArray);
+}
 
 const handlers: any = [];
 
@@ -85,7 +94,7 @@ function useState(initialState?: any) {
     () => watchedArray[localIndex],
     (newState: any) => {
       watchedArray[localIndex] = newState;
-      if(handlers[localIndex]) handlers[localIndex]();
+      if (handlers[localIndex]) handlers[localIndex]();
     },
   ];
 }
@@ -105,61 +114,83 @@ function createArrayWatcher(array: any, onChange: any) {
   });
 }
 
-function check(child: VDOM): VDOM {
-  if (child === null) throw "check found NULL";
-  if (typeof child === "string" || typeof child === "number") {
-    return {
-      type: TYPE.TEXT,
-      value: child,
-      events: {},
-    };
-  }
-  return child;
+// function check(child: VDOM): VDOM {
+//   if (child === null) throw "check found NULL";
+//   if (typeof child === "string" || typeof child === "number") {
+//     return {
+//       type: TYPE.TEXT,
+//       value: child,
+//       events: {},
+//     };
+//   }
+//   return child;
+// }
+
+function check(children: Array<VDOMNode>): Array<VDOMNode> {
+  let i: number = 0;
+  return children.map((child) => {
+    if (child === null) throw "check found NULL";
+    if (typeof child === "string" || typeof child === "number") {
+      return {
+        type: TYPE.TEXT,
+        index: i,
+        value: child,
+        events: {},
+      };
+    } else {
+      child.index = i;
+      return child;
+    }
+    i++;
+  });
 }
 
-function Element(tag: string | Function, props: Props, ...children: VDOMNode[]): VDOM {
-  let i: number = 0;
+function Element(
+  tag: string | Function,
+  props: Props,
+  ...children: Array<VDOMNode>
+): VDOM {
   if (typeof tag === "function") {
     let funcTag = tag(props || {});
     if (funcTag && funcTag.length == 0) {
       return {
         type: TYPE.FRAGMENT,
         props: props,
-        children: (children || []).map((child) => {
-          // @ts-ignore
-          child = check(child);
-          child.index = i;
-          i++;
-          return child;
-        }),
+        children: check(children || []),
         parent: {},
         events: {},
+        func: tag,
       };
+    } else if (funcTag && funcTag.type == TYPE.SELECTOR) {
+      return funcTag;
     } else if (funcTag) {
+      let tmp = tag;
       tag = funcTag.tag;
       props = funcTag.props;
       children = funcTag.children;
-      return Element(tag, props, ...children);
+      let elem = Element(tag, props, ...children);
+      elem.func = tmp;
+      return elem;
     }
     throw "Element: function tag must return JSX component";
+    // return {
+    //   type: TYPE.FUNCTION,
+    //   events: {},
+    //   func: tag,
+    //   children: check(children || []),
+    // };
   }
   return {
     tag: tag,
-    type: tag == "state" ? TYPE.FRAGMENT : TYPE.ELEMENT,
+    type: tag == "get" ? TYPE.SELECTOR : tag == "state" ? TYPE.STATE : TYPE.ELEMENT,
     props: props,
-    children: (children || []).map((child) => {
-      // @ts-ignore
-      child = check(child);
-      child.index = i;
-      i++;
-      return child;
-    }),
+    children: check(children || []),
     parent: {},
     events: {},
   };
 }
 
-function Fragment(props: Props, ...children: VDOMNode[]): VDOMNode[] {
+function Fragment(props: Props, ...children: Array<VDOMNode>): Array<VDOMNode> {
   return children || [];
 }
 
@@ -175,18 +206,21 @@ function destroyDOM(vdom: VDOM): void {
     }
     vdom.events = {};
   }
+  if (vdom.element) vdom.element.remove();
   switch (vdom.type) {
     case TYPE.TEXT: {
       if (!vdom.element) throw "Can only destroy DOM nodes that have been mounted";
       vdom.element.remove();
       break;
     }
+    case TYPE.SELECTOR:
     case TYPE.ELEMENT: {
       if (!vdom.element) throw "Can only destroy DOM nodes that have been mounted";
       vdom.children.map(destroyDOM);
       vdom.element.remove();
       break;
     }
+    case TYPE.STATE:
     case TYPE.FRAGMENT: {
       vdom.children.map(destroyDOM);
       break;
@@ -203,7 +237,8 @@ function insertAtIndex(parent: HTMLElement, elem: HTMLElement, index: number) {
   else parent.appendChild(elem);
 }
 
-function mountDOM(vdom: VDOM, parentDOM: HTMLElement): void {
+function mountDOM(vdom: VDOM, parent: VDOM): VDOM {
+  vdom.parent = parent;
   switch (vdom.type) {
     case TYPE.ELEMENT: {
       const { tag, props, parent } = vdom;
@@ -241,35 +276,70 @@ function mountDOM(vdom: VDOM, parentDOM: HTMLElement): void {
           .join(";");
       }
       // insertAtIndex(parentDOM, vdom.element, vdom.index);
-      parentDOM.appendChild(vdom.element)
+      parent.element.appendChild(vdom.element);
 
       vdom.children.forEach((child) => {
-        // console.log("child:", child);
         // @ts-ignore
-        mountDOM(child, vdom.element);
-        // child.parent = vdom;
+        mountDOM(child, vdom);
       });
       break;
     }
+    case TYPE.FUNCTION: {
+      console.log("found function");
+      vdom = vdom.func();
+      mountDOM(vdom, parent);
+      break;
+    }
     case TYPE.FRAGMENT: {
-      const { tag, props } = vdom;
-      if (tag == "state") {
-        // @ts-ignore
-        console.log("watch state with index", props.watch);
-        // @ts-ignore
-        handlers[props.watch] = () => {
-          console.log("call handler");
-          console.log(vdom.parent);
-          let parent = vdom.parent
-          destroyDOM(vdom);
-          mountDOM(vdom, parent.element);
-        };
-      }
-
       console.log(vdom);
       vdom.children.forEach((child) => {
         // @ts-ignore
-        mountDOM(child, parentDOM);
+        mountDOM(child, parent);
+      });
+      break;
+    }
+    case TYPE.SELECTOR: {
+      console.log("mount selector");
+      console.log(vdom);
+
+      vdom.element = document.querySelector(vdom.props["find"]);
+      vdom.children.forEach((child) => {
+        // @ts-ignore
+        mountDOM(child, vdom);
+      });
+      break;
+    }
+    case TYPE.STATE: {
+      console.log("mount state", vdom);
+      console.log("watch ", vdom.props["watch"]);
+
+      handlers[vdom.props["watch"]] = () => {
+        destroyDOM(vdom);
+        console.log(vdom);
+
+        let i: number = 0;
+        vdom.children.forEach((child) => {
+          console.log("destroy child", child);
+          // @ts-ignore
+          destroyDOM(child);
+          // @ts-ignore
+          if (child.func) {
+            // @ts-ignore
+            let f: any = child.func;
+            // @ts-ignore
+            child = child.func();
+            //@ts-ignore
+            child.func = f;
+          }
+          vdom.children[i] = child;
+          // @ts-ignore
+          mountDOM(child, vdom.parent);
+          i++;
+        });
+      };
+      vdom.children.forEach((child) => {
+        // @ts-ignore
+        mountDOM(child, parent);
       });
       break;
     }
@@ -277,29 +347,44 @@ function mountDOM(vdom: VDOM, parentDOM: HTMLElement): void {
       const { value } = vdom;
       // @ts-ignore
       vdom.element = document.createTextNode(value);
-      parentDOM.append(vdom.element);
+      parent.element.append(vdom.element);
       break;
     }
     default:
       break;
   }
+  return vdom;
 }
 
-function render(viewfunc: any): any {
-  let vdom: VDOM = null;
-  let view: any = viewfunc;
+// function render(viewfunc: any): any {
+//   let vdom: VDOM = null;
+//   let view: any = viewfunc;
 
-  function renderApp(parentDOM: HTMLElement) {
-    if (vdom) destroyDOM(vdom);
-    vdom = view;
-    vdom.parent.element = parentDOM;
-    mountDOM(vdom, vdom.parent.element);
-    console.log(vdom);
-  }
+//   function renderApp(parentDOM: HTMLElement) {
+//     if (vdom) destroyDOM(vdom);
+//     vdom = view;
+//     vdom.parent.element = parentDOM;
+//     mountDOM(vdom, vdom.parent.element);
+//     console.log(vdom);
+//   }
 
+//   return {
+//     mount(parentDOM: HTMLElement) {
+//       renderApp(parentDOM);
+//       return vdom;
+//     },
+//     unmount() {
+//       destroyDOM(vdom);
+//       vdom = null;
+//     },
+//   };
+// }
+
+function display(viewfunc: VDOM): any {
+  let vdom: VDOM = viewfunc;
   return {
-    mount(parentDOM: HTMLElement) {
-      renderApp(parentDOM);
+    mount() {
+      mountDOM(vdom, vdom.parent);
       return vdom;
     },
     unmount() {
@@ -312,9 +397,11 @@ function render(viewfunc: any): any {
 const Mini: any = {
   Element,
   Fragment,
-  render,
+  // render,
   State,
   useState,
+  display,
+  logState,
 };
 
 export default Mini;
