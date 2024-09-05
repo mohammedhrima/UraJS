@@ -21,8 +21,92 @@ type VDOM = {
   events: Record<string, EventListener> | {};
 };
 
+class State {
+  private map: Map<string, any>;
+  private render: (() => void) | null;
+
+  constructor() {
+    this.map = new Map();
+    this.render = null;
+  }
+  setRender(func: () => void): void {
+    this.render = func;
+  }
+  setItem(key: string, value: any): void {
+    console.log("set item", key, value);
+    this.map.set(key, value);
+    if (this.render) this.render();
+  }
+  getItem(key: string): void {
+    const value = this.map.get(key);
+    if (value === undefined) throw `State ${key} not found`;
+    return value;
+  }
+  removeItem(key: string): void {
+    this.map.delete(key);
+  }
+  clear(): void {
+    this.map.clear();
+  }
+}
+
+let state: any[] = [];
+let index = 0;
+
+const watchedArray = createArrayWatcher(
+  state,
+  (index: number, oldValue: any, newValue: any) => {
+    console.log(
+      `Array element at index ${index} changed from ${oldValue} to ${newValue}`
+    );
+    // Only update state array, Proxy will handle watchedArray
+    state[index] = newValue;
+    console.log("Updated state: ", state);
+    console.log("Watched array: ", watchedArray);
+  }
+);
+
+const handlers: any = [];
+
+function useState(initialState?: any) {
+  // Freeze the index to maintain state
+  const localIndex = index;
+
+  // Initialize if value at the current index is not set
+  if (typeof watchedArray[localIndex] === "undefined") {
+    watchedArray[localIndex] = initialState;
+  }
+
+  index++;
+
+  // Return the state value and setter function
+  return [
+    localIndex,
+    () => watchedArray[localIndex],
+    (newState: any) => {
+      watchedArray[localIndex] = newState;
+      if(handlers[localIndex]) handlers[localIndex]();
+    },
+  ];
+}
+
+function createArrayWatcher(array: any, onChange: any) {
+  return new Proxy(array, {
+    set(target, property, value) {
+      const oldValue = target[property];
+      const result = Reflect.set(target, property, value);
+
+      // Only trigger change if the value actually changed
+      if (oldValue !== value) {
+        onChange(property, oldValue, value);
+      }
+      return result;
+    },
+  });
+}
+
 function check(child: VDOM): VDOM {
-  if (!child) throw "check found NULL";
+  if (child === null) throw "check found NULL";
   if (typeof child === "string" || typeof child === "number") {
     return {
       type: TYPE.TEXT,
@@ -61,7 +145,7 @@ function Element(tag: string | Function, props: Props, ...children: VDOMNode[]):
   }
   return {
     tag: tag,
-    type: TYPE.ELEMENT,
+    type: tag == "state" ? TYPE.FRAGMENT : TYPE.ELEMENT,
     props: props,
     children: (children || []).map((child) => {
       // @ts-ignore
@@ -80,6 +164,8 @@ function Fragment(props: Props, ...children: VDOMNode[]): VDOMNode[] {
 }
 
 function destroyDOM(vdom: VDOM): void {
+  // console.log("destroy", vdom);
+
   if (vdom.element && vdom.events) {
     for (const eventType in vdom.events) {
       if (vdom.events.hasOwnProperty(eventType)) {
@@ -89,13 +175,14 @@ function destroyDOM(vdom: VDOM): void {
     }
     vdom.events = {};
   }
-  if (!!vdom.element) throw "Can only destroy DOM nodes that have been mounted";
   switch (vdom.type) {
     case TYPE.TEXT: {
+      if (!vdom.element) throw "Can only destroy DOM nodes that have been mounted";
       vdom.element.remove();
       break;
     }
     case TYPE.ELEMENT: {
+      if (!vdom.element) throw "Can only destroy DOM nodes that have been mounted";
       vdom.children.map(destroyDOM);
       vdom.element.remove();
       break;
@@ -108,6 +195,12 @@ function destroyDOM(vdom: VDOM): void {
       break;
     }
   }
+}
+
+function insertAtIndex(parent: HTMLElement, elem: HTMLElement, index: number) {
+  const child = parent.children[index];
+  if (child) parent.insertBefore(elem, child);
+  else parent.appendChild(elem);
 }
 
 function mountDOM(vdom: VDOM, parentDOM: HTMLElement): void {
@@ -147,19 +240,32 @@ function mountDOM(vdom: VDOM, parentDOM: HTMLElement): void {
           })
           .join(";");
       }
+      // insertAtIndex(parentDOM, vdom.element, vdom.index);
+      parentDOM.appendChild(vdom.element)
 
-      parentDOM.appendChild(vdom.element);
       vdom.children.forEach((child) => {
-        console.log("child:", child);
+        // console.log("child:", child);
         // @ts-ignore
         mountDOM(child, vdom.element);
+        // child.parent = vdom;
       });
-
       break;
     }
     case TYPE.FRAGMENT: {
       const { tag, props } = vdom;
-      if (tag == "state") console.log("found state");
+      if (tag == "state") {
+        // @ts-ignore
+        console.log("watch state with index", props.watch);
+        // @ts-ignore
+        handlers[props.watch] = () => {
+          console.log("call handler");
+          console.log(vdom.parent);
+          let parent = vdom.parent
+          destroyDOM(vdom);
+          mountDOM(vdom, parent.element);
+        };
+      }
+
       console.log(vdom);
       vdom.children.forEach((child) => {
         // @ts-ignore
@@ -188,6 +294,7 @@ function render(viewfunc: any): any {
     vdom = view;
     vdom.parent.element = parentDOM;
     mountDOM(vdom, vdom.parent.element);
+    console.log(vdom);
   }
 
   return {
@@ -206,6 +313,8 @@ const Mini: any = {
   Element,
   Fragment,
   render,
+  State,
+  useState,
 };
 
 export default Mini;

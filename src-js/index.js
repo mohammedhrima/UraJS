@@ -1,12 +1,13 @@
 import Mini from "./mini.js";
 const Func = () => {
-    return (Mini.Element("div", null,
-        "func tag",
+    const [index, count, setCount] = Mini.useState(123);
+    return (Mini.Element("state", { watch: index },
         Mini.Element("button", { onclick: () => {
-                console.log("hey");
-            }, style: {
-                color: "red",
-            } }, "clique me")));
+                console.log("click", count());
+                setCount(count() + 1);
+            } },
+            "clique me ",
+            count())));
 };
 let root = document.getElementById("root");
 Mini.render(Mini.Element(Func, null)).mount(root);
