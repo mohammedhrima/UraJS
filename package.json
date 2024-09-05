@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "scripts": {
+    "ts": "tsc -w",
+    "start": "live-server --port=17000"
+  },
+  "dependencies": {
+    "typescript": "^5.5.4"
+  }
+}
