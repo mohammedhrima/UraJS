@@ -23,6 +23,7 @@ type VDOM = {
   parent?: any | VDOM;
   events: Record<string, EventListener> | {};
   func?: Function;
+  states?: Object;
 };
 
 class State {
@@ -241,7 +242,20 @@ function mountDOM(vdom: VDOM, parent: VDOM): VDOM {
   vdom.parent = parent;
   switch (vdom.type) {
     case TYPE.ELEMENT: {
-      const { tag, props, parent } = vdom;
+      console.log(">", vdom);
+
+      let { tag, props, parent } = vdom;
+      // console.log(typeof tag);
+
+      // //@ts-ignore
+      // vdom = tag
+      // //@ts-ignore
+      // tag = tag.tag;
+      // //@ts-ignore
+      // props = tag.props;
+      // //@ts-ignore
+      // parent = tag.parent;
+
       if (!(tag in validTags)) {
         console.warn(
           `Invalid tag '${tag}',\n` +
