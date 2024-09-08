@@ -2,11 +2,19 @@
   "compilerOptions": {
     "module": "ESNext",
     "target": "ES6",
-    "rootDir": "src-ts",
-    "outDir": "src-js",
+    "rootDir": "src-ts",        // Specify the root directory of input files
+    "outDir": "src-js",         // Specify the output directory for compiled files
     "jsx": "react",
-    "jsxFactory": "Mini.Element",
-    "jsxFragmentFactory": "Mini.Fragment",
-    "moduleResolution": "node"
-  }
+    "jsxFactory": "Mini.element",
+    "jsxFragmentFactory": "Mini.fragment",
+    "moduleResolution": "node",
+    "skipLibCheck": false
+  },
+  "include": [
+    "src-ts/**/*"               // Include all files in the src-ts directory
+  ],
+  "exclude": [
+    "node_modules",             // Exclude node_modules
+    "src-js"                    // Exclude the output directory to avoid circular compilation
+  ]
 }
