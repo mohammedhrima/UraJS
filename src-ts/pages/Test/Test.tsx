@@ -1,6 +1,6 @@
-import Mini from "../../mini/mini";
+import Mini from "../../mini/mini.js";
 import { MiniComponent } from "../../mini/types.js";
-Mini.loadCSS("src-ts/pages/Test/Test.css");
+Mini.loadCSS("src-js/pages/Test/Test.css");
 
 function Test(): MiniComponent {
   const [key, state] = Mini.initState();

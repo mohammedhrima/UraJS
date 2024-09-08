@@ -1,23 +1,32 @@
 import Mini from "./mini/mini.js";
 import { MiniComponent } from "./mini/types.js";
 import Home from "./pages/Home/Home.js";
-Mini.loadCSS("./src-js/main.css")
+import Test from "./pages/Test/Test.js";
+Mini.loadCSS("./src-js/main.css");
 
-function App(): MiniComponent {
+function Test1(): MiniComponent {
   return {
     key: null,
     component: () => {
       return (
-        <div>
-          <Home/>
-        </div>
+          <h1>test 1</h1>
       );
     },
   };
 }
 
+function Test2(): MiniComponent {
+  return {
+    key: null,
+    component: () => {
+      return <h1>test2</h1>;
+    },
+  };
+}
+
 Mini.display(
-  <Mini.get by="#root">
-    <App />
-  </Mini.get>
+  <get by="#root">
+    <Mini.Routes path="/" call={<Test2/>} />
+    <Mini.Routes path="/" call={<Test1/>} />
+  </get>
 );

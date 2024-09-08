@@ -47,15 +47,17 @@ mini_base_path = Path("src-ts/mini/mini")
 
 # Calculate the relative import path
 relative_import_path = calculate_relative_path(directory_path, mini_base_path)
+relative_css_path = str(css_file_path).replace("src-ts", "src-js")
+print("path0: ", relative_import_path)
+print("path1: ", mini_base_path)
+print("path2: ", relative_css_path)
 
-print("relative path", relative_import_path)
-print("basepath", mini_base_path)
 
 # Create the TypeScript file
 with open(file_path, 'w') as ts_file:
-    ts_file.write(f"import Mini from \"{relative_import_path}\";\n")
+    ts_file.write(f"import Mini from \"{relative_import_path}.js\";\n")
     ts_file.write(f"import {{ MiniComponent }} from \"{calculate_relative_path(directory_path, Path('src-ts/mini/types.js')).replace(str(mini_base_path), 'mini')}\";\n")
-    ts_file.write(f'Mini.loadCSS("{css_file_path}");\n\n')
+    ts_file.write(f'Mini.loadCSS("{relative_css_path}");\n\n')
     ts_file.write(f"function {file_name}(): MiniComponent {{\n")
     ts_file.write(f"  const [key, state] = Mini.initState();\n")
     ts_file.write(f"  return {{\n")

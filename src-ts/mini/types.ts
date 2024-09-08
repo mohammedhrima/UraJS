@@ -5,23 +5,24 @@ export type Props = { [key: string]: any } | {};
 export type Tag = string | Function;
 
 export const TYPE = {
-  ELEMENT: 1,
-  FRAGMENT: 2,
-  TEXT: 3,
-  SELECTOR: 4,
-  STATE: 5,
-  FUNCTION: 6,
+  ELEMENT: "element",
+  FRAGMENT: "fragment",
+  TEXT: "text",
+  SELECTOR: "selector",
+  STATE: "state",
+  FUNCTION: "function",
+  ROUTE: "route",
 };
 
 export type VDOM = {
   tag?: Tag;
-  type: number;
+  type: string;
   props?: Props;
   index?: number;
   children?: Array<VDOMNode>;
   value?: string | number;
   dom?: HTMLElement;
-  parent?: any | VDOM;
+  // parent?: any | VDOM;
   events?: Record<string, EventListener>;
   func?: Function;
   states?: Object;
@@ -31,3 +32,13 @@ export type MiniComponent = {
   key: any | null;
   component: () => VDOM;
 };
+
+// export type MiniRoute = {
+//   path: string;
+//   call: (props?: Props) => MiniComponent;
+// };
+
+// export type MiniMatch = {
+//   route: MiniRoute;
+//   result: RegExpMatchArray | null;
+// };

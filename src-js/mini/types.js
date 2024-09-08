@@ -1,9 +1,18 @@
 // type.ts
 export const TYPE = {
-    ELEMENT: 1,
-    FRAGMENT: 2,
-    TEXT: 3,
-    SELECTOR: 4,
-    STATE: 5,
-    FUNCTION: 6,
+    ELEMENT: "element",
+    FRAGMENT: "fragment",
+    TEXT: "text",
+    SELECTOR: "selector",
+    STATE: "state",
+    FUNCTION: "function",
+    ROUTE: "route",
 };
+// export type MiniRoute = {
+//   path: string;
+//   call: (props?: Props) => MiniComponent;
+// };
+// export type MiniMatch = {
+//   route: MiniRoute;
+//   result: RegExpMatchArray | null;
+// };

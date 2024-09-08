@@ -1,5 +1,5 @@
-import Mini from "../../mini/mini";
-Mini.loadCSS("src-ts/pages/Test/Test.css");
+import Mini from "../../mini/mini.js";
+Mini.loadCSS("src-js/pages/Test/Test.css");
 function Test() {
     const [key, state] = Mini.initState();
     return {

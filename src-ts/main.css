@@ -1,3 +1,18 @@
-body {
- background-color: red;      
+* {
+  margin: 0px 0px 0px 0px;
+}
+
+#root {
+  background-color: aliceblue;
+  color: rgb(16, 14, 36);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 100px;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
 }

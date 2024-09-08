@@ -1,4 +1,7 @@
-import { TYPE } from "./types.js";
+import { TYPE,
+// MiniRoute,
+// MiniMatch,
+ } from "./types.js";
 import validTags from "./validTags.js";
 function loadCSS(filename) {
     const link = document.createElement("link");
@@ -83,7 +86,10 @@ function element(tag, props, ...children) {
             return currTag;
         }
         else if (funcTag.type) {
-            return Object.assign(Object.assign({}, funcTag), { children: check(children || []) });
+            return {
+                ...funcTag,
+                children: check(children || []),
+            };
         }
         else
             throw "function must return JSX";
@@ -93,12 +99,12 @@ function element(tag, props, ...children) {
         type: TYPE.ELEMENT,
         props: props,
         children: check(children || []),
-        parent: {},
+        // parent: {},
         events: {},
     };
 }
 function get(props, ...children) {
-    // console.log("get:", props);
+    console.log("get:", children);
     return {
         type: TYPE.SELECTOR,
         dom: document.querySelector(props["by"]),
@@ -106,7 +112,6 @@ function get(props, ...children) {
     };
 }
 function destroyDOM(vdom) {
-    var _a, _b;
     for (const eventType in vdom.events) {
         if (vdom.events.hasOwnProperty(eventType)) {
             const callback = vdom.events[eventType];
@@ -114,8 +119,8 @@ function destroyDOM(vdom) {
         }
         vdom.events = {};
     }
-    (_a = vdom.dom) === null || _a === void 0 ? void 0 : _a.remove();
-    (_b = vdom.children) === null || _b === void 0 ? void 0 : _b.map(destroyDOM);
+    vdom.dom?.remove();
+    vdom.children?.map(destroyDOM);
 }
 function isvalid(tag) {
     if (!(tag in validTags)) {
@@ -124,42 +129,52 @@ function isvalid(tag) {
     }
     return true;
 }
+const routes = new Map([
+    ["", (props) => Error(props)],
+]);
 function display(vdom, parent = null) {
-    var _a, _b, _c;
+    console.log("call display", vdom, parent);
     // console.log("display:", vdom);
     switch (vdom.type) {
         case TYPE.ELEMENT: {
+            console.log("display element", vdom);
             let { tag, props } = vdom;
-            if (!isvalid(tag))
-                throw `Invalid tag ${tag}`;
-            vdom.dom = document.createElement(vdom.tag);
-            const style = {};
-            Object.keys(props || {}).forEach((key) => {
-                if (validTags[tag].includes(key)) {
-                    if (key.startsWith("on")) {
-                        const eventType = key.slice(2).toLowerCase();
-                        vdom.dom.addEventListener(eventType, props[key]);
-                        vdom.events[eventType] = vdom.props[key];
-                    }
-                    else if (key === "style")
-                        Object.assign(style, props[key]);
-                    else {
-                        vdom.dom.setAttribute(key, props[key]);
-                    }
-                }
-                else
-                    console.warn(`Invalid attribute "${key}" ignored.`);
-            });
-            if (Object.keys(style).length > 0) {
-                vdom.dom.style.cssText = Object.keys(style)
-                    .map((styleProp) => {
-                    const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
-                    return Camelkey + ":" + style[styleProp];
-                })
-                    .join(";");
+            if (tag == "get") {
+                vdom.type = TYPE.SELECTOR;
+                vdom.dom = document.querySelector(props["by"]);
             }
-            (_a = vdom.children) === null || _a === void 0 ? void 0 : _a.map((child) => {
-                display(child);
+            else {
+                if (!isvalid(tag))
+                    throw `Invalid tag ${tag}`;
+                vdom.dom = document.createElement(vdom.tag);
+                const style = {};
+                Object.keys(props || {}).forEach((key) => {
+                    if (validTags[tag].includes(key)) {
+                        if (key.startsWith("on")) {
+                            const eventType = key.slice(2).toLowerCase();
+                            vdom.dom.addEventListener(eventType, props[key]);
+                            vdom.events[eventType] = vdom.props[key];
+                        }
+                        else if (key === "style")
+                            Object.assign(style, props[key]);
+                        else {
+                            vdom.dom.setAttribute(key, props[key]);
+                        }
+                    }
+                    else
+                        console.warn(`Invalid attribute "${key}" ignored.`);
+                });
+                if (Object.keys(style).length > 0) {
+                    vdom.dom.style.cssText = Object.keys(style)
+                        .map((styleProp) => {
+                        const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+                        return Camelkey + ":" + style[styleProp];
+                    })
+                        .join(";");
+                }
+            }
+            vdom.children?.map((child) => {
+                display(child, vdom);
                 //@ts-ignore
                 if (child.dom)
                     vdom.dom.appendChild(child.dom);
@@ -169,8 +184,8 @@ function display(vdom, parent = null) {
             break;
         }
         case TYPE.SELECTOR: {
-            // console.log("type selector:", vdom);
-            (_b = vdom.children) === null || _b === void 0 ? void 0 : _b.map((child) => {
+            console.log("display selector:", vdom);
+            vdom.children?.map((child) => {
                 display(child, vdom);
                 //@ts-ignore
                 if (child.dom)
@@ -181,8 +196,11 @@ function display(vdom, parent = null) {
             break;
         }
         case TYPE.FRAGMENT: {
-            (_c = vdom.children) === null || _c === void 0 ? void 0 : _c.map((child) => {
-                display(child, vdom);
+            console.log("display fragment");
+            // console.log(parent);
+            // console.log(vdom);
+            vdom.children?.map((child) => {
+                display(child, parent);
                 //@ts-ignore
                 if (child.dom)
                     parent.dom.appendChild(child.dom);
@@ -198,8 +216,119 @@ function display(vdom, parent = null) {
             vdom.dom = document.createTextNode(value);
             break;
         }
+        case TYPE.ROUTE: {
+            console.log("display route");
+            const { props } = vdom;
+            if (props["path"] == "/")
+                props["path"] = "";
+            props["call"].parent = parent;
+            routes.set(props["path"], props["call"]);
+            vdom.children?.map((child) => {
+                display(child, parent);
+                //@ts-ignore
+                if (child.dom)
+                    parent.dom.appendChild(child.dom);
+                //@ts-ignore
+                child.parent = parent;
+            });
+            break;
+        }
     }
     return vdom;
+}
+// ROUTING
+function Error(props) {
+    return {
+        key: null,
+        component: () => {
+            return Mini.element(Mini.get, { by: "#root" }, Mini.element("h4", {
+                style: {
+                    fontFamily: "sans-serif",
+                    fontSize: "6vw",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100%",
+                },
+            }, "Error:", props && props["message"] ? ` Path '${props["message"]}'` : "", " Not Found"));
+        },
+    };
+}
+function pathToRegex(path) {
+    // console.log(path); // TODO: is nothing
+    if (path === "")
+        return new RegExp("^/$"); // For the root path ("/")
+    return new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "([^\\/]+)") + "$");
+}
+// function pathToRegex(path: string): string {
+//   if (path === "") return "^/$"; // For the root path ("/")
+//   // Replace dynamic segments like ":id" with a capturing group "([^/]+)"
+//   // Ensure proper escaping of slashes
+//   return "^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "([^\\/]+)") + "$";
+// }
+// function getParams(match: MiniMatch): Record<string, string> {
+//   const values = match.result ? match.result.slice(1) : [];
+//   const keys = Array.from(match.route.path.matchAll(/:(\w+)/g)).map(
+//     (result) => result[1]
+//   );
+//   return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
+// }
+function getParams(result) {
+    const values = result ? result.slice(1) : [];
+    const keys = Array.from(location.pathname.matchAll(/:(\w+)/g)).map((result) => result[1]);
+    return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
+}
+async function router() {
+    // console.log("call router");
+    // Test routes
+    const matches = Array.from(routes.entries()).map(([path, call]) => {
+        const regex = pathToRegex(path);
+        return {
+            path: path,
+            call: call,
+            result: location.pathname.match(regex),
+        };
+    });
+    console.log("Routes:", routes);
+    console.log("Matches:", matches);
+    let match = matches.find((elem) => elem.result !== null);
+    if (match) {
+        console.log("Matched route:", match.call);
+        // const component = match.call;
+        // console.log(match.call);
+        // @ts-ignore
+        display(match.call, match.call.parent);
+        // @ts-ignore
+        match.call.parent.dom.appendChild(match.call.dom);
+    }
+    else if (routes.has("")) {
+        // Handle default route if no match is found
+        console.log("No match found. Using default route.");
+        const defaultRoute = routes.get("");
+        const component = defaultRoute(getParams(null)).component();
+        display(component);
+    }
+    else {
+        // Handle error if no route matches and no default route exists
+        console.log("No route found. Displaying error.");
+        const errorVDOM = Error({ message: location.pathname }).component();
+        display(errorVDOM);
+    }
+}
+window.addEventListener("popstate", router); // when going back and forward
+document.addEventListener("DOMContentLoaded", router); // on loading
+function Routes(props, ...children) {
+    // console.log("call Routes", children);
+    // return props["call"];
+    return {
+        type: TYPE.ROUTE,
+        props: props,
+        children: check(children || []), // TODO: add sub routes
+    };
+    // return {
+    //   type: TYPE.FRAGMENT,
+    //   children:  [()=>routes[0].call],
+    // };
 }
 const Mini = {
     element,
@@ -207,6 +336,8 @@ const Mini = {
     display,
     get,
     initState,
-    loadCSS
+    loadCSS,
+    Error,
+    Routes,
 };
 export default Mini;
