@@ -35,6 +35,7 @@ css_file_path = directory_path / f"{name}.css"
 with open(file_path, 'w') as ts_file:
   ts_file.write(f"import Mini from \"../../mini/mini.js\";\n")
   ts_file.write(f"import {{ MiniComponent }} from \"../../mini/types.js\";\n\n")
+  ts_file.write(f'Mini.loadCSS("./{css_file_path}");\n\n')
   ts_file.write(f"function {name}(): MiniComponent {{\n")
   ts_file.write(f"  const [key, state] = Mini.initState();\n")
   ts_file.write(f"  return {{\n")

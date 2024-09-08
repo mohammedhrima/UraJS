@@ -1,6 +1,13 @@
 import { MiniComponent, VDOM, TYPE, VDOMNode, Props, Tag } from "./types.js";
 import validTags from "./validTags.js";
 
+function loadCSS(filename: string) {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = filename;
+  document.head.appendChild(link);
+}
+
 function check(children: Array<VDOMNode>): Array<VDOMNode> {
   let i: number = 0;
   return children.map((child) => {
@@ -19,7 +26,6 @@ function check(children: Array<VDOMNode>): Array<VDOMNode> {
     i++;
   });
 }
-
 
 function fragment(props: Props, ...children: Array<VDOMNode>): VDOM {
   return {
@@ -232,6 +238,7 @@ const Mini = {
   display,
   get,
   initState,
+  loadCSS
 };
 
 export default Mini;
