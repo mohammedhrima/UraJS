@@ -34,22 +34,6 @@ function fragment(props: Props, ...children: Array<VDOMNode>): VDOM {
   };
 }
 
-function createArrayWatcher(array: any, onChange: any) {
-  return new Proxy(array, {
-    set(target, property, value) {
-      const oldValue = target[property];
-      const result = Reflect.set(target, property, value);
-
-      // Only trigger change if the value actually changed
-      // console.log("change happen");
-      if (oldValue !== value) {
-        onChange(property, oldValue, value);
-      }
-      return result;
-    },
-  });
-}
-
 let index = 1;
 interface StateMap {
   state: Map<number, any>;

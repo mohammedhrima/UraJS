@@ -1,12 +1,7 @@
-// import * from "./main.css"
-// @import url(' http://server/stylesheet.css ');
 import Mini from "./mini/mini.js";
 import { MiniComponent } from "./mini/types.js";
-import User from "./pages/User/User.js";
-
+import Home from "./pages/Home/Home.js";
 Mini.loadCSS("./src-js/main.css")
-console.log("hello");
-
 
 function App(): MiniComponent {
   return {
@@ -14,7 +9,7 @@ function App(): MiniComponent {
     component: () => {
       return (
         <div>
-          <User/>
+          <Home/>
         </div>
       );
     },

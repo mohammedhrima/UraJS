@@ -1,12 +1,12 @@
 import Mini from "../../mini/mini.js";
-Mini.loadCSS("./src-ts/pages/User/User.css");
-function User() {
+Mini.loadCSS("src-js/pages/Home/Home.css");
+function Home() {
     const [key, state] = Mini.initState();
     return {
         key: key,
         component: () => {
-            return Mini.element("div", null, "User");
+            return Mini.element("div", null, "Home");
         },
     };
 }
-export default User;
+export default Home;

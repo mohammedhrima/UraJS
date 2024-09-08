@@ -32,20 +32,6 @@ function fragment(props, ...children) {
         children: children || [],
     };
 }
-function createArrayWatcher(array, onChange) {
-    return new Proxy(array, {
-        set(target, property, value) {
-            const oldValue = target[property];
-            const result = Reflect.set(target, property, value);
-            // Only trigger change if the value actually changed
-            // console.log("change happen");
-            if (oldValue !== value) {
-                onChange(property, oldValue, value);
-            }
-            return result;
-        },
-    });
-}
 let index = 1;
 let maps = new Map();
 function initState() {
