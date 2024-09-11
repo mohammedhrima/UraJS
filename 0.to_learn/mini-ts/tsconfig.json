@@ -9,13 +9,13 @@
     "jsxFragmentFactory": "Mini.fragment",
     "moduleResolution": "node",
     "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["./src-js/mini/*"]
+    // },
     "skipLibCheck": false,
-    "allowJs": true, // Enable JavaScript files to be compiled
-    "checkJs": true // Optional: enable type checking on JavaScript files
   },
   "include": [
-    "src-ts/**/*",
-    "src-ts/**/*.jsx"       // Include .jsx files in the compilation
+    "src-ts/**/*"
   ],
   "exclude": [
     "node_modules",

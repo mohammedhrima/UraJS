@@ -1,14 +1,42 @@
-import { TYPE,
-// MiniRoute,
-// MiniMatch,
- } from "./types.js";
+import { TYPE } from "./types.js";
 import validTags from "./validTags.js";
+// UTILS
 function loadCSS(filename) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = filename;
     document.head.appendChild(link);
 }
+// STATES
+const maps = new Map();
+let index = 1;
+function initState() {
+    maps.set(index, {
+        state: new Map(),
+        handler: () => { },
+    });
+    const map = maps.get(index);
+    index++;
+    let key = 1;
+    return [
+        index - 1,
+        (initialValue) => {
+            key++;
+            map.state.set(key, initialValue);
+            return [
+                () => {
+                    return map.state.get(key);
+                },
+                (newValue) => {
+                    map.state.set(key, newValue);
+                    if (map.handler)
+                        map.handler();
+                },
+            ];
+        },
+    ];
+}
+// JSX HANDLING
 function check(children) {
     let i = 0;
     return children.map((child) => {
@@ -32,49 +60,15 @@ function check(children) {
 function fragment(props, ...children) {
     return {
         type: TYPE.FRAGMENT,
-        children: children || [],
+        children: check(children || []),
     };
-}
-let index = 1;
-let maps = new Map();
-function initState() {
-    maps.set(index, {
-        state: new Map(),
-        handler: () => { },
-    });
-    const map = maps.get(index);
-    index++;
-    let key = 0;
-    return [
-        index - 1,
-        (initialValue) => {
-            key++;
-            map.state.set(key, initialValue);
-            return [
-                () => {
-                    // console.log("call getter", map.state.get(key));
-                    return map.state.get(key);
-                },
-                (newValue) => {
-                    // console.log("call setter");
-                    map.state.set(key, newValue);
-                    if (map.handler)
-                        map.handler();
-                },
-            ];
-        },
-    ];
 }
 function element(tag, props, ...children) {
     if (typeof tag === "function") {
         let funcTag = tag(props || {});
-        // console.log("function", funcTag);
         if (funcTag.component) {
-            // console.log("element", funcTag);
-            // console.log("0>", maps);
-            // console.log("1>", maps.get(funcTag.key));
             let currTag = funcTag.component();
-            if (maps.get(funcTag.key))
+            if (funcTag.key && maps.get(funcTag.key)) {
                 maps.get(funcTag.key).handler = () => {
                     destroyDOM(currTag);
                     let parent = currTag.parent;
@@ -83,6 +77,7 @@ function element(tag, props, ...children) {
                     Mini.display(currTag, parent);
                     parent.dom.appendChild(currTag.dom);
                 };
+            }
             return currTag;
         }
         else if (funcTag.type) {
@@ -92,23 +87,14 @@ function element(tag, props, ...children) {
             };
         }
         else
-            throw "function must return JSX";
+            throw `function ${tag} must return JSX`;
     }
     return {
         tag: tag,
         type: TYPE.ELEMENT,
         props: props,
         children: check(children || []),
-        // parent: {},
         events: {},
-    };
-}
-function get(props, ...children) {
-    console.log("get:", children);
-    return {
-        type: TYPE.SELECTOR,
-        dom: document.querySelector(props["by"]),
-        children: check(children || []),
     };
 }
 function destroyDOM(vdom) {
@@ -129,19 +115,107 @@ function isvalid(tag) {
     }
     return true;
 }
-const routes = new Map([
-    ["", (props) => Error(props)],
-]);
+// ROUTING
+const Routes = new Map();
+const matchPath = (pathname) => {
+    // console.log("call matchPath");
+    // const { path } = options;
+    // if (!path) {
+    //   return {
+    //     path: null,
+    //     url: pathname,
+    //     isExact: true,
+    //   };
+    // }
+    const match = new RegExp(`^${pathname}`).exec(pathname);
+    console.log(match);
+    if (!match)
+        return null;
+    const url = match[0];
+    // const isExact = pathname === url;
+    return { pathname, url };
+};
+//@ts-ignore
+let routeDom = document.getElementById("root");
+function navigate(path, parentDom) {
+    if (!parentDom)
+        parentDom = routeDom;
+    // const match = matchPath(window.location.pathname);
+    console.log("match", path);
+    console.log("navigate to ", Routes[path]);
+    // parent?.children.map(destroyDOM);
+    //@ts-ignore
+    routeDom.innerHTML = "";
+    //@ts-ignore
+    display(Routes[path]().component(), { dom: routeDom });
+    if (window.location.pathname !== path) {
+        history.pushState(null, null, path);
+    }
+}
+window.addEventListener("popstate", function (event) {
+    console.log("popstate");
+    navigate(window.location.pathname, routeDom);
+});
+document.addEventListener("DOMContentLoaded", (event) => {
+    console.log("DOMContentLoaded");
+    navigate(window.location.pathname, routeDom);
+});
+window.addEventListener("load", (event) => {
+    console.log("load");
+    navigate(window.location.pathname, routeDom);
+});
+// DISPLAY
 function display(vdom, parent = null) {
-    console.log("call display", vdom, parent);
-    // console.log("display:", vdom);
+    // console.log("vdom", vdom);
+    console.log("parent", parent);
     switch (vdom.type) {
         case TYPE.ELEMENT: {
-            console.log("display element", vdom);
             let { tag, props } = vdom;
-            if (tag == "get") {
-                vdom.type = TYPE.SELECTOR;
+            if (tag == "navigate") {
+                vdom.dom = document.createElement("a");
+                // vdom.dom.innerHTML = "hh";
+                parent.dom.appendChild(vdom.dom);
+                vdom.dom.onclick = (event) => {
+                    // console.log("navigate to ", Routes[props.to]);
+                    // parent.children.map(destroyDOM);
+                    // //@ts-ignore
+                    // display(Routes[props.to]().component(), parent);
+                    // // event.preventDefault();
+                    // // console.log("go to ", event);
+                    // //@ts-ignore
+                    // history.pushState(null, null, props.to);
+                    //@ts-ignore
+                    navigate(props.to, parent.dom);
+                };
+                vdom.children?.map((child) => {
+                    destroyDOM(child);
+                    display(child, vdom);
+                });
+            }
+            else if (tag == "route") {
+                console.log("found route", vdom);
+                // @ts-ignore
+                const { path, call, render } = props;
+                if (call) {
+                    // Routes[]
+                    Routes[path] = call;
+                    // console.log(path)
+                    // console.log("match found", parent);
+                    // console.log("call", call);
+                    // display(call, parent)
+                    // return call
+                }
+                // if (render) return render({ match });
+            }
+            else if (tag == "get") {
                 vdom.dom = document.querySelector(props["by"]);
+                vdom.dom.innerHTML = "";
+                vdom.children?.map((child) => {
+                    destroyDOM(child);
+                    display(child, vdom);
+                });
+                if (props["by"] === "root")
+                    routeDom = vdom.dom;
             }
             else {
                 if (!isvalid(tag))
@@ -172,65 +246,26 @@ function display(vdom, parent = null) {
                     })
                         .join(";");
                 }
+                vdom.children?.map((child) => {
+                    destroyDOM(child);
+                    display(child, vdom);
+                });
+                parent.dom?.appendChild(vdom.dom);
             }
-            vdom.children?.map((child) => {
-                display(child, vdom);
-                //@ts-ignore
-                if (child.dom)
-                    vdom.dom.appendChild(child.dom);
-                //@ts-ignore
-                child.parent = vdom;
-            });
-            break;
-        }
-        case TYPE.SELECTOR: {
-            console.log("display selector:", vdom);
-            vdom.children?.map((child) => {
-                display(child, vdom);
-                //@ts-ignore
-                if (child.dom)
-                    vdom.dom.appendChild(child.dom);
-                //@ts-ignore
-                child.parent = vdom;
-            });
             break;
         }
         case TYPE.FRAGMENT: {
-            console.log("display fragment");
-            // console.log(parent);
-            // console.log(vdom);
             vdom.children?.map((child) => {
+                destroyDOM(child);
                 display(child, parent);
-                //@ts-ignore
-                if (child.dom)
-                    parent.dom.appendChild(child.dom);
-                //@ts-ignore
-                child.parent = parent;
             });
             break;
         }
         case TYPE.TEXT: {
-            // console.log("type text", vdom);
             const { value } = vdom;
-            // @ts-ignore
             vdom.dom = document.createTextNode(value);
-            break;
-        }
-        case TYPE.ROUTE: {
-            console.log("display route");
-            const { props } = vdom;
-            if (props["path"] == "/")
-                props["path"] = "";
-            props["call"].parent = parent;
-            routes.set(props["path"], props["call"]);
-            vdom.children?.map((child) => {
-                display(child, parent);
-                //@ts-ignore
-                if (child.dom)
-                    parent.dom.appendChild(child.dom);
-                //@ts-ignore
-                child.parent = parent;
-            });
+            if (parent)
+                parent.dom.appendChild(vdom.dom);
             break;
         }
     }
@@ -241,7 +276,7 @@ function Error(props) {
     return {
         key: null,
         component: () => {
-            return Mini.element(Mini.get, { by: "#root" }, Mini.element("h4", {
+            return Mini.element("get", { by: "#root" }, Mini.element("h4", {
                 style: {
                     fontFamily: "sans-serif",
                     fontSize: "6vw",
@@ -254,88 +289,10 @@ function Error(props) {
         },
     };
 }
-function pathToRegex(path) {
-    // console.log(path); // TODO: is nothing
-    if (path === "")
-        return new RegExp("^/$"); // For the root path ("/")
-    return new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "([^\\/]+)") + "$");
-}
-// function pathToRegex(path: string): string {
-//   if (path === "") return "^/$"; // For the root path ("/")
-//   // Replace dynamic segments like ":id" with a capturing group "([^/]+)"
-//   // Ensure proper escaping of slashes
-//   return "^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "([^\\/]+)") + "$";
-// }
-// function getParams(match: MiniMatch): Record<string, string> {
-//   const values = match.result ? match.result.slice(1) : [];
-//   const keys = Array.from(match.route.path.matchAll(/:(\w+)/g)).map(
-//     (result) => result[1]
-//   );
-//   return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
-// }
-function getParams(result) {
-    const values = result ? result.slice(1) : [];
-    const keys = Array.from(location.pathname.matchAll(/:(\w+)/g)).map((result) => result[1]);
-    return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
-}
-async function router() {
-    // console.log("call router");
-    // Test routes
-    const matches = Array.from(routes.entries()).map(([path, call]) => {
-        const regex = pathToRegex(path);
-        return {
-            path: path,
-            call: call,
-            result: location.pathname.match(regex),
-        };
-    });
-    console.log("Routes:", routes);
-    console.log("Matches:", matches);
-    let match = matches.find((elem) => elem.result !== null);
-    if (match) {
-        console.log("Matched route:", match.call);
-        // const component = match.call;
-        // console.log(match.call);
-        // @ts-ignore
-        display(match.call, match.call.parent);
-        // @ts-ignore
-        match.call.parent.dom.appendChild(match.call.dom);
-    }
-    else if (routes.has("")) {
-        // Handle default route if no match is found
-        console.log("No match found. Using default route.");
-        const defaultRoute = routes.get("");
-        const component = defaultRoute(getParams(null)).component();
-        display(component);
-    }
-    else {
-        // Handle error if no route matches and no default route exists
-        console.log("No route found. Displaying error.");
-        const errorVDOM = Error({ message: location.pathname }).component();
-        display(errorVDOM);
-    }
-}
-window.addEventListener("popstate", router); // when going back and forward
-document.addEventListener("DOMContentLoaded", router); // on loading
-function Routes(props, ...children) {
-    // console.log("call Routes", children);
-    // return props["call"];
-    return {
-        type: TYPE.ROUTE,
-        props: props,
-        children: check(children || []), // TODO: add sub routes
-    };
-    // return {
-    //   type: TYPE.FRAGMENT,
-    //   children:  [()=>routes[0].call],
-    // };
-}
 const Mini = {
+    display,
     element,
     fragment,
-    display,
-    get,
-    initState,
     loadCSS,
     Error,
     Routes,

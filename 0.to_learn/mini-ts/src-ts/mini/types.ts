@@ -1,3 +1,5 @@
+// type.ts
+
 export type VDOMNode = VDOM | string | number;
 export type Props = { [key: string]: any } | {};
 export type Tag = string | Function;
@@ -6,16 +8,11 @@ export const TYPE = {
   ELEMENT: "element",
   FRAGMENT: "fragment",
   TEXT: "text",
-  // SELECTOR: "selector",
-  // STATE: "state",
-  // FUNCTION: "function",
-  // ROUTE: "route",
+  SELECTOR: "selector",
+  STATE: "state",
+  FUNCTION: "function",
+  ROUTE: "route",
 };
-
-export interface StateMap {
-  state: Map<number, any>;
-  handler: () => void;
-}
 
 export type VDOM = {
   tag?: Tag;
@@ -25,7 +22,7 @@ export type VDOM = {
   children?: Array<VDOMNode>;
   value?: string | number;
   dom?: HTMLElement;
-  parent?: any | VDOM;
+  // parent?: any | VDOM;
   events?: Record<string, EventListener>;
   func?: Function;
   states?: Object;
@@ -35,3 +32,13 @@ export type MiniComponent = {
   key: any | null;
   component: () => VDOM;
 };
+
+// export type MiniRoute = {
+//   path: string;
+//   call: (props?: Props) => MiniComponent;
+// };
+
+// export type MiniMatch = {
+//   route: MiniRoute;
+//   result: RegExpMatchArray | null;
+// };

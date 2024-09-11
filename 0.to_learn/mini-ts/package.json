@@ -3,7 +3,7 @@
  "scripts": {
   "ts": "npm run clear && npm run _copy && tsc -w",
   "clear": "rm -rf src-js/*",
-  "_copy": "rsync -av --exclude='*.ts' --exclude='*.tsx' --exclude='*.jsx' src-ts/ src-js/",
+  "_copy": "rsync -av --exclude='*.ts' --exclude='*.tsx' src-ts/ src-js/",
   "copy": "while true; do find src-ts -type f -newermt '-1 seconds' ! -name '*.ts' ! -name '*.tsx' -exec rsync -av --exclude='*.ts' --exclude='*.tsx' src-ts/ src-js/ \\;; sleep 1; done",
   "start": "live-server --port=17000 --cors",
   "newc": "python3 new.py component",
