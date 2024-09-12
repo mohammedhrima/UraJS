@@ -6,13 +6,34 @@
     <title>Document</title>
   </head>
   <body>
-    <!-- <h1>this text</h1> -->
-    <!-- <nav>
-      <a href="/" data-link>default</a>
-      <a href="/test1" data-link>test1</a>
-      <a href="/test2" data-link>test2</a>
-    </nav> -->
+    <!-- <a href="/">Home</a>
+    <a href="/user">User</a>
+    <a href="/about">About</a> -->
     <div id="root"></div>
-    <script type="module" src="./src-js/main.js"></script>
+    <script type="module" id="main-script" src="./main.js"></script>
+    <script>
+      const ws = new WebSocket(`ws://${window.location.host}`);
+      console.log(window.location.host)
+      ws.onmessage = (event) => {
+        if (event.data === "refresh") {
+          console.log("Received refresh signal");
+          window.location.reload(); // Reload the page when 'refresh' is received
+        }
+      };
+
+      ws.onopen = () => {
+        console.log("WebSocket connection established");
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket connection closed");
+      };
+
+    
+    </script>
   </body>
 </html>

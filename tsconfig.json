@@ -2,8 +2,8 @@
   "compilerOptions": {
     "module": "ESNext",
     "target": "ES2020",
-    "rootDir": "src-ts",
-    "outDir": "src-js",
+    "rootDir": "src",
+    "outDir": "out",
     "jsx": "react",
     "jsxFactory": "Mini.element",
     "jsxFragmentFactory": "Mini.fragment",
@@ -14,11 +14,9 @@
     "checkJs": true // Optional: enable type checking on JavaScript files
   },
   "include": [
-    "src-ts/**/*",
-    "src-ts/**/*.jsx"       // Include .jsx files in the compilation
+    "src/**/*",
+    "src/**/*.jsx", // Include .jsx files in the compilation
+    "src/main.tsx"
   ],
-  "exclude": [
-    "node_modules",
-    "src-js"
-  ]
+  "exclude": ["node_modules", "out", "server.js"]
 }

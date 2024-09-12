@@ -1,0 +1,14 @@
+* {
+  margin: 0px 0px 0px 0px;
+}
+
+#root {
+  background-color: aliceblue;
+  color: rgb(16, 14, 36);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
