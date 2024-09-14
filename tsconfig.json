@@ -13,10 +13,10 @@
     "allowJs": true, // Enable JavaScript files to be compiled
     "checkJs": true // Optional: enable type checking on JavaScript files
   },
+  
   "include": [
     "src/**/*",
     "src/**/*.jsx", // Include .jsx files in the compilation
-    "src/main.tsx"
   ],
   "exclude": ["node_modules", "out", "server.js"]
 }

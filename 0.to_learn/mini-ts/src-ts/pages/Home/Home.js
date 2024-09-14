@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var mini_js_1 = require("../../mini/mini.js");
-mini_js_1.default.loadCSS("src-js/pages/Home/Home.css");
+import Mini from "../../mini/mini.js";
+Mini.loadCSS("src-js/pages/Home/Home.css");
 function Home(props) {
-    var _a = mini_js_1.default.initState(), key = _a[0], state = _a[1];
-    var _b = state(0), setValue = _b[0], getValue = _b[1];
+    const [key, state] = Mini.initState();
+    const [setValue, getValue] = state(0);
     return {
         key: key,
-        component: function () {
-            return (<>
-          <div id={"home"}>Mini Js</div>
-        </>);
+        component: () => {
+            return (Mini.element(Mini.fragment, null,
+                Mini.element("div", { id: "home" }, "Mini Js")));
         },
     };
 }
-exports.default = Home;
+export default Home;

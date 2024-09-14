@@ -1,8 +1,5 @@
-"use strict";
 // type.ts
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TYPE = void 0;
-exports.TYPE = {
+export const TYPE = {
     ELEMENT: "element",
     FRAGMENT: "fragment",
     TEXT: "text",

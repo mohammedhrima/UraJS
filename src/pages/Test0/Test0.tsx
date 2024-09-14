@@ -1,20 +1,19 @@
 import Mini from "../../mini/mini.js";
 import { MiniComponent } from "../../mini/types.js";
-Mini.loadCSS("pages/User/User.css");
+Mini.loadCSS("pages/Test0/Test0.css");
 
-function User(): MiniComponent {
+function Test0(): MiniComponent {
   const [key, state] = Mini.initState();
-  // Mini.navigate("/test", {id:10})
   return {
     key: key,
     render: () => {
       return (
         <get by={"#root"}>
-          <div>User</div>
+          <div>Test0</div>
         </get>
       );
     },
   };
 }
-export default User;
+export default Test0;
     

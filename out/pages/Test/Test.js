@@ -1,14 +1,14 @@
 import Mini from "../../mini/mini.js";
-Mini.loadCSS("pages/User/User.css");
-function User() {
+Mini.loadCSS("pages/Test/Test.css");
+function Test(params) {
     const [key, state] = Mini.initState();
-    // Mini.navigate("/test", {id:10})
+    console.log("call", params);
     return {
         key: key,
         render: () => {
             return (Mini.element("get", { by: "#root" },
-                Mini.element("div", null, "User")));
+                Mini.element("div", null, "Test")));
         },
     };
 }
-export default User;
+export default Test;

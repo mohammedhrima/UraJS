@@ -3,21 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <!-- <base href="/out/"> -->
+    <title>Mini JS</title>
   </head>
   <body>
-    <!-- <a href="/">Home</a>
-    <a href="/user">User</a>
-    <a href="/about">About</a> -->
+ 
     <div id="root"></div>
-    <script type="module" id="main-script" src="./main.js"></script>
+    <script type="module" id="main-script" src="./pages/main.js"></script>
     <script>
       const ws = new WebSocket(`ws://${window.location.host}`);
       console.log(window.location.host)
       ws.onmessage = (event) => {
         if (event.data === "refresh") {
           console.log("Received refresh signal");
-          window.location.reload(); // Reload the page when 'refresh' is received
+          window.location.reload();
         }
       };
 

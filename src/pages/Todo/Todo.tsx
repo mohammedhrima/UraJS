@@ -1,20 +1,18 @@
+Mini.loadCSS("pages/Todo/Todo.css");
 import Mini from "../../mini/mini.js";
 import { MiniComponent } from "../../mini/types.js";
-Mini.loadCSS("pages/User/User.css");
 
-function User(): MiniComponent {
+function Todo(): MiniComponent {
   const [key, state] = Mini.initState();
-  // Mini.navigate("/test", {id:10})
   return {
     key: key,
     render: () => {
       return (
         <get by={"#root"}>
-          <div>User</div>
+          <div className={"todo"}>Todo</div>
         </get>
       );
     },
   };
 }
-export default User;
-    
+export default Todo;

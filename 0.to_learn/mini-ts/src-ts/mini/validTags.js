@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var validTags = {
+const validTags = {
     children: [],
     nav: ["props", "path"],
     a: ["accesskey", "hidden", "charset", "className", "coords", "download",
@@ -111,4 +109,4 @@ var validTags = {
         "role", "aria-hidden", "aria-label", "aria-labelledby", "aria-describedby",
         "tabindex", "focusable", "title", "desc",],
 };
-exports.default = validTags;
+export default validTags;

@@ -65,9 +65,9 @@ function {file_name}(): MiniComponent {{
     key: key,
     render: () => {{
       return (
-        <>
+        <get by={{"#root"}}>
           <div>{file_name}</div>
-        </>
+        </get>
       );
     }},
   }};
