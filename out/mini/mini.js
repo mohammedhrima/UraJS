@@ -10,7 +10,6 @@ function loadCSS(filename) {
 }
 // JSX HANDLING
 function check(children) {
-    // console.log(children);
     let i = 0;
     //@ts-ignore
     return children.map((child) => {
@@ -42,12 +41,12 @@ function element(tag, props, ...children) {
             let currTag = funcTag.render();
             if (funcTag.key && maps.get(funcTag.key)) {
                 maps.get(funcTag.key).handler = () => {
-                    destroyDOM(currTag);
+                    // destroyDOM(currTag);
                     let parent = currTag.parent;
                     currTag = funcTag.render();
+                    console.log("parent: ", currTag);
                     currTag.parent = parent;
                     Mini.display(currTag, parent);
-                    // parent.dom.appendChild(currTag.dom);
                 };
             }
             return currTag;
@@ -70,7 +69,6 @@ function element(tag, props, ...children) {
     };
 }
 function destroyDOM(vdom) {
-    // console.log("destroy", vdom);
     if (vdom.tag != "get") {
         for (const eventType in vdom.events) {
             if (vdom.events.hasOwnProperty(eventType)) {
@@ -96,7 +94,7 @@ let currentRoute = null;
 const normalizePath = (path) => {
     if (!path || path == "")
         return "/";
-    console.log(typeof path);
+    // console.log(typeof path);
     path = path.replace(/^\s+|\s+$/gm, "");
     if (!path.startsWith("/"))
         path = "/" + path;
@@ -106,40 +104,25 @@ const normalizePath = (path) => {
     return path;
 };
 const refresh = () => {
-    // Get the hash part of the URL and remove the leading '#'
     let hash = window.location.hash.slice(1) || "/";
     hash = normalizePath(hash);
-    // if(hash == null)
-    console.log(`hash [${hash}]`);
-    // Check if the route exists in routes, otherwise use 404
-    const routeConfig = Routes[hash] || Routes["*"];
-    // Clean up the current route DOM if it exists
+    const RouteConfig = Routes[hash] || Routes["*"];
     if (currentRoute)
         destroyDOM(currentRoute);
-    // Display the new route
-    currentRoute = display(routeConfig().render());
-    console.log("render", currentRoute);
+    currentRoute = display(Mini.element(RouteConfig, null));
 };
-//
-// Function to navigate to a route
 const navigate = (route, params = {}) => {
-    // const queryString = new URLSearchParams(params).toString();
-    // const fullRoute = queryString ? `${route}?${queryString}` : route;
     route = route.split("?")[0];
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);
-    const routeConfig = Routes[route] || Routes["*"];
+    const RouteConfig = Routes[route] || Routes["*"];
     if (currentRoute)
         destroyDOM(currentRoute);
-    currentRoute = display(routeConfig(params).render());
-    // refresh();
+    currentRoute = display(Mini.element(RouteConfig, null));
 };
 function display(vdom, parent = null) {
-    // console.log("vdom  : ", vdom);
-    // console.log("parent: ", parent);
     switch (vdom.type) {
         case TYPE.ELEMENT: {
-            // console.log("vdom type",  vdom.type, "tag", vdom.tag);
             let { tag, props } = vdom;
             if (tag == "get") {
                 vdom.dom = document.querySelector(props["by"]);
@@ -149,9 +132,8 @@ function display(vdom, parent = null) {
                 });
             }
             else if (tag == "route") {
-                // console.log("found route", vdom);
                 // @ts-ignore
-                let { path, call, render } = props;
+                let { path, call } = props;
                 path = normalizePath(path);
                 if (call)
                     Routes[path] = call;
@@ -165,7 +147,6 @@ function display(vdom, parent = null) {
                     display(child, parent);
                 });
                 return call;
-                // if (render) return render({ match });
             }
             else {
                 if (!isvalid(tag))
@@ -253,7 +234,6 @@ const Mini = {
     Error,
     Routes,
     navigate,
-    refresh
-    // matchPath,
+    refresh,
 };
 export default Mini;

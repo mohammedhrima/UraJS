@@ -42,8 +42,6 @@ const setupRoutes = async () => {
   });
 
   await Promise.all(routePromises);
-  console.log("All routes have been set up:");
-  console.log(Mini.Routes);
 };
 
 setupRoutes()

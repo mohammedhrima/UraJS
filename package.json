@@ -1,12 +1,12 @@
 {
   "type": "module",
   "scripts": {
-    "start": "npm run serve",
-    "serve": "node server.js",
+    "start": "npm run clear && node ./scripts/server.js",
     "clear": "rm -rf out/*",
     "ts": "tsc -w",
-    "newp": "node ./utils/new-route.js p",
-    "newc": "node ./utils/new-route.js c"
+    "newp": "node ./scripts/new-route.js p",
+    "newc": "node ./scripts/new-route.js c",
+    "update":"node ./scripts/update-routes.js"
   },
   "dependencies": {
     "chokidar": "^3.6.0",

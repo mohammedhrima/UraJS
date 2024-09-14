@@ -18,5 +18,5 @@
     "src/**/*",
     "src/**/*.jsx", // Include .jsx files in the compilation
   ],
-  "exclude": ["node_modules", "out", "utils/server.js"]
+  "exclude": ["node_modules", "out", "scripts/server.js"]
 }

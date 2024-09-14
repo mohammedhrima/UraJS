@@ -6,7 +6,7 @@ function About() {
         key: key,
         render: () => {
             return (Mini.element("get", { by: "#root" },
-                Mini.element("div", null, "about")));
+                Mini.element("div", { id: "about" }, "about")));
         },
     };
 }

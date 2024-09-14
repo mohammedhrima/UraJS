@@ -14,8 +14,6 @@ const importComponent = async (path) => {
 };
 const logAndImportRoute = async (prefix, route, path) => {
     const fullPath = `${prefix}${route.filename}`;
-    // console.log(`Importing ${route.call} from '${fullPath}' to route '${path}'`);
-    // Import the route dynamically
     const Component = await importComponent(fullPath);
     if (Component) {
         Mini.Routes["/" + path] = Component;
@@ -34,12 +32,8 @@ const setupRoutes = async () => {
         const route = Routes[key];
         routePromises.push(logAndImportRoute(`./${route.dir}/`, route, key));
     });
-    // Wait for all routes to be loaded
     await Promise.all(routePromises);
-    console.log("All routes have been set up:");
-    console.log(Mini.Routes);
 };
-// Initialize routes
 setupRoutes()
     .then(() => {
     console.log("Routes initialization completed.");

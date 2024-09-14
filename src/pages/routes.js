@@ -1,4 +1,9 @@
 const Routes = {
+  "about": {
+    "call": "About",
+    "dir": "About",
+    "filename": "About.js"
+  },
   "home": {
     "call": "Home",
     "dir": "Home",
@@ -11,6 +16,16 @@ const Routes = {
       }
     },
     "default": true
+  },
+  "test": {
+    "call": "Test",
+    "dir": "Test",
+    "filename": "Test.js"
+  },
+  "user": {
+    "call": "User",
+    "dir": "User",
+    "filename": "User.js"
   }
 };
 
