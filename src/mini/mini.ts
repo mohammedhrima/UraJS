@@ -95,99 +95,22 @@ function isvalid(tag: Tag) {
   return true;
 }
 
-const Routes: { [path: string]: { call: Function; props: any } } = {};
-Routes["*"] = { call: Error, props: {} };
+const Routes: { [path: string]: Function } = {};
+Routes["*"] = Error;
 let currentRoute = null;
-// let routeVDOM = { type: "element", dom: document.getElementById("root") };
-// const matchPath = (pathTemplate: string, pathname: string) => {
-//   // If the pathTemplate is exactly "/" or an empty string, handle it directly
-//   if (pathTemplate === "/" || pathTemplate === "") {
-//     return pathname === "/" ? { path: "/", props: {} } : null;
-//   }
 
-//   // Convert the path template into a regex pattern
-//   const keys: string[] = [];
-//   const pathRegex = pathTemplate
-//     .replace(/:(\w+)/g, (_, key) => {
-//       keys.push(key); // Store the parameter names
-//       return "([^/]+)"; // Regex to capture the value
-//     })
-//     .replace(/\/$/, ""); // Remove trailing slash
-
-//   // Create regex and match pathname
-//   const regex = new RegExp(`^${pathRegex}$`);
-//   const match = regex.exec(pathname);
-
-//   if (!match) return null;
-
-//   // Extract parameters from the match
-//   const params: { [key: string]: string } = {};
-//   keys.forEach((key, index) => {
-//     params[key] = match[index + 1]; // Extract parameter values
-//   });
-
-//   // Return the base path without trailing slashes and parameters
-//   return {
-//     path: pathTemplate,
-//     props: params, // Return the extracted parameters
-//   };
-// };
-
-// //@ts-ignore
-// // Routes["/test:a/:b"] = { call: () => {}, props: {} };
-// // const result = matchPath("/test:a/:b", "/test123/2");
-// // console.log("The match:", result);
-
-// function navigate(path) {
-//   console.log(`call navigate [${path}]`);
-//   history.pushState({}, "", path);
-//   let matchedRoute = null;
-//   Object.keys(Routes).find((route) => {
-//     if (route != "*") {
-//       // console.log("match ", route, "and", path);
-
-//       const match = matchPath(route, path);
-//       if (match) {
-//         matchedRoute = {
-//           props: match.props,
-//           call: Routes[route].call,
-//         };
-//       }
-//     }
-//   });
-
-//   if (matchedRoute) {
-//     const { call, props } = matchedRoute;
-//     display(call(props).render(), routeVDOM);
-//   } else {
-//     console.log(`not found: [${path}]`);
-//     display(Routes["*"].call(Routes["*"].props).render(), routeVDOM);
-//   }
-// }
-
-// window.addEventListener("popstate", () => {
-//   console.log("popstate");
-//   navigate(location.pathname);
-// });
-
-// // Handle initial load or when user refreshes the page
-// document.addEventListener("DOMContentLoaded", () => {
-//   console.log("DOMContentLoaded");
-//   navigate(location.pathname);
-// });
-
-const normalizePath = (path:string) => {
+const normalizePath = (path: string) => {
   if (!path || path == "") return "/";
   console.log(typeof path);
-  
-  path = path.replace(/^\s+|\s+$/gm,'');
+
+  path = path.replace(/^\s+|\s+$/gm, "");
   if (!path.startsWith("/")) path = "/" + path;
   path = path.replace(/\/{2,}/g, "/");
   if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
   return path;
 };
 
-const locationHandler = () => {
+const refresh = () => {
   // Get the hash part of the URL and remove the leading '#'
   let hash = window.location.hash.slice(1) || "/";
   hash = normalizePath(hash);
@@ -201,7 +124,9 @@ const locationHandler = () => {
   if (currentRoute) destroyDOM(currentRoute);
 
   // Display the new route
-  currentRoute = display(routeConfig.call().render());
+  currentRoute = display(routeConfig().render());
+  console.log("render", currentRoute);
+  
 };
 //
 // Function to navigate to a route
@@ -215,20 +140,9 @@ const navigate = (route, params = {}) => {
 
   const routeConfig = Routes[route] || Routes["*"];
   if (currentRoute) destroyDOM(currentRoute);
-  currentRoute = display(routeConfig.call(params).render());
-  // locationHandler();
+  currentRoute = display(routeConfig(params).render());
+  // refresh();
 };
-
-window.addEventListener("hashchange", locationHandler);
-window.addEventListener("DOMContentLoaded", locationHandler);
-
-console.log(normalizePath("user")); // Output: /user
-console.log(normalizePath("user/")); // Output: /user
-console.log(normalizePath("/user/")); // Output: /user
-console.log(normalizePath("////user")); // Output: /user
-console.log(normalizePath("user/////")); // Output: /user
-console.log(normalizePath("////user/////")); // Output: /user
-console.log(normalizePath("/user///game")); // Output: /user/game
 
 function display(vdom: VDOM, parent: VDOM = null): VDOM {
   // console.log("vdom  : ", vdom);
@@ -244,19 +158,12 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
           destroyDOM(child as VDOM);
           display(child as VDOM, vdom);
         });
-        // vdom.dom.innerHTML = "";
-        // if (props["by"] === "#root") {
-        //   // console.log("found root");
-        //   routeVDOM = vdom;
-        // }
-
-        // vdom.tag = "element";
       } else if (tag == "route") {
         // console.log("found route", vdom);
         // @ts-ignore
         let { path, call, render } = props;
         path = normalizePath(path);
-        if (call) Routes[path] = { call, props: {} };
+        if (call) Routes[path] = call;
 
         vdom.children?.map((child) => {
           destroyDOM(child as VDOM);
@@ -363,6 +270,7 @@ const Mini = {
   Error,
   Routes,
   navigate,
+  refresh
   // matchPath,
 };
 

@@ -57,30 +57,7 @@ const navigate = (route, params = {}) => {
   locationHandler();
 };
 
-// Function to handle link clicks
-// const route = (event) => {
-//   event = event || window.event;
-//   event.preventDefault();
 
-//   // Get the href attribute from the clicked link
-//   const href = event.target.getAttribute("href");
-//   console.log("href:", href);
-
-//   // Navigate to the route
-//   navigate(href.slice(1)); // Remove leading '#' from href
-// };
-
-// // Event listener for navigation links
-// document.addEventListener("click", (e) => {
-//   const { target } = e;
-//   if (!target.matches("nav a")) {
-//     return;
-//   }
-//   e.preventDefault();
-//   route(e);
-// });
-
-// Handle hash changes and initial load
 window.addEventListener("hashchange", locationHandler);
 window.addEventListener("DOMContentLoaded", locationHandler);
 

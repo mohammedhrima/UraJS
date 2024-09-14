@@ -1,0 +1,63 @@
+// Variables
+$primary-color: #3490dc;
+$text-color: #2d3748;
+$font-stack: 'Helvetica Neue', Arial, sans-serif;
+
+// Mixins
+@mixin box-shadow($shadow: 0px 4px 6px rgba(0, 0, 0, 0.1)) {
+  box-shadow: $shadow;
+}
+
+// Base styles
+body {
+  font-family: $font-stack;
+  color: $text-color;
+  background-color: #f7fafc;
+}
+
+// Container styles
+.container {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+// Header styles
+header {
+  background-color: $primary-color;
+  color: #fff;
+  padding: 1rem;
+
+  h1 {
+    font-size: 2rem;
+    margin: 0;
+  }
+}
+
+// Button styles
+.btn-primary {
+  display: inline-block;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  background-color: $primary-color;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: darken($primary-color, 10%);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  header {
+    padding: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}

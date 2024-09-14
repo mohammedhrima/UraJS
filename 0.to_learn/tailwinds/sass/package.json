@@ -1,0 +1,11 @@
+{
+    "name": "my-app",
+    "version": "1.0.0",
+    "scripts": {
+      "build:css": "sass src/styles/main.scss dist/styles.css --no-source-map"
+    },
+    "devDependencies": {
+      "sass": "^1.56.1"
+    }
+  }
+  

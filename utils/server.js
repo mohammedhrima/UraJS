@@ -3,7 +3,7 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { fileURLToPath } from "url";
-// import { spawn } from "child_process";
+import { spawn } from "child_process";
 import chokidar from "chokidar";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -138,7 +138,7 @@ Watcher(
   ["add", "change", "unlink", "unlinkDir"],
   { ignored: /\.js$|\.jsx$|\.ts$|\.tsx$/i },
   (eventPath, event) => {
-    if (event === "unlink" || event === "unlinkDir") {
+    if (event === "unlink" || event === "unlinkDir" || !event) {
       const destPath = eventPath.replace(SRCDIR, OUTDIR);
       console.log(`${eventPath.replace(SRCDIR, ".")} was deleted`);
       
@@ -164,8 +164,29 @@ Watcher(path.join(__dirname, "./index.html"), ["change"], {}, (param) => {
   notifyClients();
 });
 
+Watcher(path.join(__dirname, ".env"), ["change"], {}, (param) => {
+  // copyFile(param);
+  console.log("index.html file changed");
+  notifyClients();
+});
+
 // Watch output directory
 Watcher(OUTDIR + "/**/*.js", ["change"], {}, (param) => {
   console.log(param.replace(OUTDIR, "."), "JS file changed");
   notifyClients();
+});
+
+// Fork a child process to run tsc -w (TypeScript compiler in watch mode)
+const tscProcess = spawn("tsc", ["-w"], {
+  stdio: "inherit", // This will inherit the output (logs) to the main process
+  shell: true,      // Run in shell mode to allow execution on Windows
+});
+
+// Handle any errors or events from the tsc child process
+tscProcess.on("error", (error) => {
+  console.error(`Error spawning tsc process: ${error.message}`);
+});
+
+tscProcess.on("close", (code) => {
+  console.log(`tsc process exited with code ${code}`);
 });
