@@ -30,6 +30,11 @@ const copyRecursive = (srcDir, outDir) => {
   });
 };
 
+spawn("npm", ["run", "update"], {
+  stdio: "inherit", // This will inherit the output (logs) to the main process
+  shell: true, // Run in shell mode to allow execution on Windows
+});
+
 // Copy files before the server starts
 copyRecursive(SRCDIR, OUTDIR);
 
@@ -181,16 +186,16 @@ Watcher(OUTDIR + "/**/*.js", ["change"], {}, (param) => {
 });
 
 // Fork a child process to run tsc -w (TypeScript compiler in watch mode)
-const tscProcess = spawn("tsc", ["-w"], {
-  stdio: "inherit", // This will inherit the output (logs) to the main process
-  shell: true, // Run in shell mode to allow execution on Windows
-});
+// const tscProcess = spawn("tsc", ["-w"], {
+//   stdio: "inherit", // This will inherit the output (logs) to the main process
+//   shell: true, // Run in shell mode to allow execution on Windows
+// });
 
-// Handle any errors or events from the tsc child process
-tscProcess.on("error", (error) => {
-  console.error(`Error spawning tsc process: ${error.message}`);
-});
+// // Handle any errors or events from the tsc child process
+// tscProcess.on("error", (error) => {
+//   console.error(`Error spawning tsc process: ${error.message}`);
+// });
 
-tscProcess.on("close", (code) => {
-  console.log(`tsc process exited with code ${code}`);
-});
+// tscProcess.on("close", (code) => {
+//   console.log(`tsc process exited with code ${code}`);
+// });

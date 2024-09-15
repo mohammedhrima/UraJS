@@ -1,8 +1,5 @@
 import Mini from "../../mini/mini.js";
-import Count1 from "./_utils/Count1/Count1.js";
-import Count2 from "./_utils/Count2/Count2.js";
-import Count3 from "./_utils/Count3/Count3.js";
-
+import Count from "./_utils/Count/Count.js";
 
 Mini.loadCSS("pages/Test/Test.css");
 
@@ -14,9 +11,10 @@ function Test() {
     render: () => {
       return (
         <get by={"#root"}>
-          <Count1/>
-          <Count2/>
-          <Count3/>
+          {/* <Count index={0} /> */}
+          {/* <Count index={1} /> */}
+          {/* <Count index={2} /> */}
+          <Count index={3} />
         </get>
       );
     },

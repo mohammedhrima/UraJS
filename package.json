@@ -6,7 +6,7 @@
     "ts": "tsc -w",
     "newp": "node ./scripts/new-route.js p",
     "newc": "node ./scripts/new-route.js c",
-    "update":"node ./scripts/update-routes.js"
+    "update": "node ./scripts/update-routes.js"
   },
   "dependencies": {
     "chokidar": "^3.6.0",

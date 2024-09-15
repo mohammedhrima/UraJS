@@ -12,7 +12,7 @@ function loadCSS(filename) {
 function check(children) {
     let i = 0;
     //@ts-ignore
-    return children.map((child) => {
+    children = children.map((child) => {
         if (child == null || typeof child === "string" || typeof child === "number") {
             return {
                 type: TYPE.TEXT,
@@ -27,6 +27,7 @@ function check(children) {
         }
         i++;
     });
+    return children;
 }
 function fragment(props, ...children) {
     return {
@@ -40,14 +41,18 @@ function element(tag, props, ...children) {
         if (funcTag.render) {
             let currTag = funcTag.render();
             if (funcTag.key && maps.get(funcTag.key)) {
-                maps.get(funcTag.key).handler = () => {
-                    // destroyDOM(currTag);
-                    let parent = currTag.parent;
-                    currTag = funcTag.render();
-                    console.log("parent: ", currTag);
-                    currTag.parent = parent;
-                    Mini.display(currTag, parent);
-                };
+                currTag.isfunc = true;
+                currTag.key = funcTag.key;
+                currTag.func = funcTag.render;
+                // maps.get(funcTag.key).handler = () => {
+                //   destroyDOM(currTag);
+                //   // let parent = currTag.parent;
+                //   currTag = funcTag.render();
+                //   // console.log("parent : ", parent);
+                //   // console.log("currtag: ", currTag);
+                //   // currTag.parent = parent;
+                //   Mini.display(currTag);
+                // };
             }
             return currTag;
         }
@@ -69,17 +74,18 @@ function element(tag, props, ...children) {
     };
 }
 function destroyDOM(vdom) {
-    if (vdom.tag != "get") {
-        for (const eventType in vdom.events) {
-            if (vdom.events.hasOwnProperty(eventType)) {
-                const callback = vdom.events[eventType];
-                vdom.dom.removeEventListener(eventType, callback);
-            }
-            vdom.events = {};
-        }
-        vdom.dom?.remove();
-    }
-    vdom.children?.map(destroyDOM);
+    // if (vdom.tag != "get") {
+    //   for (const eventType in vdom.events) {
+    //     if (vdom.events.hasOwnProperty(eventType)) {
+    //       const callback = vdom.events[eventType];
+    //       vdom.dom.removeEventListener(eventType, callback);
+    //     }
+    //     vdom.events = {};
+    //   }
+    //   vdom.dom?.remove();
+    //   vdom.dom = null;
+    // }
+    // vdom.children?.map(destroyDOM);
 }
 function isvalid(tag) {
     if (!(tag in validTags)) {
@@ -120,16 +126,39 @@ const navigate = (route, params = {}) => {
         destroyDOM(currentRoute);
     currentRoute = display(Mini.element(RouteConfig, null));
 };
-function display(vdom, parent = null) {
+function append(vdom, parent) {
+    if (vdom.dom)
+        parent.dom.appendChild(vdom.dom);
+    vdom.children?.map((child) => {
+        //@ts-ignore
+        if (vdom.dom)
+            append(child, vdom);
+        //@ts-ignore
+        else
+            append(child, parent);
+    });
+}
+function display(vdom, parent = null, index = 0) {
+    // vdom.parent = parent;
     switch (vdom.type) {
         case TYPE.ELEMENT: {
             let { tag, props } = vdom;
             if (tag == "get") {
-                vdom.dom = document.querySelector(props["by"]);
+                if (!vdom.dom)
+                    vdom.dom = document.querySelector(props["by"]);
+                // let i = 0;
                 vdom.children?.map((child) => {
                     destroyDOM(child);
-                    display(child, vdom);
+                    //@ts-ignore
+                    child.parent = vdom;
+                    //@ts-ignore
+                    display(child, vdom, child.index);
                 });
+                vdom.children?.map((child) => {
+                    //@ts-ignore
+                    append(child, vdom);
+                });
+                // return vdom;
             }
             else if (tag == "route") {
                 // @ts-ignore
@@ -137,6 +166,7 @@ function display(vdom, parent = null) {
                 path = normalizePath(path);
                 if (call)
                     Routes[path] = call;
+                // let i = 0;
                 vdom.children?.map((child) => {
                     destroyDOM(child);
                     // @ts-ignore
@@ -144,14 +174,51 @@ function display(vdom, parent = null) {
                         throw "'route' tag can only have children of type route";
                     // @ts-ignore
                     child.props.path = normalizePath(path + "/" + child.props.path);
-                    display(child, parent);
+                    //@ts-ignore
+                    display(child, parent, child.index);
                 });
-                return call;
             }
             else {
                 if (!isvalid(tag))
                     throw `Invalid tag ${tag}`;
-                vdom.dom = document.createElement(vdom.tag);
+                if (!vdom.dom)
+                    vdom.dom = document.createElement(vdom.tag);
+                else {
+                    console.log("element already has dom");
+                    vdom.dom.replaceWith(document.createElement(vdom.tag));
+                }
+                if (vdom.isfunc && maps.get(vdom.key)) {
+                    maps.get(vdom.key).handler = () => {
+                        // destroyDOM(currTag);
+                        // // let parent = currTag.parent;
+                        // currTag = funcTag.render();
+                        // // console.log("parent : ", parent);
+                        // // console.log("currtag: ", currTag);
+                        // // currTag.parent = parent;
+                        // Mini.display(currTag);
+                        // destroyDOM(vdom)
+                        // console.log("parent", parent);
+                        // console.log("event", vdom);
+                        let newTag = vdom.func();
+                        newTag.isfunc = true;
+                        newTag.key = vdom.key;
+                        newTag.func = vdom.func;
+                        // newTag.dom = vdom.dom;
+                        // console.log("append", newTag);
+                        display(newTag, parent);
+                        // append(newTag, parent);
+                        newTag.children?.map((child) => {
+                            // destroyDOM(child as VDOM);
+                            //@ts-ignore
+                            // child.parent = vdom;
+                            display(child, newTag);
+                        });
+                        newTag.children?.map((child) => {
+                            //@ts-ignore
+                            append(child, newTag);
+                        });
+                    };
+                }
                 const style = {};
                 Object.keys(props || {}).forEach((key) => {
                     if (validTags[tag].includes(key)) {
@@ -180,31 +247,86 @@ function display(vdom, parent = null) {
                     })
                         .join(";");
                 }
+                // let i = 0;
                 vdom.children?.map((child) => {
-                    destroyDOM(child);
+                    // destroyDOM(child as VDOM);
+                    //@ts-ignore
+                    // child.parent = vdom;
                     display(child, vdom);
                 });
-                parent?.dom?.appendChild(vdom.dom);
+                vdom.children?.map((child) => {
+                    //@ts-ignore
+                    append(child, vdom);
+                });
+                // let referenceElement = vdom;
+                // console.log("vdom", vdom);
+                // console.log("parent", parent);
+                // console.log("reference", referenceElement);
+                // Insert the new element before the reference element
+                // let cond = 0;
+                //@ts-ignore
+                // if (index) {
+                //   console.log("index: ", index - 1, vdom.children[index - 1]);
+                //   // parent.dom.insertBefore(vdom.dom, vdom.children[index - 1].dom);
+                //   parent.dom.insertBefore(
+                //     vdom.dom,
+                //     //@ts-ignore
+                //     parent.dom.childNodes[index]
+                //   );
+                // } else {
+                //   console.log("index: ", index);
+                // }
+                // parent.dom.appendChild(vdom.dom);
+                // if (index) {
+                //   //@ts-ignore
+                //   parent.dom.insertBefore(vdom.dom, index - 1);
+                // } else {
+                //   // If the index is out of range, append the new element at the end
+                //   parent.dom.appendChild(vdom.dom);
+                // }
             }
             break;
         }
         case TYPE.FRAGMENT: {
             vdom.children?.map((child) => {
                 destroyDOM(child);
-                display(child, parent);
+                display(child, parent, index++);
+                //@ts-ignore
+                // child.parent = parent;
             });
+            vdom.children?.map((child) => {
+                //@ts-ignore
+                append(child, parent);
+            });
+            // return vdom;
             break;
         }
         case TYPE.TEXT: {
             const { value } = vdom;
-            vdom.dom = document.createTextNode(value);
-            if (parent)
-                parent.dom.appendChild(vdom.dom);
+            if (!vdom.dom) {
+                //@ts-ignore
+                vdom.dom = document.createTextNode(value);
+            }
+            else {
+                console.log("Text has dom", value);
+                // vdom.dom.replaceWith(document.createTextNode(value as string));
+                //@ts-ignore
+                vdom.dom = document.createTextNode(value);
+            }
+            // (vdom as any).dom = document.createTextNode(value as string);
+            // append(vdom, parent);
+            // if (parent) parent.dom.appendChild(vdom.dom);
+            // vdom.parent = parent;
             break;
         }
         default:
             break;
     }
+    // if (vdom.isfunc) {
+    //   console.log("found function", vdom);
+    //   // console.log("has parent", parent);
+    // }
+    // vdom.parent = parent;
     return vdom;
 }
 // ROUTING

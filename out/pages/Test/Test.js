@@ -1,7 +1,5 @@
 import Mini from "../../mini/mini.js";
-import Count1 from "./_utils/Count1/Count1.js";
-import Count2 from "./_utils/Count2/Count2.js";
-import Count3 from "./_utils/Count3/Count3.js";
+import Count from "./_utils/Count/Count.js";
 Mini.loadCSS("pages/Test/Test.css");
 function Test() {
     const [key, state] = Mini.initState();
@@ -10,9 +8,7 @@ function Test() {
         key: key,
         render: () => {
             return (Mini.element("get", { by: "#root" },
-                Mini.element(Count1, null),
-                Mini.element(Count2, null),
-                Mini.element(Count3, null)));
+                Mini.element(Count, { index: 3 })));
         },
     };
 }

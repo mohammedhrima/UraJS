@@ -25,10 +25,12 @@ export type VDOM = {
   children?: Array<VDOMNode>;
   value?: string | number;
   dom?: HTMLElement;
-  parent?: any | VDOM;
+  // parent?: any | VDOM;
   events?: Record<string, EventListener>;
+  // states?: Object;
+  isfunc?: boolean;
   func?: Function;
-  states?: Object;
+  key?:number;
 };
 
 export type MiniComponent = {
