@@ -288,6 +288,10 @@ function display(vdom: VDOM, parent: VDOM = null, index = 0): VDOM {
       break;
     }
     case TYPE.FRAGMENT: {
+      console.log("handle fragment");
+      //@ts-ignore
+      // vdom.dom = document.createDocumentFragment();
+
       vdom.children?.map((child) => {
         destroyDOM(child as VDOM);
         display(child as VDOM, parent, index++);

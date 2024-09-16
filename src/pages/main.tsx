@@ -53,3 +53,21 @@ setupRoutes()
     window.addEventListener("DOMContentLoaded", Mini.refresh);
     Mini.refresh();
   });
+
+// const parent = document.getElementById("root");
+
+// // Create a temporary container (an alternative to DocumentFragment)
+// const container = document.createElement("div");
+
+// // Add multiple elements to the container
+// for (let i = 0; i < 3; i++) {
+//   const newElement = document.createElement("li");
+//   newElement.textContent = `New Item ${i + 1}`;
+//   container.appendChild(newElement);
+// }
+
+// // Move all children from container to the parent element
+// while (container.firstChild) {
+//   console.log(container);
+//   parent.appendChild(container.firstChild);
+// }

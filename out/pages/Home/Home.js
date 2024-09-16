@@ -6,17 +6,7 @@ function Home() {
     return {
         key: key,
         render: () => {
-            return (Mini.element("get", { by: "#root" },
-                Mini.element("div", { id: "home" },
-                    Mini.element("h1", null, "Home page"),
-                    Mini.element("div", null,
-                        Mini.element("span", null, "text 2"),
-                        Mini.element("br", null),
-                        Mini.element("span", null, "text 1"),
-                        Mini.element("br", null),
-                        Mini.element("span", null, "text 1"),
-                        Mini.element("br", null),
-                        Mini.element("span", null, "text 1")))));
+            return (Mini.element("get", { by: "#root" }, "text 1 text 2 text 3"));
         },
     };
 }

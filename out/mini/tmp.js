@@ -39,15 +39,20 @@ function element(tag, props, ...children) {
     if (typeof tag === "function") {
         let funcTag = tag(props || {});
         if (funcTag.render) {
-            let currTag;
+            let currTag = funcTag.render();
             if (funcTag.key && maps.get(funcTag.key)) {
-                currTag = funcTag.render();
                 currTag.isfunc = true;
                 currTag.key = funcTag.key;
                 currTag.func = funcTag.render;
-            }
-            else {
-                currTag = funcTag;
+                // maps.get(funcTag.key).handler = () => {
+                //   destroyDOM(currTag);
+                //   // let parent = currTag.parent;
+                //   currTag = funcTag.render();
+                //   // console.log("parent : ", parent);
+                //   // console.log("currtag: ", currTag);
+                //   // currTag.parent = parent;
+                //   Mini.display(currTag);
+                // };
             }
             return currTag;
         }
@@ -105,27 +110,21 @@ const normalizePath = (path) => {
     return path;
 };
 const refresh = () => {
-    console.log("call refresh");
     let hash = window.location.hash.slice(1) || "/";
     hash = normalizePath(hash);
-    // TODO: in case '*' check ifit's error Component
-    // if so give it the path as parameter
     const RouteConfig = Routes[hash] || Routes["*"];
     if (currentRoute)
         destroyDOM(currentRoute);
-    //@ts-ignore
-    currentRoute = display(element(RouteConfig));
+    currentRoute = display(Mini.element(RouteConfig, null));
 };
 const navigate = (route, params = {}) => {
-    console.log("call navigate");
     route = route.split("?")[0];
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);
     const RouteConfig = Routes[route] || Routes["*"];
     if (currentRoute)
         destroyDOM(currentRoute);
-    //@ts-ignore
-    currentRoute = display(element(RouteConfig));
+    currentRoute = display(Mini.element(RouteConfig, null));
 };
 function append(vdom, parent) {
     if (vdom.dom)
@@ -139,26 +138,27 @@ function append(vdom, parent) {
             append(child, parent);
     });
 }
-function display(vdom, parent = null) {
+function display(vdom, parent = null, index = 0) {
+    // vdom.parent = parent;
     switch (vdom.type) {
         case TYPE.ELEMENT: {
             let { tag, props } = vdom;
             if (tag == "get") {
                 if (!vdom.dom)
                     vdom.dom = document.querySelector(props["by"]);
+                // let i = 0;
                 vdom.children?.map((child) => {
+                    destroyDOM(child);
                     //@ts-ignore
                     child.parent = vdom;
                     //@ts-ignore
-                    display(child, vdom);
+                    display(child, vdom, child.index);
                 });
                 vdom.children?.map((child) => {
-                    // append(child, vdom);
                     //@ts-ignore
-                    display(child, vdom);
-                    //@ts-ignore
-                    vdom.dom.appendChild(child.dom);
+                    append(child, vdom);
                 });
+                // return vdom;
             }
             else if (tag == "route") {
                 // @ts-ignore
@@ -166,34 +166,19 @@ function display(vdom, parent = null) {
                 path = normalizePath(path);
                 if (call)
                     Routes[path] = call;
+                // let i = 0;
                 vdom.children?.map((child) => {
-                    // destroyDOM(child as VDOM);
+                    destroyDOM(child);
                     // @ts-ignore
                     if (child.tag != "route")
                         throw "'route' tag can only have children of type route";
                     // @ts-ignore
                     child.props.path = normalizePath(path + "/" + child.props.path);
                     //@ts-ignore
-                    display(child, parent);
+                    display(child, parent, child.index);
                 });
             }
             else {
-                if (vdom.isfunc && maps.get(vdom.key)) {
-                    // maps.get(vdom.key).handler = () => {
-                    //   let newTag = vdom.func();
-                    //   newTag.isfunc = true;
-                    //   newTag.key = vdom.key;
-                    //   newTag.func = vdom.func;
-                    //   display(newTag, parent);
-                    //   newTag.children?.map((child) => {
-                    //     display(child, newTag);
-                    //   });
-                    //   // newTag.children?.map((child) => {
-                    //   //   append(child, newTag);
-                    //   // });
-                    // };
-                }
-                // TODO: add an else here
                 if (!isvalid(tag))
                     throw `Invalid tag ${tag}`;
                 if (!vdom.dom)
@@ -202,32 +187,124 @@ function display(vdom, parent = null) {
                     console.log("element already has dom");
                     vdom.dom.replaceWith(document.createElement(vdom.tag));
                 }
+                if (vdom.isfunc && maps.get(vdom.key)) {
+                    maps.get(vdom.key).handler = () => {
+                        // destroyDOM(currTag);
+                        // // let parent = currTag.parent;
+                        // currTag = funcTag.render();
+                        // // console.log("parent : ", parent);
+                        // // console.log("currtag: ", currTag);
+                        // // currTag.parent = parent;
+                        // Mini.display(currTag);
+                        // destroyDOM(vdom)
+                        // console.log("parent", parent);
+                        // console.log("event", vdom);
+                        let newTag = vdom.func();
+                        newTag.isfunc = true;
+                        newTag.key = vdom.key;
+                        newTag.func = vdom.func;
+                        // newTag.dom = vdom.dom;
+                        // console.log("append", newTag);
+                        display(newTag, parent);
+                        // append(newTag, parent);
+                        newTag.children?.map((child) => {
+                            // destroyDOM(child as VDOM);
+                            //@ts-ignore
+                            // child.parent = vdom;
+                            display(child, newTag);
+                        });
+                        newTag.children?.map((child) => {
+                            //@ts-ignore
+                            append(child, newTag);
+                        });
+                    };
+                }
+                const style = {};
+                Object.keys(props || {}).forEach((key) => {
+                    if (validTags[tag].includes(key)) {
+                        if (key.startsWith("on")) {
+                            const eventType = key.slice(2).toLowerCase();
+                            vdom.dom.addEventListener(eventType, props[key]);
+                            vdom.events[eventType] = vdom.props[key];
+                        }
+                        else if (key === "style")
+                            Object.assign(style, props[key]);
+                        else {
+                            if (tag == "svg" || parent?.tag == "svg")
+                                vdom.dom.setAttribute(key, props[key]);
+                            else
+                                vdom.dom[key] = props[key];
+                        }
+                    }
+                    else
+                        console.warn(`Invalid attribute "${key}" ignored.`);
+                });
+                if (Object.keys(style).length > 0) {
+                    vdom.dom.style.cssText = Object.keys(style)
+                        .map((styleProp) => {
+                        const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+                        return Camelkey + ":" + style[styleProp];
+                    })
+                        .join(";");
+                }
+                // let i = 0;
+                vdom.children?.map((child) => {
+                    // destroyDOM(child as VDOM);
+                    //@ts-ignore
+                    // child.parent = vdom;
+                    display(child, vdom);
+                });
                 vdom.children?.map((child) => {
                     //@ts-ignore
-                    display(child, vdom);
-                    //@ts-ignore
-                    vdom.dom.appendChild(child.dom);
+                    append(child, vdom);
                 });
+                // let referenceElement = vdom;
+                // console.log("vdom", vdom);
+                // console.log("parent", parent);
+                // console.log("reference", referenceElement);
+                // Insert the new element before the reference element
+                // let cond = 0;
+                //@ts-ignore
+                // if (index) {
+                //   console.log("index: ", index - 1, vdom.children[index - 1]);
+                //   // parent.dom.insertBefore(vdom.dom, vdom.children[index - 1].dom);
+                //   parent.dom.insertBefore(
+                //     vdom.dom,
+                //     //@ts-ignore
+                //     parent.dom.childNodes[index]
+                //   );
+                // } else {
+                //   console.log("index: ", index);
+                // }
+                // parent.dom.appendChild(vdom.dom);
+                // if (index) {
+                //   //@ts-ignore
+                //   parent.dom.insertBefore(vdom.dom, index - 1);
+                // } else {
+                //   // If the index is out of range, append the new element at the end
+                //   parent.dom.appendChild(vdom.dom);
+                // }
             }
             break;
         }
         case TYPE.FRAGMENT: {
             console.log("handle fragment");
             //@ts-ignore
-            vdom.dom = document.createDocumentFragment();
+            // vdom.dom = document.createDocumentFragment();
             vdom.children?.map((child) => {
-                // destroyDOM(child as VDOM);
-                display(child, vdom);
+                destroyDOM(child);
+                display(child, parent, index++);
+                //@ts-ignore
+                // child.parent = parent;
             });
             vdom.children?.map((child) => {
                 //@ts-ignore
-                // append(child, vdom);
-                vdom.dom.appendChild(child.dom);
+                append(child, parent);
             });
+            // return vdom;
             break;
         }
         case TYPE.TEXT: {
-            console.log("handle text");
             const { value } = vdom;
             if (!vdom.dom) {
                 //@ts-ignore
@@ -237,11 +314,22 @@ function display(vdom, parent = null) {
                 console.log("Text has dom", value);
                 // vdom.dom.replaceWith(document.createTextNode(value as string));
                 //@ts-ignore
-                // vdom.dom = document.createTextNode(value as string);
+                vdom.dom = document.createTextNode(value);
             }
+            // (vdom as any).dom = document.createTextNode(value as string);
+            // append(vdom, parent);
+            // if (parent) parent.dom.appendChild(vdom.dom);
+            // vdom.parent = parent;
             break;
         }
+        default:
+            break;
     }
+    // if (vdom.isfunc) {
+    //   console.log("found function", vdom);
+    //   // console.log("has parent", parent);
+    // }
+    // vdom.parent = parent;
     return vdom;
 }
 // ROUTING

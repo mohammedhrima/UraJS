@@ -47,25 +47,28 @@ const getRoutes = (dir) => {
   return result;
 };
 
-// Generate the routes
-let routes = getRoutes(basePageDir);
+const updateRoutes = () => {
+  // Generate the routes
+  let routes = getRoutes(basePageDir);
+  // Mark the default route if specified and exists
+  const defaultRoute = process.env.DEFAULT_ROUTE;
+  if (defaultRoute && routes[defaultRoute.toLowerCase()]) {
+    routes[defaultRoute.toLowerCase()].default = true;
+  } else if (defaultRoute) {
+    console.warn(`Default route '${defaultRoute}' not found in the routes.`);
+  }
 
-// Mark the default route if specified and exists
-const defaultRoute = process.env.DEFAULT_ROUTE;
-if (defaultRoute && routes[defaultRoute.toLowerCase()]) {
-  routes[defaultRoute.toLowerCase()].default = true;
-} else if (defaultRoute) {
-  console.warn(`Default route '${defaultRoute}' not found in the routes.`);
-}
+  // Convert routes object to JSON string with formatted indentation
+  const output = `const Routes = ${JSON.stringify(
+    routes,
+    null,
+    2
+  )};\n\nexport default Routes;`;
 
-// Convert routes object to JSON string with formatted indentation
-const output = `const Routes = ${JSON.stringify(
-  routes,
-  null,
-  2
-)};\n\nexport default Routes;`;
+  // Write the routes to the routes.js file
+  fs.writeFileSync(path.join(__dirname, "../src/pages/routes.js"), output, "utf8");
+  console.log("Routes saved to routes.js");
+};
 
-// Write the routes to the routes.js file
-fs.writeFileSync(path.join(__dirname, "../src/pages/routes.js"), output, "utf8");
 
-console.log("Routes saved to routes.js");
+export default updateRoutes

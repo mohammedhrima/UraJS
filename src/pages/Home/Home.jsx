@@ -1,27 +1,29 @@
 import Mini from "../../mini/mini.js";
-import { MiniComponent } from "../../mini/types.js";
 Mini.loadCSS("pages/Home/Home.css");
 
-function Home(): MiniComponent {
+function Home() {
   const [key, state] = Mini.initState();
-  const [set, get] = state<number>(10);
+  const [set, get] = state(10);
   return {
     key: key,
     render: () => {
       return (
         <get by={"#root"}>
-          <div id="home">
+          {/* <div id="home">
             <h1>Home page</h1>
             <div>
               <span>text 2</span>
-              <br/>
+              <br />
               <span>text 1</span>
-              <br/>
+              <br />
               <span>text 1</span>
-              <br/>
+              <br />
               <span>text 1</span>
             </div>
-          </div>
+          </div> */}
+            text 1
+            text 2
+            text 3
         </get>
       );
     },

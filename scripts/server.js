@@ -3,48 +3,25 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
 import chokidar from "chokidar";
 import dotenv from "dotenv";
+import updateRoutes from "./update-routes.js";
+import { copyRecursive, deleteRecursive, copyFile } from "./handle-files.js";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = process.env.PORT || 17000;
+// @ts-ignore
+const PORT = process.env.PORT || 5000;
 const SRCDIR = path.resolve(__dirname, "../src");
 const OUTDIR = path.resolve(__dirname, "../out");
 
-const copyRecursive = (srcDir, outDir) => {
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-
-  fs.readdirSync(srcDir).forEach((pathname) => {
-    const srcFile = path.join(srcDir, pathname);
-    const outFile = path.join(outDir, pathname);
-
-    if (fs.statSync(srcFile).isDirectory()) {
-      copyRecursive(srcFile, outFile);
-    } else if (!/\.ts$|\.tsx$|\.jsx$|\.js$/.test(pathname)) {
-      fs.copyFileSync(srcFile, outFile);
-    }
-  });
-};
-
-spawn("npm", ["run", "update"], {
-  stdio: "inherit", // This will inherit the output (logs) to the main process
-  shell: true, // Run in shell mode to allow execution on Windows
-});
-
-// Copy files before the server starts
+deleteRecursive(OUTDIR);
 copyRecursive(SRCDIR, OUTDIR);
+updateRoutes();
 
-const copyFile = (srcPath) => {
-  if (!/\.(ts|tsx|jsx|js)$/i.test(srcPath)) {
-    const destPath = srcPath.replace(SRCDIR, OUTDIR);
-    fs.mkdirSync(path.dirname(destPath), { recursive: true });
-    fs.copyFileSync(srcPath, destPath);
-  }
-};
 
 const mimeTypes = {
   ".html": "text/html",
@@ -79,12 +56,9 @@ const getMimeType = (ext) => mimeTypes[ext] || "application/octet-stream";
 const server = http.createServer((req, res) => {
   let reqPath = req.url.split("?")[0];
   let newPath = path.join(OUTDIR, reqPath);
-  // console.log("request path:", reqPath);
-  // console.log("new path:", newPath);
 
-  // If the path has no extension (e.g., /user), serve index.html
   const ext = path.extname(newPath);
-  if (!ext) newPath = path.join(SRCDIR, "../index.html"); // Default to index.html
+  if (reqPath == "/") newPath = path.join(SRCDIR, "../index.html");
 
   fs.stat(newPath, (err, stats) => {
     console.log("serve", newPath);
@@ -107,13 +81,11 @@ server.listen(PORT, () => {
 });
 
 const wss = new WebSocketServer({ server });
-
-wss.on("connection", (ws) => {
+wss.on("connection", () => {
   console.log("Client connected");
 });
 
 let notifyTimeout;
-
 const notifyClients = () => {
   if (notifyTimeout) clearTimeout(notifyTimeout);
   notifyTimeout = setTimeout(() => {
@@ -123,7 +95,8 @@ const notifyClients = () => {
         client.send("refresh");
       }
     });
-  }, 1); // Adjust debounce time as needed
+    // @ts-ignore
+  }, process.env.SERVER_TIMING || 1); // Adjust debounce time as needed
 };
 
 function Watcher(path, events, param, callback) {
@@ -132,70 +105,44 @@ function Watcher(path, events, param, callback) {
     watch.on(event, callback);
   });
   watch.on("error", (error) => console.error(`Watcher error: ${error}`));
-
   // Optionally log when Chokidar starts watching files
   console.log(`Started watching: ${path}`);
 }
 
 // Watch source directory
-Watcher(
-  SRCDIR,
-  ["add", "change", "unlink", "unlinkDir"],
-  { ignored: /\.js$|\.jsx$|\.ts$|\.tsx$/i },
-  (eventPath, event) => {
-    if (event === "unlink" || event === "unlinkDir" || !event) {
-      const destPath = eventPath.replace(SRCDIR, OUTDIR);
-      console.log(`${eventPath.replace(SRCDIR, ".")} was deleted`);
+Watcher(SRCDIR, ["add", "change", "unlink", "unlinkDir"], {}, (eventPath, event) => {
+  if (event === "unlink" || event === "unlinkDir" || !event) {
+    const destPath = eventPath.replace(SRCDIR, OUTDIR);
+    console.log(`${eventPath.replace(SRCDIR, ".")} was deleted`);
 
-      // Handle file or directory deletion
-      if (fs.existsSync(destPath)) {
-        fs.rmSync(destPath, { recursive: true, force: true }); // Delete corresponding file or directory in OUTDIR
-        console.log(`${destPath.replace(OUTDIR, ".")} removed from output`);
-      }
-      spawn("npm", ["run", "update"], {
-        stdio: "inherit", // This will inherit the output (logs) to the main process
-        shell: true, // Run in shell mode to allow execution on Windows
-      });
-    } else if (event) {
-      // console.log(event);
-
-      // Handle added or changed files
-      copyFile(eventPath);
-      console.log(eventPath.replace(SRCDIR, "."), "file changed");
+    // Handle file or directory deletion
+    if (fs.existsSync(destPath)) {
+      fs.rmSync(destPath, { recursive: true, force: true }); // Delete corresponding file or directory in OUTDIR
+      console.log(`${destPath.replace(OUTDIR, ".")} removed from output`);
     }
-    notifyClients();
+    updateRoutes();
+  } else if (event) {
+    // console.log("event on", eventPath);
+    // Handle added or changed files
+    copyFile(eventPath);
+    console.log("copy", eventPath.replace(SRCDIR, "."));
   }
-);
-
-Watcher(path.join(__dirname, "../index.html"), ["change"], {}, (param) => {
-  // copyFile(param);
-  console.log("index.html file changed");
   notifyClients();
 });
 
-Watcher(path.join(__dirname, "../.env"), ["change"], {}, (param) => {
-  // copyFile(param);
-  console.log("index.html file changed");
-  notifyClients();
-});
-
-// Watch output directory
-Watcher(OUTDIR + "/**/*.js", ["change"], {}, (param) => {
-  console.log(param.replace(OUTDIR, "."), "JS file changed");
-  notifyClients();
-});
-
-// Fork a child process to run tsc -w (TypeScript compiler in watch mode)
-// const tscProcess = spawn("tsc", ["-w"], {
-//   stdio: "inherit", // This will inherit the output (logs) to the main process
-//   shell: true, // Run in shell mode to allow execution on Windows
+// Watcher(path.join(__dirname, "../index.html"), ["change"], {}, (param) => {
+//   // copyFile(param);
+//   console.log("index.html file changed");
+//   notifyClients();
 // });
 
-// // Handle any errors or events from the tsc child process
-// tscProcess.on("error", (error) => {
-//   console.error(`Error spawning tsc process: ${error.message}`);
+// Watcher(path.join(__dirname, "../.env"), ["change"], {}, (param) => {
+//   // copyFile(param);
+//   console.log("env file changed");
+//   notifyClients();
 // });
 
-// tscProcess.on("close", (code) => {
-//   console.log(`tsc process exited with code ${code}`);
+// Watcher(path.join(OUTDIR, "/**/*.js"), ["change"], {}, (param) => {
+//   console.log(param.replace(OUTDIR, "."), "JS file changed");
+//   notifyClients();
 // });
