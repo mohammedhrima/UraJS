@@ -1,9 +1,11 @@
 import ts from "typescript";
 import fs from "fs";
 import path from "path";
-import chokidar from "chokidar";
+import { SRCDIR } from "./dirs.js";
 
-// Load tsconfig.json
+const RED = "\x1b[31m";
+const RESET = "\x1b[0m";
+
 const tsConfigPath = path.resolve("./tsconfig.json");
 const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
 const parsedConfig = ts.parseJsonConfigFileContent(
@@ -12,14 +14,10 @@ const parsedConfig = ts.parseJsonConfigFileContent(
   path.dirname(tsConfigPath)
 );
 
-// Function to compile TypeScript code based on tsconfig.json
 const compileTypeScript = (srcFilePath, outFilePath) => {
-  // Ensure the directory for the output file exists
   const program = ts.createProgram([srcFilePath], parsedConfig.options);
   const emitResult = program.emit();
-
   const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
-
   if (allDiagnostics.length > 0) {
     allDiagnostics.forEach((diagnostic) => {
       if (diagnostic.file && diagnostic.start !== undefined) {
@@ -28,11 +26,11 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
         );
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
         console.log(
-          `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+          RED,
+          `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,
+          RESET
         );
-      } else {
-        console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
-      }
+      } else console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
     });
   } else {
     // Write compiled JavaScript to output file
@@ -40,26 +38,8 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
       compilerOptions: parsedConfig.options,
     }).outputText;
     fs.writeFileSync(outFilePath, outputText, "utf-8");
-    console.log(`Compiled ${srcFilePath} to ${outFilePath}`);
+    console.log(`Transpile ${path.relative(SRCDIR, srcFilePath)}`);
   }
 };
-
-// // // Function to set up watch mode
-// const watchAndCompile = (srcFilePath: string, outFilePath: string) => {
-//   const watcher = chokidar.watch(srcFilePath, {
-//     persistent: true,
-//     ignoreInitial: false, // Compile existing file when starting
-//   });
-
-//   watcher.on('change', () => compileTypeScript(srcFilePath, outFilePath));
-
-//   console.log(`Watching ${srcFilePath} for changes...`);
-// };
-
-// Example usage
-// const srcFilePath = path.resolve('./index.tsx'); // Source file path
-// const outFilePath = path.resolve('./index.js'); // Output file path
-
-// compileTypeScript(srcFilePath, outFilePath);
 
 export default compileTypeScript;

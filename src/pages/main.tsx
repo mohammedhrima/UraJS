@@ -4,7 +4,7 @@ import Routes from "./routes.js";
 // Load CSS
 Mini.loadCSS("pages/main.css");
 
-const importComponent = async (path: string) => {
+async function importComponent(path: string) {
   try {
     const module = await import(`${path}`);
     return module.default;
@@ -12,9 +12,9 @@ const importComponent = async (path: string) => {
     console.error(`Error importing component at ${path}:`, error);
     return null;
   }
-};
+}
 
-const logAndImportRoute = async (prefix: string, route: any, path: any) => {
+async function logAndImportRoute(prefix: string, route: any, path: any) {
   const fullPath = `${prefix}${route.filename}`;
   const Component = await importComponent(fullPath);
   if (Component) {
@@ -31,9 +31,9 @@ const logAndImportRoute = async (prefix: string, route: any, path: any) => {
       );
     }
   }
-};
+}
 
-const setupRoutes = async () => {
+async function setupRoutes() {
   const routePromises = [];
 
   Object.keys(Routes).forEach((key) => {
@@ -42,7 +42,7 @@ const setupRoutes = async () => {
   });
 
   await Promise.all(routePromises);
-};
+}
 
 setupRoutes()
   .then(() => {
@@ -71,3 +71,26 @@ setupRoutes()
 //   console.log(container);
 //   parent.appendChild(container.firstChild);
 // }
+
+// function replaceChildAt(parentElement, index, newElement) {
+//   const children = parentElement.children;
+
+//   if (index >= 0 && index < children.length) {
+//     // Replace the child at the given index
+//     parentElement.replaceChild(newElement, children[index]);
+//   } else {
+//     console.error("Index out of bounds");
+//   }
+// }
+
+// // Example usage:
+// const parent = document.getElementById("root");
+// parent.appendChild(document.createElement("div"));
+// parent.appendChild(document.createElement("div"));
+// parent.appendChild(document.createElement("div"));
+
+// const newElement = document.createElement("span");
+// newElement.textContent = "This is the new element";
+
+// // Replace the child at index 1
+// replaceChildAt(parent, 1, newElement);

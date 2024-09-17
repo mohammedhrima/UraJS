@@ -1,32 +1,28 @@
 import Mini from "../../mini/mini.js";
+import Btn from "./_utils/Btn/Btn.js";
 Mini.loadCSS("pages/Home/Home.css");
 
 function Home() {
   const [key, state] = Mini.initState();
-  const [set, get] = state(10);
+  const [get, set] = state(10);
   return {
     key: key,
     render: () => {
       return (
-        <get by={"#root"}>
-          {/* <div id="home">
-            <h1>Home page</h1>
-            <div>
-              <span>text 2</span>
-              <br />
-              <span>text 1</span>
-              <br />
-              <span>text 1</span>
-              <br />
-              <span>text 1</span>
-            </div>
-          </div> */}
-            text 1
-            text 2
-            text 3
-        </get>
+        <root>
+          <button onclick={() => {set(get() + 1)}} >
+            this is value [{get()}]
+          </button>
+          <div id="home">
+            <Btn id={0} />
+            <Btn id={1} />
+            <Btn id={2} />
+            <Btn id={3} />
+          </div>
+        </root>
       );
     },
   };
 }
 export default Home;
+

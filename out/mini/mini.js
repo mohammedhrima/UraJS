@@ -16,16 +16,15 @@ function check(children) {
         if (child == null || typeof child === "string" || typeof child === "number") {
             return {
                 type: TYPE.TEXT,
-                index: i,
+                index: i++,
                 value: child,
                 events: {},
             };
         }
         else {
-            child.index = i;
+            child.index = i++;
             return child;
         }
-        i++;
     });
     return children;
 }
@@ -41,6 +40,7 @@ function element(tag, props, ...children) {
         if (funcTag.render) {
             let currTag;
             if (funcTag.key && maps.get(funcTag.key)) {
+                // console.log("element is a function");
                 currTag = funcTag.render();
                 currTag.isfunc = true;
                 currTag.key = funcTag.key;
@@ -69,18 +69,18 @@ function element(tag, props, ...children) {
     };
 }
 function destroyDOM(vdom) {
-    // if (vdom.tag != "get") {
-    //   for (const eventType in vdom.events) {
-    //     if (vdom.events.hasOwnProperty(eventType)) {
-    //       const callback = vdom.events[eventType];
-    //       vdom.dom.removeEventListener(eventType, callback);
-    //     }
-    //     vdom.events = {};
-    //   }
-    //   vdom.dom?.remove();
-    //   vdom.dom = null;
-    // }
-    // vdom.children?.map(destroyDOM);
+    if (vdom.tag != "get" && vdom.tag != "root" && vdom.type != TYPE.FRAGMENT) {
+        for (const eventType in vdom.events) {
+            if (vdom.events.hasOwnProperty(eventType)) {
+                const callback = vdom.events[eventType];
+                vdom.dom.removeEventListener(eventType, callback);
+            }
+            vdom.events = {};
+        }
+        vdom.dom?.remove();
+        vdom.dom = null;
+    }
+    vdom.children?.map(destroyDOM);
 }
 function isvalid(tag) {
     if (!(tag in validTags)) {
@@ -111,10 +111,9 @@ const refresh = () => {
     // TODO: in case '*' check ifit's error Component
     // if so give it the path as parameter
     const RouteConfig = Routes[hash] || Routes["*"];
-    if (currentRoute)
-        destroyDOM(currentRoute);
+    // if (currentRoute) destroyDOM(currentRoute);
     //@ts-ignore
-    currentRoute = display(element(RouteConfig));
+    display(element(RouteConfig));
 };
 const navigate = (route, params = {}) => {
     console.log("call navigate");
@@ -122,10 +121,9 @@ const navigate = (route, params = {}) => {
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);
     const RouteConfig = Routes[route] || Routes["*"];
-    if (currentRoute)
-        destroyDOM(currentRoute);
+    // if (currentRoute) destroyDOM(currentRoute);
     //@ts-ignore
-    currentRoute = display(element(RouteConfig));
+    display(element(RouteConfig));
 };
 function append(vdom, parent) {
     if (vdom.dom)
@@ -139,23 +137,58 @@ function append(vdom, parent) {
             append(child, parent);
     });
 }
+function replaceChildAt(parentDOM, index, newDOM) {
+    const children = parentDOM.children;
+    if (index >= 0 && index < children.length) {
+        // Replace the child at the given index
+        parentDOM.replaceChild(newDOM, children[index]);
+    }
+    else {
+        console.error("Index out of bounds");
+    }
+}
 function display(vdom, parent = null) {
+    // console.log("call display", vdom);
     switch (vdom.type) {
         case TYPE.ELEMENT: {
             let { tag, props } = vdom;
-            if (tag == "get") {
+            if (tag == "root") {
+                if (currentRoute)
+                    destroyDOM(currentRoute);
+                currentRoute = vdom;
+                currentRoute.dom = document.getElementById("root");
+                vdom.children?.map((child) => {
+                    //@ts-ignore
+                    // child.parent = vdom;
+                    destroyDOM(child);
+                    //@ts-ignore
+                    display(child, vdom);
+                    // console.log(child);
+                    //@ts-ignore
+                    vdom.dom.appendChild(child.dom);
+                });
+                // vdom.children?.map((child) => {
+                //   // append(child, vdom);
+                //   //@ts-ignore
+                //   // display(child, vdom);
+                //   //@ts-ignore
+                //   vdom.dom.appendChild(child.dom);
+                // });
+            }
+            else if (tag == "get") {
                 if (!vdom.dom)
                     vdom.dom = document.querySelector(props["by"]);
                 vdom.children?.map((child) => {
                     //@ts-ignore
-                    child.parent = vdom;
+                    // child.parent = vdom;
                     //@ts-ignore
+                    destroyDOM(child);
                     display(child, vdom);
                 });
                 vdom.children?.map((child) => {
                     // append(child, vdom);
                     //@ts-ignore
-                    display(child, vdom);
+                    // display(child, vdom);
                     //@ts-ignore
                     vdom.dom.appendChild(child.dom);
                 });
@@ -178,21 +211,6 @@ function display(vdom, parent = null) {
                 });
             }
             else {
-                if (vdom.isfunc && maps.get(vdom.key)) {
-                    // maps.get(vdom.key).handler = () => {
-                    //   let newTag = vdom.func();
-                    //   newTag.isfunc = true;
-                    //   newTag.key = vdom.key;
-                    //   newTag.func = vdom.func;
-                    //   display(newTag, parent);
-                    //   newTag.children?.map((child) => {
-                    //     display(child, newTag);
-                    //   });
-                    //   // newTag.children?.map((child) => {
-                    //   //   append(child, newTag);
-                    //   // });
-                    // };
-                }
                 // TODO: add an else here
                 if (!isvalid(tag))
                     throw `Invalid tag ${tag}`;
@@ -203,11 +221,72 @@ function display(vdom, parent = null) {
                     vdom.dom.replaceWith(document.createElement(vdom.tag));
                 }
                 vdom.children?.map((child) => {
+                    destroyDOM(child);
                     //@ts-ignore
                     display(child, vdom);
                     //@ts-ignore
                     vdom.dom.appendChild(child.dom);
                 });
+                const style = {};
+                Object.keys(props || {}).forEach((key) => {
+                    if (validTags[tag].includes(key)) {
+                        if (key.startsWith("on")) {
+                            const eventType = key.slice(2).toLowerCase();
+                            vdom.dom.addEventListener(eventType, props[key]);
+                            vdom.events[eventType] = vdom.props[key];
+                        }
+                        else if (key === "style")
+                            Object.assign(style, props[key]);
+                        else {
+                            if (tag == "svg" || parent?.tag == "svg")
+                                vdom.dom.setAttribute(key, props[key]);
+                            else
+                                vdom.dom[key] = props[key];
+                        }
+                    }
+                    else
+                        console.warn(`Invalid attribute "${key}" ignored.`);
+                });
+                if (Object.keys(style).length > 0) {
+                    vdom.dom.style.cssText = Object.keys(style)
+                        .map((styleProp) => {
+                        const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+                        return Camelkey + ":" + style[styleProp];
+                    })
+                        .join(";");
+                }
+            }
+            if (vdom.isfunc && maps.get(vdom.key)) {
+                // if (vdom.tag == "root") {
+                //   console.log("hey", vdom.tag);
+                //   vdom.children?.map((child) => {
+                //     //@ts-ignore
+                //     console.log(child);
+                //   });
+                // }
+                // console.log("found func");
+                maps.get(vdom.key).handler = () => {
+                    let newTag = vdom.func();
+                    // console.log("handle clique for ", newTag);
+                    newTag.isfunc = true;
+                    newTag.key = vdom.key;
+                    newTag.func = vdom.func;
+                    newTag.index = vdom.index;
+                    // destroyDOM(vdom);
+                    display(newTag, parent);
+                    newTag.children?.map((child) => {
+                        destroyDOM(child);
+                        display(child, newTag);
+                        newTag.dom.appendChild(child.dom);
+                    });
+                    if (newTag.tag != "root") {
+                        parent.dom.appendChild(newTag.dom);
+                        replaceChildAt(parent.dom, newTag.index, newTag.dom);
+                    }
+                    // newTag.children?.map((child) => {
+                    //   append(child, newTag);
+                    // });
+                };
             }
             break;
         }
@@ -227,18 +306,19 @@ function display(vdom, parent = null) {
             break;
         }
         case TYPE.TEXT: {
-            console.log("handle text");
+            // console.log("handle text");
             const { value } = vdom;
-            if (!vdom.dom) {
-                //@ts-ignore
-                vdom.dom = document.createTextNode(value);
-            }
-            else {
-                console.log("Text has dom", value);
-                // vdom.dom.replaceWith(document.createTextNode(value as string));
-                //@ts-ignore
-                // vdom.dom = document.createTextNode(value as string);
-            }
+            //@ts-ignore
+            vdom.dom = document.createTextNode(value);
+            // if (!vdom.dom) {
+            //   //@ts-ignore
+            //   vdom.dom = document.createTextNode(value as string);
+            // } else {
+            //   console.log("Text has dom", value);
+            //   vdom.dom.replaceWith(document.createTextNode(value as string));
+            //   //@ts-ignore
+            //   // vdom.dom = document.createTextNode(value as string);
+            // }
             break;
         }
     }

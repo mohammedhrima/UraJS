@@ -4,6 +4,16 @@ const Routes = {
     "dir": "Home",
     "filename": "Home.js",
     "default": true
+  },
+  "test": {
+    "call": "Test",
+    "dir": "Test",
+    "filename": "Test.js"
+  },
+  "user": {
+    "call": "User",
+    "dir": "User",
+    "filename": "User.js"
   }
 };
 
