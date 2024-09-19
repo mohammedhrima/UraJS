@@ -1,5 +1,5 @@
 import Mini from "../mini/mini.js";
-import Routes from "./routes.js";
+import Routes from "./routes.json" with { type: "json" };
 // Load CSS
 Mini.loadCSS("pages/main.css");
 async function importComponent(path) {
@@ -16,9 +16,9 @@ async function logAndImportRoute(prefix, route, path) {
     const fullPath = `${prefix}${route.filename}`;
     const Component = await importComponent(fullPath);
     if (Component) {
-        Mini.Routes["/" + path] = Component;
+        Mini.Routes["/" + path] = Mini.element(Component, null);
         if (route.default)
-            Mini.Routes["*"] = Component;
+            Mini.Routes["*"] = Mini.element(Component, null);
     }
     if (route.subpaths) {
         for (const subpath of Object.keys(route.subpaths)) {
@@ -43,6 +43,7 @@ setupRoutes()
     window.addEventListener("DOMContentLoaded", Mini.refresh);
     Mini.refresh();
 });
+console.log(Mini.Routes);
 // const parent = document.getElementById("root");
 // // Create a temporary container (an alternative to DocumentFragment)
 // const container = document.createElement("div");

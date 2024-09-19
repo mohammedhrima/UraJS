@@ -3,3 +3,4 @@
 **/.vite
 **/package-lock.json
 /dist
+**/*.db

@@ -10,13 +10,9 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "skipLibCheck": false,
-    "allowJs": true, // Enable JavaScript files to be compiled
-    "checkJs": true // Optional: enable type checking on JavaScript files
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
-  
-  "include": [
-    "src/**/*",
-    "src/**/*.jsx", // Include .jsx files in the compilation
-  ],
-  "exclude": ["node_modules", "out", "scripts/server.js"]
+  "include": ["src/**/*"],
 }

@@ -1,7 +1,7 @@
 import ts from "typescript";
 import fs from "fs";
 import path from "path";
-import { SRCDIR } from "./dirs.js";
+import { SRCDIR } from "./utils.js";
 
 const RED = "\x1b[31m";
 const RESET = "\x1b[0m";

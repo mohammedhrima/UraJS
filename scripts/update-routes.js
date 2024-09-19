@@ -1,10 +1,6 @@
 import fs from "fs";
 import path from "path";
-import process from "process";
-import dotenv from "dotenv";
-import { SRCDIR } from "./dirs.js";
-
-dotenv.config();
+import { SRCDIR, CONFIG } from "./utils.js";
 
 const PageDir = path.resolve(SRCDIR, "./pages");
 const formatName = (name) => name.charAt(0).toUpperCase() + name.slice(1);
@@ -20,7 +16,7 @@ const getRoutes = (dir) => {
       const stats = fs.statSync(fullPath);
 
       if (stats.isDirectory()) {
-        const routeName = fileOrDir.toLowerCase(); 
+        const routeName = fileOrDir.toLowerCase();
         if (routeName != "_utils") {
           const subroutes = getRoutes(fullPath);
 
@@ -42,18 +38,14 @@ const getRoutes = (dir) => {
 
 const updateRoutes = () => {
   let routes = getRoutes(PageDir);
-  const defaultRoute = process.env.DEFAULT_ROUTE;
+  const defaultRoute = CONFIG.DEFAULT_ROUTE;
   if (defaultRoute && routes[defaultRoute.toLowerCase()])
     routes[defaultRoute.toLowerCase()].default = true;
   else if (defaultRoute)
     console.warn(`Default route '${defaultRoute}' not found in the routes.`);
 
-  const output = `const Routes = ${JSON.stringify(
-    routes,
-    null,
-    2
-  )};\n\nexport default Routes;`;
-  fs.writeFileSync(path.join(SRCDIR, "./pages/routes.js"), output, "utf8");
+  const output = JSON.stringify(routes, null, 2);
+  fs.writeFileSync(path.join(SRCDIR, "./pages/routes.json"), output, "utf8");
   console.log("Routes saved to routes.js");
 };
 

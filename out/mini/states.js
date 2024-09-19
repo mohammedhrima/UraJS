@@ -1,23 +1,19 @@
-// STATES
 export const maps = new Map();
-let index = 1;
+let index = 0;
 export function initState() {
     maps.set(index, {
         state: new Map(),
         handler: () => { },
     });
-    const map = maps.get(index);
+    const map = maps.get(index); // Access the state map for the current index
     index++;
-    let key = 1;
     return [
         index - 1,
         (initialValue) => {
-            key++;
+            const key = map.state.size + 1;
             map.state.set(key, initialValue);
             return [
-                () => {
-                    return map.state.get(key);
-                },
+                () => map.state.get(key),
                 (newValue) => {
                     map.state.set(key, newValue);
                     if (map.handler)

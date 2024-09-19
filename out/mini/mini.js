@@ -1,3 +1,5 @@
+//@ts-ignore
+import send_HTTP_Request from "./http.js";
 import { maps, initState } from "./states.js";
 import { TYPE } from "./types.js";
 import validTags from "./validTags.js";
@@ -40,7 +42,7 @@ function element(tag, props, ...children) {
         if (funcTag.render) {
             let currTag;
             if (funcTag.key && maps.get(funcTag.key)) {
-                // console.log("element is a function");
+                console.log("element is a function");
                 currTag = funcTag.render();
                 currTag.isfunc = true;
                 currTag.key = funcTag.key;
@@ -69,7 +71,8 @@ function element(tag, props, ...children) {
     };
 }
 function destroyDOM(vdom) {
-    if (vdom.tag != "get" && vdom.tag != "root" && vdom.type != TYPE.FRAGMENT) {
+    let { tag, type } = vdom;
+    if (tag != "get" && tag != "root" && tag != "loop" && type != TYPE.FRAGMENT) {
         for (const eventType in vdom.events) {
             if (vdom.events.hasOwnProperty(eventType)) {
                 const callback = vdom.events[eventType];
@@ -90,7 +93,8 @@ function isvalid(tag) {
     return true;
 }
 const Routes = {};
-Routes["*"] = Error;
+//@ts-ignore
+Routes["*"] = Error();
 let currentRoute = null;
 const normalizePath = (path) => {
     if (!path || path == "")
@@ -108,12 +112,16 @@ const refresh = () => {
     console.log("call refresh");
     let hash = window.location.hash.slice(1) || "/";
     hash = normalizePath(hash);
-    // TODO: in case '*' check ifit's error Component
+    // TODO: in case '*' check if it's error Component
     // if so give it the path as parameter
     const RouteConfig = Routes[hash] || Routes["*"];
+    console.log(RouteConfig);
     // if (currentRoute) destroyDOM(currentRoute);
-    //@ts-ignore
-    display(element(RouteConfig));
+    // console.log(<RouteConfig />);
+    // let vdom = ;
+    // console.log("refresh", vdom);
+    // @ts-ignore
+    display(RouteConfig);
 };
 const navigate = (route, params = {}) => {
     console.log("call navigate");
@@ -123,7 +131,9 @@ const navigate = (route, params = {}) => {
     const RouteConfig = Routes[route] || Routes["*"];
     // if (currentRoute) destroyDOM(currentRoute);
     //@ts-ignore
-    display(element(RouteConfig));
+    display(RouteConfig);
+    // display(element(RouteConfig));
+    // console.log(RouteConfig);
 };
 function append(vdom, parent) {
     if (vdom.dom)
@@ -148,39 +158,56 @@ function replaceChildAt(parentDOM, index, newDOM) {
     }
 }
 function display(vdom, parent = null) {
+    //@ts-ignore
     // console.log("call display", vdom);
     switch (vdom.type) {
         case TYPE.ELEMENT: {
             let { tag, props } = vdom;
-            if (tag == "root") {
+            if (tag == "loop") {
+                //@ts-ignore
+                let { on, exec } = props;
+                console.log("on", on, " type", typeof on);
+                let res = on?.map((elem) => {
+                    console.log(elem);
+                    return exec(elem);
+                });
+                console.log(res);
+                //@ts-ignore
+                vdom.dom = document.createDocumentFragment();
+                res.map((child) => {
+                    display(child, parent);
+                    //@ts-ignore
+                    vdom.children.push(child);
+                    vdom.dom.appendChild(child.dom);
+                });
+            }
+            else if (tag == "root") {
                 if (currentRoute)
                     destroyDOM(currentRoute);
-                currentRoute = vdom;
-                currentRoute.dom = document.getElementById("root");
+                vdom.dom = document.getElementById("root");
                 vdom.children?.map((child) => {
                     //@ts-ignore
-                    // child.parent = vdom;
                     destroyDOM(child);
                     //@ts-ignore
                     display(child, vdom);
                     // console.log(child);
+                    // console.log("child", child);
                     //@ts-ignore
-                    vdom.dom.appendChild(child.dom);
+                    if (child.dom) {
+                        //@ts-ignore
+                        vdom.dom.appendChild(child.dom);
+                    }
+                    else {
+                        // console.log("has size");
+                        // throw `${vdom} has no dom`;
+                    }
+                    currentRoute = vdom;
                 });
-                // vdom.children?.map((child) => {
-                //   // append(child, vdom);
-                //   //@ts-ignore
-                //   // display(child, vdom);
-                //   //@ts-ignore
-                //   vdom.dom.appendChild(child.dom);
-                // });
             }
             else if (tag == "get") {
                 if (!vdom.dom)
                     vdom.dom = document.querySelector(props["by"]);
                 vdom.children?.map((child) => {
-                    //@ts-ignore
-                    // child.parent = vdom;
                     //@ts-ignore
                     destroyDOM(child);
                     display(child, vdom);
@@ -257,35 +284,24 @@ function display(vdom, parent = null) {
                 }
             }
             if (vdom.isfunc && maps.get(vdom.key)) {
-                // if (vdom.tag == "root") {
-                //   console.log("hey", vdom.tag);
-                //   vdom.children?.map((child) => {
-                //     //@ts-ignore
-                //     console.log(child);
-                //   });
-                // }
-                // console.log("found func");
                 maps.get(vdom.key).handler = () => {
                     let newTag = vdom.func();
-                    // console.log("handle clique for ", newTag);
                     newTag.isfunc = true;
                     newTag.key = vdom.key;
                     newTag.func = vdom.func;
                     newTag.index = vdom.index;
-                    // destroyDOM(vdom);
                     display(newTag, parent);
                     newTag.children?.map((child) => {
                         destroyDOM(child);
                         display(child, newTag);
-                        newTag.dom.appendChild(child.dom);
+                        console.log(child);
+                        if (child.dom)
+                            newTag.dom.appendChild(child.dom);
                     });
                     if (newTag.tag != "root") {
                         parent.dom.appendChild(newTag.dom);
                         replaceChildAt(parent.dom, newTag.index, newTag.dom);
                     }
-                    // newTag.children?.map((child) => {
-                    //   append(child, newTag);
-                    // });
                 };
             }
             break;
@@ -295,19 +311,17 @@ function display(vdom, parent = null) {
             //@ts-ignore
             vdom.dom = document.createDocumentFragment();
             vdom.children?.map((child) => {
-                // destroyDOM(child as VDOM);
                 display(child, vdom);
             });
             vdom.children?.map((child) => {
                 //@ts-ignore
-                // append(child, vdom);
                 vdom.dom.appendChild(child.dom);
             });
             break;
         }
         case TYPE.TEXT: {
-            // console.log("handle text");
             const { value } = vdom;
+            console.log("handle text", value);
             //@ts-ignore
             vdom.dom = document.createTextNode(value);
             // if (!vdom.dom) {
@@ -352,5 +366,6 @@ const Mini = {
     Routes,
     navigate,
     refresh,
+    send: send_HTTP_Request,
 };
 export default Mini;

@@ -1,32 +1,40 @@
-import { StateMap } from "./types.js";
-
 // STATES
-export const maps = new Map<number, StateMap>();
+type StateMap<T> = Map<number, T>;
+type Handler = () => void;
 
-let index = 1;
-export function initState<T>() {
+interface StateEntry<T> {
+  state: StateMap<T>;
+  handler: Handler;
+}
+
+export const maps = new Map<number, StateEntry<any>>();
+let index = 0;
+
+export function initState(): [
+  number,
+  <T>(initialValue: T) => [() => T | undefined, (newValue: T) => void]
+] {
   maps.set(index, {
     state: new Map<number, any>(),
     handler: () => {},
   });
-  const map = maps.get(index);
+
+  const map = maps.get(index)!; // Access the state map for the current index
   index++;
-  let key = 1;
+
   return [
     index - 1,
     <T>(initialValue: T) => {
-      key++;
+      const key = map.state.size + 1;
       map.state.set(key, initialValue);
 
       return [
-        (): T => {
-          return map.state.get(key) as T;
-        },
+        (): T | undefined => map.state.get(key),
         (newValue: T) => {
           map.state.set(key, newValue);
           if (map.handler) map.handler();
         },
-      ] as [() => T, (newValue: T) => void];
+      ];
     },
-  ] as [number, <T>(value: T) => [() => T, (newValue: T) => void]];
+  ];
 }

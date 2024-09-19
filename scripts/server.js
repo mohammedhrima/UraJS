@@ -3,14 +3,11 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import chokidar from "chokidar";
-import dotenv from "dotenv";
 import updateRoutes from "./update-routes.js";
 import { deleteRecursive, copyFile } from "./handle-files.js";
-import { ROOTDIR, OUTDIR, SRCDIR } from "./dirs.js";
-import { getMimeType } from "./memetypes.js";
+import { ROOTDIR, OUTDIR, SRCDIR, CONFIG , getMimeType} from "./utils.js";
 
-dotenv.config();
-const PORT = process.env.PORT || 17000;
+const PORT = CONFIG.PORT || 17000;
 
 deleteRecursive(OUTDIR);
 // copyRecursive(SRCDIR, OUTDIR);
@@ -23,7 +20,7 @@ const server = http.createServer((req, res) => {
 
   if (reqPath == "/") filePath = path.join(ROOTDIR, "index.html");
   fs.stat(filePath, (err, stats) => {
-    console.log("serve", filePath);
+    console.log("serve", path.relative(ROOTDIR, filePath));
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end(`${filePath} Not Found`);
@@ -57,7 +54,7 @@ function notifyClients() {
         client.send("refresh");
       }
     });
-  }, process.env.SERVER_TIMING || 1); // Adjust debounce time as needed
+  }, CONFIG.SERVER_TIMING || 1); // Adjust debounce time as needed
 }
 
 function Watcher(watchPath, events, param, callback) {
@@ -72,10 +69,10 @@ function Watcher(watchPath, events, param, callback) {
 Watcher(SRCDIR, ["add", "change", "unlink", "unlinkDir"], {}, (eventPath, event) => {
   if (event === "unlink" || event === "unlinkDir" || !event) {
     const destPath = eventPath.replace(SRCDIR, OUTDIR);
-    console.log(`${eventPath.replace(SRCDIR, ".")} was deleted`);
+    console.log(`${path.relative(SRCDIR, eventPath)} was deleted`);
     if (fs.existsSync(destPath)) {
       fs.rmSync(destPath, { recursive: true, force: true });
-      console.log(`${destPath.replace(OUTDIR, ".")} removed from output`);
+      console.log(`${path.relative(OUTDIR, destPath)} removed from output`);
     }
     updateRoutes();
   } else if (event) copyFile(eventPath);
@@ -87,8 +84,3 @@ Watcher(path.join(ROOTDIR, "index.html"), ["change"], {}, (param) => {
   notifyClients();
 });
 
-Watcher(path.join(ROOTDIR, ".env"), ["change"], {}, (param) => {
-  console.log(".env file changed");
-  updateRoutes();
-  notifyClients();
-});

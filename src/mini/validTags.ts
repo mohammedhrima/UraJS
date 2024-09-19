@@ -91,7 +91,7 @@ const validTags: any = {
 		"enctype", "name", "target", "accept-charset", "novalidate", "autocomplete",
 		"autocapitalize", "autocorrect", "accept", "rel", "title", "onsubmit",
 		"onreset", "onformdata", "oninput", "oninvalid", "onchange", "onblur",
-		"onfocus",],
+		"onfocus","submit" ],
 	svg: ["style", "hidden", "id", "className", "x", "y", "width", "height",
 		"viewBox", "preserveAspectRatio", "xmlns", "version", "baseProfile",
 		"contentScriptType", "contentStyleType", "fill", "stroke", "stroke-width",
