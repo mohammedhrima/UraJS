@@ -16,9 +16,13 @@ async function logAndImportRoute(prefix, route, path) {
     const fullPath = `${prefix}${route.filename}`;
     const Component = await importComponent(fullPath);
     if (Component) {
-        Mini.Routes["/" + path] = Mini.element(Component, null);
-        if (route.default)
-            Mini.Routes["*"] = Mini.element(Component, null);
+        let tag = Component;
+        // console.log("from main", tag);
+        Mini.Routes["/" + path] = tag;
+        if (route.default) {
+            console.log("found default");
+            Mini.Routes["*"] = tag;
+        }
     }
     if (route.subpaths) {
         for (const subpath of Object.keys(route.subpaths)) {
@@ -34,45 +38,11 @@ async function setupRoutes() {
     });
     await Promise.all(routePromises);
 }
-setupRoutes()
-    .then(() => {
+setupRoutes().then(() => {
     console.log("Routes initialization completed.");
-})
-    .then(() => {
+}).then(() => {
     window.addEventListener("hashchange", Mini.refresh);
     window.addEventListener("DOMContentLoaded", Mini.refresh);
     Mini.refresh();
 });
 console.log(Mini.Routes);
-// const parent = document.getElementById("root");
-// // Create a temporary container (an alternative to DocumentFragment)
-// const container = document.createElement("div");
-// // Add multiple elements to the container
-// for (let i = 0; i < 3; i++) {
-//   const newElement = document.createElement("li");
-//   newElement.textContent = `New Item ${i + 1}`;
-//   container.appendChild(newElement);
-// }
-// // Move all children from container to the parent element
-// while (container.firstChild) {
-//   console.log(container);
-//   parent.appendChild(container.firstChild);
-// }
-// function replaceChildAt(parentElement, index, newElement) {
-//   const children = parentElement.children;
-//   if (index >= 0 && index < children.length) {
-//     // Replace the child at the given index
-//     parentElement.replaceChild(newElement, children[index]);
-//   } else {
-//     console.error("Index out of bounds");
-//   }
-// }
-// // Example usage:
-// const parent = document.getElementById("root");
-// parent.appendChild(document.createElement("div"));
-// parent.appendChild(document.createElement("div"));
-// parent.appendChild(document.createElement("div"));
-// const newElement = document.createElement("span");
-// newElement.textContent = "This is the new element";
-// // Replace the child at index 1
-// replaceChildAt(parent, 1, newElement);

@@ -4,7 +4,7 @@ import Mini from "../../mini/mini.js";
 Mini.loadCSS("pages/Todo/Todo.css");
 
 function Todo() {
-  console.log("call home");
+  console.log("call Todo");
 
   const [key, state] = Mini.initState();
   const [getter0, setter0] = state("abc");
@@ -24,7 +24,7 @@ function Todo() {
     render: () => {
       return (
         <root>
-          <h1>home</h1>
+          <h1>Todo page</h1>
           <h1>{getter0()}</h1>
           <h1>{getter1()}</h1>
           <loop

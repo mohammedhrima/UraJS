@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import process from "process";
-import { SRCDIR, CONFIG } from "./utils.js";
+import { SRCDIR, GET_CONFIG } from "./utils.js";
 import updateRoutes from "./update-routes.js";
 
 const baseDir = path.resolve(SRCDIR, "./pages");
@@ -39,7 +39,7 @@ if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
 const fileName = nameParts[nameParts.length - 1];
 filePath = path.join(
   dirPath,
-  `${fileName}${CONFIG.EXTENTION == "ts" ? ".tsx" : ".jsx"}`
+  `${fileName}${GET_CONFIG().EXTENTION == "ts" ? ".tsx" : ".jsx"}`
 );
 cssPath = path.join(dirPath, `${fileName}.css`);
 
@@ -53,14 +53,14 @@ let tsFileContent = "";
 if (command.toLowerCase() === "c" || command.toLowerCase() === "component") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
 import Mini from "${miniPath}";
-${CONFIG.EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
+${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
 Mini.loadCSS("${relativeCssPath}");
 
 function ${nameParts[nameParts.length - 1]}()${
-    CONFIG.EXTENTION == "ts" ? `: MiniComponent` : ""
+    GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
   } {
   const [key, state] = Mini.initState();
-  const [getter, setter] = state${CONFIG.EXTENTION == "ts" ? `<number>` : ""}(0)
+  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,
     render: () => {
@@ -91,14 +91,14 @@ export default ${nameParts[nameParts.length - 1]};
 } else if (command.toLowerCase() === "p" || command.toLowerCase() === "page") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
 import Mini from "${miniPath}";
-${CONFIG.EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
+${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
 Mini.loadCSS("${relativeCssPath}");
 
 function ${nameParts[nameParts.length - 1]}()${
-    CONFIG.EXTENTION == "ts" ? `: MiniComponent` : ""
+    GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
   } {
   const [key, state] = Mini.initState();
-  const [getter, setter] = state${CONFIG.EXTENTION == "ts" ? `<number>` : ""}(0)
+  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,
     render: () => {

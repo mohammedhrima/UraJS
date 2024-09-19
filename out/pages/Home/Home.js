@@ -1,4 +1,4 @@
-// pages/Home/Home.tsx
+// pages/Home/Home.jsx
 import Mini from "../../mini/mini.js";
 Mini.loadCSS("pages/Home/Home.css");
 function Home() {
@@ -8,6 +8,7 @@ function Home() {
         key: key,
         render: () => {
             return (Mini.element("root", null,
+                Mini.element("h1", null, "Home page"),
                 Mini.element("div", { id: "home" },
                     "Home counter ",
                     getter()),

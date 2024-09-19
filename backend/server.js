@@ -1,5 +1,5 @@
 const express = require("express");
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 const { User, sequelize } = require("./models/user");
 const cors = require('cors');
 
@@ -7,7 +7,7 @@ const app = express();
 const port = 3000;
 
 // Middleware
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 app.use(cors());
 
 // Test DB connection

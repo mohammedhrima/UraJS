@@ -8,7 +8,7 @@ interface StateEntry<T> {
 }
 
 export const maps = new Map<number, StateEntry<any>>();
-let index = 0;
+let index = 1;
 
 export function initState(): [
   number,

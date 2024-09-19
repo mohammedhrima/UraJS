@@ -2,5 +2,5 @@
 **/.parcel-cache/
 **/.vite
 **/package-lock.json
-/dist
+/out
 **/*.db

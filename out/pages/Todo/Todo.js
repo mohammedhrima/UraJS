@@ -3,7 +3,7 @@ import Mini from "../../mini/mini.js";
 // import { MiniComponent } from "../../mini/types.js";
 Mini.loadCSS("pages/Todo/Todo.css");
 function Todo() {
-    console.log("call home");
+    console.log("call Todo");
     const [key, state] = Mini.initState();
     const [getter0, setter0] = state("abc");
     const [getter1, setter1] = state(123);
@@ -20,7 +20,7 @@ function Todo() {
         key: key,
         render: () => {
             return (Mini.element("root", null,
-                Mini.element("h1", null, "home"),
+                Mini.element("h1", null, "Todo page"),
                 Mini.element("h1", null, getter0()),
                 Mini.element("h1", null, getter1()),
                 Mini.element("loop", { on: getter2(), exec: (elem) => {

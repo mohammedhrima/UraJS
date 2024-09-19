@@ -1,16 +1,17 @@
-// pages/Home/Home.tsx
+// pages/Home/Home.jsx
 import Mini from "../../mini/mini.js";
-import { MiniComponent } from "../../mini/types.js";
+
 Mini.loadCSS("pages/Home/Home.css");
 
-function Home(): MiniComponent {
+function Home() {
   const [key, state] = Mini.initState();
-  const [getter, setter] = state<number>(0)
+  const [getter, setter] = state(0)
   return {
     key: key,
     render: () => {
       return (
         <root>
+          <h1>Home page</h1>
           <div id="home">Home counter {getter()}</div>
           <br />
           <button

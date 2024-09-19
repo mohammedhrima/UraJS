@@ -1,5 +1,5 @@
 export const maps = new Map();
-let index = 0;
+let index = 1;
 export function initState() {
     maps.set(index, {
         state: new Map(),

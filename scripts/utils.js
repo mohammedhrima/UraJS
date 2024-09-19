@@ -1,6 +1,6 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import fs from "fs"
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +11,16 @@ export function read_json(path) {
 export const ROOTDIR = path.resolve(__dirname, "../");
 export const SRCDIR = path.resolve(ROOTDIR, "src");
 export const OUTDIR = path.resolve(ROOTDIR, "out");
-export const CONFIG = read_json(path.resolve(ROOTDIR, "./config.json"));
+
+let CONFIG = read_json(path.resolve(ROOTDIR, "./config.json"));
+
+export function GET_CONFIG() {
+  return CONFIG;
+}
+
+export function SET_CONFIG() {
+  CONFIG = read_json(path.resolve(ROOTDIR, "./config.json"));
+}
 
 const mimeTypes = {
   ".html": "text/html",

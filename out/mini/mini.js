@@ -94,7 +94,7 @@ function isvalid(tag) {
 }
 const Routes = {};
 //@ts-ignore
-Routes["*"] = Error();
+Routes["*"] = Error;
 let currentRoute = null;
 const normalizePath = (path) => {
     if (!path || path == "")
@@ -109,44 +109,26 @@ const normalizePath = (path) => {
     return path;
 };
 const refresh = () => {
-    console.log("call refresh");
     let hash = window.location.hash.slice(1) || "/";
     hash = normalizePath(hash);
     // TODO: in case '*' check if it's error Component
     // if so give it the path as parameter
     const RouteConfig = Routes[hash] || Routes["*"];
-    console.log(RouteConfig);
-    // if (currentRoute) destroyDOM(currentRoute);
-    // console.log(<RouteConfig />);
-    // let vdom = ;
-    // console.log("refresh", vdom);
-    // @ts-ignore
-    display(RouteConfig);
+    /*
+    | I did <RoutConfig/> because
+    | I need the key attribute
+    */
+    display(Mini.element(RouteConfig, null));
 };
 const navigate = (route, params = {}) => {
-    console.log("call navigate");
+    // console.log("call navigate");
     route = route.split("?")[0];
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);
     const RouteConfig = Routes[route] || Routes["*"];
-    // if (currentRoute) destroyDOM(currentRoute);
     //@ts-ignore
-    display(RouteConfig);
-    // display(element(RouteConfig));
-    // console.log(RouteConfig);
+    display(Mini.element(RouteConfig, null));
 };
-function append(vdom, parent) {
-    if (vdom.dom)
-        parent.dom.appendChild(vdom.dom);
-    vdom.children?.map((child) => {
-        //@ts-ignore
-        if (vdom.dom)
-            append(child, vdom);
-        //@ts-ignore
-        else
-            append(child, parent);
-    });
-}
 function replaceChildAt(parentDOM, index, newDOM) {
     const children = parentDOM.children;
     if (index >= 0 && index < children.length) {
@@ -166,19 +148,22 @@ function display(vdom, parent = null) {
             if (tag == "loop") {
                 //@ts-ignore
                 let { on, exec } = props;
-                console.log("on", on, " type", typeof on);
+                // console.log("on", on, " type", typeof on);
                 let res = on?.map((elem) => {
-                    console.log(elem);
+                    // console.log(elem);
                     return exec(elem);
                 });
-                console.log(res);
+                // console.log(res);
                 //@ts-ignore
                 vdom.dom = document.createDocumentFragment();
                 res.map((child) => {
                     display(child, parent);
                     //@ts-ignore
                     vdom.children.push(child);
-                    vdom.dom.appendChild(child.dom);
+                    if (child.dom)
+                        vdom.dom.appendChild(child.dom);
+                    else
+                        vdom.dom.appendChild(document.createTextNode(JSON.stringify(child)));
                 });
             }
             else if (tag == "root") {
@@ -193,16 +178,12 @@ function display(vdom, parent = null) {
                     // console.log(child);
                     // console.log("child", child);
                     //@ts-ignore
-                    if (child.dom) {
-                        //@ts-ignore
+                    if (child.dom)
                         vdom.dom.appendChild(child.dom);
-                    }
-                    else {
-                        // console.log("has size");
-                        // throw `${vdom} has no dom`;
-                    }
-                    currentRoute = vdom;
+                    else
+                        vdom.dom.appendChild(document.createTextNode(JSON.stringify(child)));
                 });
+                currentRoute = vdom;
             }
             else if (tag == "get") {
                 if (!vdom.dom)
@@ -217,7 +198,10 @@ function display(vdom, parent = null) {
                     //@ts-ignore
                     // display(child, vdom);
                     //@ts-ignore
-                    vdom.dom.appendChild(child.dom);
+                    if (child.dom)
+                        vdom.dom.appendChild(child.dom);
+                    else
+                        vdom.dom.appendChild(document.createTextNode(JSON.stringify(child)));
                 });
             }
             else if (tag == "route") {
@@ -238,13 +222,12 @@ function display(vdom, parent = null) {
                 });
             }
             else {
-                // TODO: add an else here
                 if (!isvalid(tag))
                     throw `Invalid tag ${tag}`;
                 if (!vdom.dom)
                     vdom.dom = document.createElement(vdom.tag);
                 else {
-                    console.log("element already has dom");
+                    // console.log("element already has dom");
                     vdom.dom.replaceWith(document.createElement(vdom.tag));
                 }
                 vdom.children?.map((child) => {
@@ -252,7 +235,12 @@ function display(vdom, parent = null) {
                     //@ts-ignore
                     display(child, vdom);
                     //@ts-ignore
-                    vdom.dom.appendChild(child.dom);
+                    // console.log(child);
+                    //@ts-ignore
+                    if (child.dom)
+                        vdom.dom.appendChild(child.dom);
+                    else
+                        vdom.dom.appendChild(document.createTextNode(JSON.stringify(child)));
                 });
                 const style = {};
                 Object.keys(props || {}).forEach((key) => {
@@ -284,7 +272,9 @@ function display(vdom, parent = null) {
                 }
             }
             if (vdom.isfunc && maps.get(vdom.key)) {
+                console.log("foudn function");
                 maps.get(vdom.key).handler = () => {
+                    console.log("call handle");
                     let newTag = vdom.func();
                     newTag.isfunc = true;
                     newTag.key = vdom.key;
@@ -294,9 +284,11 @@ function display(vdom, parent = null) {
                     newTag.children?.map((child) => {
                         destroyDOM(child);
                         display(child, newTag);
-                        console.log(child);
+                        // console.log(child);
                         if (child.dom)
                             newTag.dom.appendChild(child.dom);
+                        else
+                            newTag.dom.appendChild(document.createTextNode(JSON.stringify(child)));
                     });
                     if (newTag.tag != "root") {
                         parent.dom.appendChild(newTag.dom);
@@ -307,7 +299,7 @@ function display(vdom, parent = null) {
             break;
         }
         case TYPE.FRAGMENT: {
-            console.log("handle fragment");
+            // console.log("handle fragment");
             //@ts-ignore
             vdom.dom = document.createDocumentFragment();
             vdom.children?.map((child) => {
@@ -315,13 +307,16 @@ function display(vdom, parent = null) {
             });
             vdom.children?.map((child) => {
                 //@ts-ignore
-                vdom.dom.appendChild(child.dom);
+                if (child.dom)
+                    vdom.dom.appendChild(child.dom);
+                else
+                    vdom.dom.appendChild(document.createTextNode(JSON.stringify(child)));
             });
             break;
         }
         case TYPE.TEXT: {
             const { value } = vdom;
-            console.log("handle text", value);
+            // console.log("handle text", value);
             //@ts-ignore
             vdom.dom = document.createTextNode(value);
             // if (!vdom.dom) {
@@ -343,7 +338,7 @@ function Error(props) {
     return {
         key: null,
         render: () => {
-            return element("get", { by: "#root" }, element("h4", {
+            return element("root", {}, element("h4", {
                 style: {
                     fontFamily: "sans-serif",
                     fontSize: "6vw",

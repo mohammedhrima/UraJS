@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { SRCDIR, CONFIG } from "./utils.js";
+import { SRCDIR, GET_CONFIG } from "./utils.js";
 
 const PageDir = path.resolve(SRCDIR, "./pages");
 const formatName = (name) => name.charAt(0).toUpperCase() + name.slice(1);
@@ -38,9 +38,12 @@ const getRoutes = (dir) => {
 
 const updateRoutes = () => {
   let routes = getRoutes(PageDir);
-  const defaultRoute = CONFIG.DEFAULT_ROUTE;
+  const defaultRoute = GET_CONFIG().DEFAULT_ROUTE;
   if (defaultRoute && routes[defaultRoute.toLowerCase()])
+  {
+    console.warn("default route is", defaultRoute);
     routes[defaultRoute.toLowerCase()].default = true;
+  }
   else if (defaultRoute)
     console.warn(`Default route '${defaultRoute}' not found in the routes.`);
 
