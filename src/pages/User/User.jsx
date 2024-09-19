@@ -1,12 +1,12 @@
 // pages/User/User.jsx
-import Mini from "../../mini/mini.js";
+import Mino from "../../Minotaur/code.js";
 
-Mini.loadCSS("pages/User/User.css");
+Mino.loadCSS("pages/User/User.css");
 
 function User() {
   console.log("call users");
 
-  const [key, state] = Mini.initState();
+  const [key, state] = Mino.initState();
   const [getter, setter] = state(0);
   const [getusers, setusers] = state([]);
 
@@ -16,7 +16,7 @@ function User() {
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
 
-    Mini.send("POST", "http://localhost:3000/users", {}, { name, email })
+    Mino.send("POST", "http://localhost:3000/users", {}, { name, email })
       .then((response) => {
         if (response.status === 201)
           console.log(`User created: ${response.data.name}, ${response.data.email}`);
@@ -31,7 +31,7 @@ function User() {
 
     e.preventDefault();
 
-    Mini.send("GET", "http://localhost:3000/users")
+    Mino.send("GET", "http://localhost:3000/users")
       .then((response) => {
         if (response.status === 200) {
           console.log("User updated:", response.data);

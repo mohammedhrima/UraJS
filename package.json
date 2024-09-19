@@ -1,4 +1,7 @@
 {
+  "name": "minotaur-js",
+  "version": "1.0.0",
+  "description": "frontend library",
   "type": "module",
   "scripts": {
     "start": "node ./scripts/server.js",
@@ -6,15 +9,12 @@
     "newc": "node ./scripts/new-route.js c",
     "clear": "rm -rf ./out/*"
   },
-  "comments": {
-    "ts": "tsc -w"
-  },
-  "dependencies": {
-    "chokidar": "^3.6.0",
-    "dotenv": "^16.4.5",
+  "author": "Hrima Mohammed",
+  "license": "MIT",
+  "devDependencies": {
+    "chokidar": "^4.0.0",
     "express": "^4.21.0",
-    "nodemon": "^3.1.4",
-    "typescript": "^5.5.4",
+    "typescript": "^5.6.2",
     "ws": "^8.18.0"
   }
 }

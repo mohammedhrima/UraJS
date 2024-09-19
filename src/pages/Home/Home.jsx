@@ -1,11 +1,11 @@
 // pages/Home/Home.jsx
-import Mini from "../../mini/mini.js";
+import Mino from "../../Minotaur/code.js";
 
-Mini.loadCSS("pages/Home/Home.css");
+Mino.loadCSS("pages/Home/Home.css");
 
 function Home() {
-  const [key, state] = Mini.initState();
-  const [getter, setter] = state(0)
+  const [key, state] = Mino.initState();
+  const [getter, setter] = state(0);
   return {
     key: key,
     render: () => {

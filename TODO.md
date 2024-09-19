@@ -13,5 +13,5 @@
     + routing:
         + simple route
         + strict route
-    + npm init for ts and js
     + if tag
+    + set project name in package.json

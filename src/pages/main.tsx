@@ -1,8 +1,8 @@
-import Mini from "../mini/mini.js";
+import Mino from "../Minotaur/code.js";
 import Routes from "./routes.json" with { type: "json" };
 
 // Load CSS
-Mini.loadCSS("pages/main.css");
+Mino.loadCSS("pages/main.css");
 
 async function importComponent(path: string) {
   try {
@@ -21,10 +21,10 @@ async function logAndImportRoute(prefix: string, route: any, path: any) {
     let tag = Component;
     // console.log("from main", tag);
     
-    Mini.Routes["/" + path] = tag;
+    Mino.Routes["/" + path] = tag;
     if (route.default) {
       console.log("found default");
-      Mini.Routes["*"] = tag;
+      Mino.Routes["*"] = tag;
     }
   }
 
@@ -53,10 +53,10 @@ async function setupRoutes() {
 setupRoutes().then(() => {
     console.log("Routes initialization completed.");
   }).then(()=>{
-    window.addEventListener("hashchange", Mini.refresh);
-    window.addEventListener("DOMContentLoaded", Mini.refresh);
-    Mini.refresh();
+    window.addEventListener("hashchange", Mino.refresh);
+    window.addEventListener("DOMContentLoaded", Mino.refresh);
+    Mino.refresh();
   })
 
-console.log(Mini.Routes);
+console.log(Mino.Routes);
   

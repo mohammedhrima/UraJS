@@ -1,12 +1,12 @@
 // pages/Todo/Todo.tsx
-import Mini from "../../mini/mini.js";
+import Mino from "../../Minotaur/code.js";
 // import { MiniComponent } from "../../mini/types.js";
-Mini.loadCSS("pages/Todo/Todo.css");
+Mino.loadCSS("pages/Todo/Todo.css");
 
 function Todo() {
   console.log("call Todo");
 
-  const [key, state] = Mini.initState();
+  const [key, state] = Mino.initState();
   const [getter0, setter0] = state("abc");
   const [getter1, setter1] = state(123);
   const [getter2, setter2] = state(["task 0", "task 1", "task 2"]);

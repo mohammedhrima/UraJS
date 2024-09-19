@@ -22,12 +22,10 @@ function checkPortInUse(port, callback) {
       callback(false, port, err);
     }
   });
-
   server.once("listening", () => {
     server.close();
     callback(false, port);
   });
-
   server.listen(port);
 }
 

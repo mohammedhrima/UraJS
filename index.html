@@ -7,19 +7,14 @@
     <title>Mini JS</title>
   </head>
   <body>
- 
     <div id="root"></div>
     <script type="module" id="main-script" src="./pages/main.js"></script>
     <script>
       const ws = new WebSocket(`ws://${window.location.host}`);
-      console.log(window.location.host)
+      console.log(window.location.host);
       ws.onmessage = (event) => {
-        if (event.data === "refresh") {
-          console.log("Received refresh signal");
-          window.location.reload();
-        }
+        if (event.data === "refresh") window.location.reload();
       };
-
       ws.onopen = () => {
         console.log("WebSocket connection established");
       };
@@ -31,7 +26,6 @@
       ws.onclose = () => {
         console.log("WebSocket connection closed");
       };
-    
     </script>
   </body>
 </html>
