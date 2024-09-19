@@ -2,5 +2,5 @@
 
 Welcome to the MinotaurJS framework!
 
-![Logo](./src/assets/logo.png)
+<img src="./src/assets/logo.png" alt="Logo" width="200" >
 
