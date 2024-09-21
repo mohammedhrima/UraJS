@@ -43,7 +43,7 @@ filePath = path.join(
 );
 cssPath = path.join(dirPath, `${fileName}.css`);
 
-const miniPath = path.relative(dirPath, path.resolve(SRCDIR, "./mini/mini.js"));
+const miniPath = path.relative(dirPath, path.resolve(SRCDIR, "./Minotaur/code.js"));
 const typesPath = path.relative(dirPath, path.resolve(SRCDIR, "./mini/types.js"));
 const relativeCssPath = path.relative("src", cssPath);
 
@@ -52,14 +52,14 @@ let tsFileContent = "";
 
 if (command.toLowerCase() === "c" || command.toLowerCase() === "component") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
-import Mini from "${miniPath}";
+import Mino from "${miniPath}";
 ${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
-Mini.loadCSS("${relativeCssPath}");
+Mino.loadCSS("${relativeCssPath}");
 
 function ${nameParts[nameParts.length - 1]}()${
     GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
   } {
-  const [key, state] = Mini.initState();
+  const [key, state] = Mino.initState();
   const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,
@@ -90,14 +90,14 @@ export default ${nameParts[nameParts.length - 1]};
   );
 } else if (command.toLowerCase() === "p" || command.toLowerCase() === "page") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
-import Mini from "${miniPath}";
+import Mino from "${miniPath}";
 ${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
-Mini.loadCSS("${relativeCssPath}");
+Mino.loadCSS("${relativeCssPath}");
 
 function ${nameParts[nameParts.length - 1]}()${
     GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
   } {
-  const [key, state] = Mini.initState();
+  const [key, state] = Mino.initState();
   const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,

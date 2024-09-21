@@ -7,11 +7,18 @@
     + simple full stack app
 
 + TODO:
-    + test create fragement
-
     + test the library carefully before sharing it
     + routing:
         + simple route
         + strict route
-    + if tag
-    + set project name in package.json
+    + add build step:
+        + for docker
+        + generate nginx
+
++ Documentation:
+    + routes:
+        + routes.json
+        + strict / simple routes
+        + nested routes
+        + similar nextJS routing
+    + config.json

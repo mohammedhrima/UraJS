@@ -45,7 +45,7 @@ function element(tag: Tag, props: Props, ...children: Array<VDOMNode>): VDOM {
     if (funcTag.render) {
       let currTag: VDOM;
       if (funcTag.key && maps.get(funcTag.key)) {
-        console.log("element is a function");
+        // console.log("element is a function");
         currTag = funcTag.render();
         currTag.isfunc = true;
         currTag.key = funcTag.key;
@@ -84,16 +84,6 @@ function destroyDOM(vdom: VDOM): void {
     vdom.dom = null;
   }
   vdom.children?.map(destroyDOM);
-}
-
-function isvalid(tag: Tag) {
-  if (!((tag as string) in validTags)) {
-    console.warn(
-      `Invalid tag '${tag}',if it's a function, first character should be uppercase`
-    );
-    return false;
-  }
-  return true;
 }
 
 const Routes: { [path: string]: Function } = {};
@@ -220,7 +210,11 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
           display(child as VDOM, parent);
         });
       } else {
-        if (!isvalid(tag)) throw `Invalid tag ${tag}`;
+        if (!((tag as string) in validTags)) {
+          console.warn(
+            `Invalid tag '${tag}',if it's a function, first character should be uppercase`
+          );
+        }
         if (!vdom.dom) vdom.dom = document.createElement(vdom.tag as string);
         else {
           // console.log("element already has dom");
@@ -239,7 +233,7 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
 
         const style = {};
         Object.keys(props || {}).forEach((key) => {
-          if (validTags[tag as string].includes(key)) {
+          // if (validTags[tag as string].includes(key)) {
             if (key.startsWith("on")) {
               const eventType = key.slice(2).toLowerCase();
               vdom.dom.addEventListener(eventType, props[key]);
@@ -250,7 +244,7 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
                 vdom.dom.setAttribute(key, props[key]);
               else vdom.dom[key] = props[key];
             }
-          } else console.warn(`Invalid attribute "${key}" ignored.`);
+          // } else console.warn(`Invalid attribute "${key}" ignored.`);
         });
         if (Object.keys(style).length > 0) {
           vdom.dom.style.cssText = Object.keys(style)
@@ -265,10 +259,8 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
         }
       }
       if (vdom.isfunc && maps.get(vdom.key)) {
-        console.log("foudn function");
-
         maps.get(vdom.key).handler = () => {
-          console.log("call handle");
+          // console.log("call handle");
 
           let newTag = vdom.func();
           newTag.isfunc = true;

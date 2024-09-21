@@ -7,7 +7,8 @@
     "start": "node ./scripts/server.js",
     "newp": "node ./scripts/new-route.js p",
     "newc": "node ./scripts/new-route.js c",
-    "clear": "rm -rf ./out/*"
+    "clear": "rm -rf ./out/*",
+    "do": "file-do"
   },
   "author": "Hrima Mohammed",
   "license": "MIT",
