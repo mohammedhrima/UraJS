@@ -7,6 +7,7 @@ function setProps(vdom) {
     const { tag, props } = vdom;
     const style = {};
     Object.keys(props || {}).forEach((key) => {
+        console.log("set prop");
         if (key.startsWith("on")) {
             const eventType = key.slice(2).toLowerCase();
             vdom.dom.addEventListener(eventType, props[key]);
@@ -15,7 +16,7 @@ function setProps(vdom) {
         else if (key === "style")
             Object.assign(style, props[key]);
         else {
-            if (tag == "svg" /*|| parent?.tag == "svg"*/)
+            if (tag == "svg" || vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/)
                 vdom.dom.setAttribute(key, props[key]);
             else
                 vdom.dom[key] = props[key];
@@ -25,7 +26,7 @@ function setProps(vdom) {
         vdom.dom.style.cssText = Object.keys(style)
             .map((styleProp) => {
             const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
-            return Camelkey + ":" + style[styleProp];
+            return `${Camelkey}:${style[styleProp]}`;
         })
             .join(";");
     }
@@ -76,6 +77,7 @@ function appendChildrenDOM(vdom) { }
 function execute(mode, prev, next = null) {
     switch (mode) {
         case UTILS.CREATE: {
+            // console.warn("CREATE", prev.tag);
             createDOM(prev);
             prev.children?.map((child) => {
                 execute(mode, child);
@@ -97,9 +99,9 @@ function execute(mode, prev, next = null) {
         }
         case UTILS.REPLACE: {
             // TODO: handle children
-            execute(UTILS.CREATE, next);
+            execute(UTILS.CREATE, next); // children get appended here
             prev.dom.replaceWith(next.dom);
-            prev.children?.map(child => {
+            prev.children?.map((child) => {
                 destroyDOM(child);
             });
             prev.dom = next.dom;
@@ -110,13 +112,67 @@ function execute(mode, prev, next = null) {
     }
     return prev;
 }
-function reconciliateProps(oldProps = {}, newProps = {}, index) { }
+function reconciliateProps(oldProps, newProps, vdom) {
+    // Remove old props that are not present in newProps
+    Object.keys(oldProps || {}).forEach((key) => {
+        if (!(key in newProps)) {
+            if (key.startsWith("on")) {
+                const eventType = key.slice(2).toLowerCase();
+                vdom.dom.removeEventListener(eventType, oldProps[key]);
+                delete vdom.events[eventType];
+            }
+            else if (key === "style") {
+                // Clear removed styles
+                Object.keys(oldProps.style || {}).forEach((styleProp) => {
+                    if (!newProps.style || !(styleProp in newProps.style)) {
+                        vdom.dom.style[styleProp] = ""; // Reset the style
+                    }
+                });
+            }
+            else {
+                if (vdom.dom[key] !== undefined) {
+                    delete vdom.dom[key]; // Remove the property
+                }
+                else {
+                    vdom.dom.removeAttribute(key); // Remove the attribute
+                }
+            }
+        }
+    });
+    // Add or update props that have changed
+    Object.keys(newProps || {}).forEach((key) => {
+        if (oldProps[key] !== newProps[key]) {
+            if (key.startsWith("on")) {
+                const eventType = key.slice(2).toLowerCase();
+                if (!vdom.events[eventType]) {
+                    vdom.dom.addEventListener(eventType, newProps[key]);
+                }
+                vdom.events[eventType] = newProps[key];
+            }
+            else if (key === "style") {
+                Object.assign(vdom.dom.style, newProps[key]); // Apply new styles
+            }
+            else {
+                if (vdom.tag === "svg" || vdom.dom instanceof SVGElement) {
+                    vdom.dom.setAttribute(key, newProps[key]); // Use setAttribute for SVG
+                }
+                else {
+                    vdom.dom[key] = newProps[key]; // Set properties for HTML elements
+                }
+            }
+        }
+    });
+}
 function reconciliate(prev, next) {
     // console.log("call reconciliate", prev, next);
     if (prev.type === UTILS.TEXT && !UTILS.deepEqual(prev.value, next.value)) {
-        execute(UTILS.REPLACE, prev, next);
-        return;
+        return execute(UTILS.REPLACE, prev, next);
     }
+    // Update props if the tag is the same
+    if (prev.tag === next.tag)
+        reconciliateProps(prev.props, next.props, prev);
+    else
+        return execute(UTILS.REPLACE, prev, next);
     const prev_children = prev.children || [];
     const next_children = next.children || [];
     for (let i = 0; i < Math.max(prev_children.length, next_children.length); i++) {
@@ -126,14 +182,16 @@ function reconciliate(prev, next) {
             reconciliate(child1, child2);
         }
         else if (!child1 && child2) {
+            execute(UTILS.INSERT, child2);
         }
         else if (child1 && !child2) {
+            execute(UTILS.REMOVE, child1);
         }
     }
 }
 function display(vdom, parent = null) {
     console.log("display ", vdom);
-    vdom = execute(UTILS.CREATE, vdom);
+    execute(UTILS.CREATE, vdom);
     if (vdom.render && vdom.key && maps.get(vdom.key)) {
         maps.get(vdom.key).handler = () => {
             console.log("found render");

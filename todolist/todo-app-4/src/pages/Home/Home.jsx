@@ -25,9 +25,17 @@ function Home() {
             }}
           </loop> */}
           <button
-            onclick={() => {
-              setter(getter() + 1);
-            }}
+            onclick={
+              getter() % 2 != 0
+                ? () => {
+                    console.log("is even");
+                    setter(getter() + 1);
+                  }
+                : () => {
+                    console.log("is odd");
+                    setter(getter() + 1);
+                  }
+            }
           >
             clique me {getter()}
           </button>
