@@ -6,22 +6,32 @@ import Mino from "../../Minotaur/code.js";
 function Home() {
   const [key, state] = Mino.initState();
   const [getter, setter] = state(0);
-  let x = 10;
-  let arr = ["task 0", "task 1", "task 2"];
+  const [gettArr, setArr] = state(["task 1", "task 2", "task 3"]);
+  // const add = () => {
+  //   setArr([...gettArr(), "hello"]);
+  //   console.log("new array:", gettArr());
+  // };
   return {
     key: key,
     render: () => {
       return (
         <root>
-          <loop on={arr}>
-            {(elem) => {
-              return <h1>{elem}</h1>;
+          {/* <if cond={getter() == 0}>
+            hello 
+          </if> */}
+          {/* <loop on={gettArr()}>
+            {(elem, id) => {
+              return <>{`${elem} ${id}`}</>;
             }}
-          </loop>
-          <if cond={x == 11}>is true</if>
-          <if cond={x != 11}>is false</if>
-          <br />
-          <button onclick={() => Mino.navigate("/user")}>navigate</button>
+          </loop> */}
+          <button
+            onclick={() => {
+              setter(getter() + 1);
+            }}
+          >
+            clique me {getter()}
+          </button>
+          {/* <h1>this is Home</h1> */}
         </root>
       );
     },

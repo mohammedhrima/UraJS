@@ -14,6 +14,18 @@
     + add build step:
         + for docker
         + generate nginx
+    + remove "clean dir" step when server runs
+    + isolate Minotaur dir so it does get transpiled everytime
+    + make sure to test props in reconcilation
+
++ NOW:
+    + create simple state
+        + change value without changing component
+        + change value with changing component
+        + change value with changing props
+
+        + test if
+        + test loop
 
 + Documentation:
     + routes:

@@ -1,0 +1,81 @@
+import { VDOM, Tag, Props, VDOMNode } from "./types.js";
+import { maps, initState } from "./states.js";
+import { ELEMENT, FRAGMENT, TEXT } from "./utils.js";
+
+// JSX HANDLING
+let vdom_index: number = 1;
+export function check(children: Array<VDOMNode>): Array<VDOMNode> {
+  //@ts-ignore
+  return children.map((child) => {
+    if (child == null || typeof child === "string" || typeof child === "number") {
+      return {
+        type: TEXT,
+        index: vdom_index++,
+        value: child,
+        events: {},
+      };
+    }
+    return child;
+  });
+}
+
+export function fragment(props: Props, ...children: Array<VDOMNode>): VDOM {
+  return {
+    type: FRAGMENT,
+    index: vdom_index++,
+    children: check(children || []),
+  };
+}
+
+export function element(tag: Tag, props: Props, ...children: Array<VDOMNode>): VDOM {
+  if (typeof tag === "function") {
+    let funcTag = tag(props || {});
+    if (funcTag.render) {
+      if (funcTag.key && maps.get(funcTag.key)) {
+        return {
+          ...funcTag.render(),
+          key: funcTag.key,
+          render: funcTag.render,
+        };
+      }
+      return funcTag;
+    } else if (funcTag.type) {
+      return {
+        ...funcTag,
+        index: funcTag.index ? funcTag.index : vdom_index++,
+        children: check(children || []),
+      };
+    } else throw `function ${tag} must return JSX`;
+  }
+  if (tag === "if") {
+    return {
+      index: vdom_index++,
+      type: FRAGMENT,
+      children: check(props?.cond && children ? children : []),
+    };
+  } else if (tag === "loop") {
+    let res = (props.on || []).flatMap((elem, id) =>
+      (children || []).map((child) => {
+        if (typeof child === "function") {
+          //@ts-ignore
+          return child(elem, id);
+        }
+        return child;
+      })
+    );
+    return {
+      index: vdom_index++,
+      type: FRAGMENT,
+      children: check(res || []),
+      events: {},
+    };
+  }
+  return {
+    index: vdom_index++,
+    tag: tag,
+    type: ELEMENT,
+    props: props,
+    children: check(children || []),
+    events: {},
+  };
+}
