@@ -94,9 +94,6 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
     case UTILS.KEEP: {
       break;
     }
-    case UTILS.UPDATE: {
-      break;
-    }
     case UTILS.INSERT: {
       break;
     }
@@ -122,37 +119,37 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 function reconciliateProps(oldProps: Props, newProps: Props, vdom) {
   // Remove old props that are not present in newProps
   Object.keys(oldProps || {}).forEach((key) => {
-    if (!(key in newProps)) {
-      if (key.startsWith("on")) {
-        const eventType = key.slice(2).toLowerCase();
-        vdom.dom.removeEventListener(eventType, oldProps[key]);
-        delete vdom.events[eventType];
-      } else if (key === "style") {
-        // Clear removed styles
-        Object.keys(oldProps.style || {}).forEach((styleProp) => {
-          if (!newProps.style || !(styleProp in newProps.style)) {
-            vdom.dom.style[styleProp] = ""; // Reset the style
-          }
-        });
-      } else {
-        if (vdom.dom[key] !== undefined) {
-          delete vdom.dom[key]; // Remove the property
-        } else {
-          vdom.dom.removeAttribute(key); // Remove the attribute
+    // if (!(key in newProps)) {
+    if (key.startsWith("on")) {
+      const eventType = key.slice(2).toLowerCase();
+      vdom.dom.removeEventListener(eventType, oldProps[key]);
+      delete vdom.events[eventType];
+    } else if (key === "style") {
+      // Clear removed styles
+      Object.keys(oldProps.style || {}).forEach((styleProp) => {
+        if (!newProps.style || !(styleProp in newProps.style)) {
+          vdom.dom.style[styleProp] = ""; // Reset the style
         }
+      });
+    } else {
+      if (vdom.dom[key] !== undefined) {
+        delete vdom.dom[key]; // Remove the property
+      } else {
+        vdom.dom.removeAttribute(key); // Remove the attribute
       }
     }
+    // }
   });
 
   // Add or update props that have changed
   Object.keys(newProps || {}).forEach((key) => {
-    if (oldProps[key] !== newProps[key]) {
+    // console.error("prop: ", key);
+    if (!UTILS.deepEqual(oldProps[key], newProps[key])) {
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
-        if (!vdom.events[eventType]) {
-          vdom.dom.addEventListener(eventType, newProps[key]);
-        }
+        vdom.dom.addEventListener(eventType, newProps[key]);
         vdom.events[eventType] = newProps[key];
+        // console.log("event", eventType, newProps[key]);
       } else if (key === "style") {
         Object.assign(vdom.dom.style, newProps[key]); // Apply new styles
       } else {
@@ -171,9 +168,11 @@ function reconciliate(prev, next) {
   if (prev.type === UTILS.TEXT && !UTILS.deepEqual(prev.value, next.value)) {
     return execute(UTILS.REPLACE, prev, next);
   }
-  // Update props if the tag is the same
-  if (prev.tag === next.tag) reconciliateProps(prev.props, next.props, prev);
-  else return execute(UTILS.REPLACE, prev, next);
+
+  if (prev.tag === next.tag) {
+    reconciliateProps(prev.props, next.props, prev);
+    prev.props = next.props;
+  } else return execute(UTILS.REPLACE, prev, next);
 
   const prev_children = prev.children || [];
   const next_children = next.children || [];
@@ -313,3 +312,15 @@ const Mino = {
 };
 
 export default Mino;
+
+// let a = () => {
+//   console.log("yes");
+//   console.log("is even");
+// };
+
+// let b = () => {
+//   console.log("yes");
+//   console.log("is even");
+// };
+
+// console.log("is equal", UTILS.deepEqual(a, b));

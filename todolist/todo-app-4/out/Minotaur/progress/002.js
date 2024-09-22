@@ -1,6 +1,6 @@
 import { Routes, root, normalizePath, setRoot } from "../routing.js";
 import { maps } from "../states.js";
-import { FRAGMENT, ELEMENT, TEXT, PROP_REMOVE, deepEqual, PROP_REPLACE, PROP_INSERT, REPLACE, KEEP, REMOVE, INSERT, UPDATE, } from "../utils.js";
+import { FRAGMENT, ELEMENT, TEXT, PROP_REMOVE, deepEqual, PROP_REPLACE, PROP_INSERT, REPLACE, KEEP, REMOVE, INSERT, UPDATE } from "../utils.js";
 function setProps(vdom, parent) {
     const { tag, props } = vdom;
     const style = {};

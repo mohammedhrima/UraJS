@@ -13,7 +13,7 @@ import {
   KEEP,
   REMOVE,
   INSERT,
-  UPDATE,
+  UPDATE
 } from "../utils.js";
 
 function setProps(vdom, parent) {
