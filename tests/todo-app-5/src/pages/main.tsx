@@ -1,9 +1,7 @@
 import Mino from "../Minotaur/code.js";
-import Routes from "./routes.json" with { type: "json" };
+import LoadedRoutes from "./routes.json" with { type: "json" };
 
-// Load CSS
 Mino.loadCSS("pages/main.css");
-
 async function importComponent(path: string) {
   try {
     const module = await import(`${path}`);
@@ -14,7 +12,7 @@ async function importComponent(path: string) {
   }
 }
 
-async function logAndImportRoute(prefix: string, route: any, path: any) {
+async function SetRoutes(prefix: string, route: any, path: any) {
   const fullPath = `${prefix}${route.filename}`;
   const Component = await importComponent(fullPath);
   if (Component) {
@@ -22,10 +20,9 @@ async function logAndImportRoute(prefix: string, route: any, path: any) {
     Mino.Routes["/" + path] = tag;
     if (route.default) Mino.Routes["*"] = tag;
   }
-
   if (route.subpaths) {
     for (const subpath of Object.keys(route.subpaths)) {
-      await logAndImportRoute(
+      await SetRoutes(
         `./${route.subpaths[subpath].dir}/`,
         route.subpaths[subpath],
         path + "/" + subpath
@@ -37,21 +34,41 @@ async function logAndImportRoute(prefix: string, route: any, path: any) {
 async function setupRoutes() {
   const routePromises = [];
 
-  Object.keys(Routes).forEach((key) => {
-    const route = Routes[key];
-    routePromises.push(logAndImportRoute(`./${route.dir}/`, route, key));
+  Object.keys(LoadedRoutes).forEach((key) => {
+    const route = LoadedRoutes[key];
+    routePromises.push(SetRoutes(`./${route.dir}/`, route, key));
   });
 
   await Promise.all(routePromises);
 }
 
-setupRoutes().then(() => {
-    console.log("Routes initialization completed.");
-  }).then(()=>{
+setupRoutes()
+  .then(() => {
+    console.log("LoadedRoutes initialization completed.");
+  })
+  .then(() => {
     window.addEventListener("hashchange", Mino.refresh);
     window.addEventListener("DOMContentLoaded", Mino.refresh);
     Mino.refresh();
-  })
+    console.log(Mino.Routes);
+  });
 
-console.log(Mino.Routes);
-  
+const ws = new WebSocket(`ws://${window.location.host}`);
+console.log(window.location.host);
+ws.onmessage = (event) => {
+  if (event.data === "refresh") {
+    console.log("refresh page");
+    window.location.reload();
+  }
+};
+ws.onopen = () => {
+  console.log("WebSocket connection established");
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
+ws.onclose = () => {
+  console.log("WebSocket connection closed");
+};

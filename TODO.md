@@ -18,6 +18,7 @@
     + make sure to test props in reconcilation
     + generate Docker for build
     + understand promises
+    + verify refresh function
 
 
 + Documentation:

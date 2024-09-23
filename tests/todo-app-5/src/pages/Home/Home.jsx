@@ -13,30 +13,28 @@ function Home() {
   // };
   return {
     key: key,
-    render: () => {
-      return (
-        <root>
-          <if cond={true}>
-            <Comp id={"odd"} />
-          </if>
-          <if cond={true}>
-            <Comp id={"even"} />
-          </if>
-          ==============================================================
-          {/* <if cond={true}>
+    render: () => (
+      <>
+        <if cond={true}>
+          <Comp id={"odd"} />
+        </if>
+        <if cond={true}>
+          <Comp id={"even"} />
+        </if>
+        ==============================================================
+        {/* <if cond={true}>
             <h1>hello</h1>
           </if> */}
-          {/* <loop on={gettArr()}>
+        {/* <loop on={gettArr()}>
             {(elem, id) => {
               return <>{`${elem} ${id}`}</>;
             }}
           </loop> */}
-          <br />
-          <button onclick={() => setter(getter() + 1)}>clique me {getter()}</button>
-          {/* <h1>this is Home</h1> */}
-        </root>
-      );
-    },
+        <br />
+        <button onclick={() => setter(getter() + 1)}>clique me {getter()}</button>
+        {/* <h1>this is Home</h1> */}
+      </>
+    ),
   };
 }
 export default Home;

@@ -12,18 +12,16 @@ function Home() {
     // };
     return {
         key: key,
-        render: () => {
-            return (Mino.element("root", null,
-                Mino.element("if", { cond: true },
-                    Mino.element(Comp, { id: "odd" })),
-                Mino.element("if", { cond: true },
-                    Mino.element(Comp, { id: "even" })),
-                "==============================================================",
-                Mino.element("br", null),
-                Mino.element("button", { onclick: () => setter(getter() + 1) },
-                    "clique me ",
-                    getter())));
-        },
+        render: () => (Mino.element(Mino.fragment, null,
+            Mino.element("if", { cond: true },
+                Mino.element(Comp, { id: "odd" })),
+            Mino.element("if", { cond: true },
+                Mino.element(Comp, { id: "even" })),
+            "==============================================================",
+            Mino.element("br", null),
+            Mino.element("button", { onclick: () => setter(getter() + 1) },
+                "clique me ",
+                getter()))),
     };
 }
 export default Home;

@@ -1,5 +1,6 @@
 import Mino from "../Minotaur/code.js";
-import LoadedRoutes from "./routes.json" with { type: "json" };
+import LoadedRoutes from "./routes.json"; //with { type: "json" };
+// Load CSS
 Mino.loadCSS("pages/main.css");
 async function importComponent(path) {
     try {
@@ -11,7 +12,7 @@ async function importComponent(path) {
         return null;
     }
 }
-async function SetRoutes(prefix, route, path) {
+async function logAndImportRoute(prefix, route, path) {
     const fullPath = `${prefix}${route.filename}`;
     const Component = await importComponent(fullPath);
     if (Component) {
@@ -22,7 +23,7 @@ async function SetRoutes(prefix, route, path) {
     }
     if (route.subpaths) {
         for (const subpath of Object.keys(route.subpaths)) {
-            await SetRoutes(`./${route.subpaths[subpath].dir}/`, route.subpaths[subpath], path + "/" + subpath);
+            await logAndImportRoute(`./${route.subpaths[subpath].dir}/`, route.subpaths[subpath], path + "/" + subpath);
         }
     }
 }
@@ -30,7 +31,7 @@ async function setupRoutes() {
     const routePromises = [];
     Object.keys(LoadedRoutes).forEach((key) => {
         const route = LoadedRoutes[key];
-        routePromises.push(SetRoutes(`./${route.dir}/`, route, key));
+        routePromises.push(logAndImportRoute(`./${route.dir}/`, route, key));
     });
     await Promise.all(routePromises);
 }

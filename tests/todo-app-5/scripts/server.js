@@ -112,6 +112,11 @@ function createServer(port) {
         console.log("index.html file changed");
         notifyClients();
       });
+      Watcher(path.join(ROOTDIR, "config.json"), ["change"], {}, (param) => {
+        console.error("config.json file changed restart the server");
+        // notifyClients();
+        process.exit(1);
+      });
     }
   });
 }

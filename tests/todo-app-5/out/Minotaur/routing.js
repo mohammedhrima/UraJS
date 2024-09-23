@@ -1,10 +1,9 @@
 import Mino from "./code.js";
-import { Error } from "./utils.js";
+import { CREATE } from "./utils.js";
 export const Routes = {};
-Routes["*"] = Error;
-export let root = null;
+export let mini_root = null;
 export function setRoot(new_root) {
-    root = new_root;
+    mini_root = new_root;
 }
 export function normalizePath(path) {
     if (!path || path == "")
@@ -36,8 +35,23 @@ export function refresh() {
     //     <RouteConfig />
     //   </root>
     // );
-    Mino.display(Mino.element(RouteConfig, null));
-    // console.log(root);
+    console.log("call refresh");
+    console.log("old", mini_root);
+    console.log("new", Mino.element("root", null,
+        Mino.element(RouteConfig, null)));
+    /*
+    TODO:
+      + refresh without reconcilation
+      + refresh with reconcilation
+    */
+    if (mini_root) {
+        Mino.reconciliate(mini_root, Mino.element("root", null,
+            Mino.element(RouteConfig, null)));
+    }
+    else {
+        mini_root = Mino.execute(CREATE, Mino.element("root", null,
+            Mino.element(RouteConfig, null)));
+    }
 }
 export const navigate = (route, params = {}) => {
     // console.log("call navigate");
@@ -45,12 +59,12 @@ export const navigate = (route, params = {}) => {
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);
     const RouteConfig = Routes[route] || Routes["*"];
+    // Mino.display(<RouteConfig />);
     //@ts-ignore
     // Mino.display(
     //   <root>
     //     <RouteConfig />
     //   </root>
     // );
-    Mino.display(Mino.element(RouteConfig, null));
-    console.log(root);
+    // console.log(mini_root);
 };

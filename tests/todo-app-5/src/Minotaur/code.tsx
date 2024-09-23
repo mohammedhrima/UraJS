@@ -1,7 +1,14 @@
 import { maps, initState } from "./states.js";
 import { VDOM, Tag, Props, VDOMNode } from "./types.js";
 import * as UTILS from "./utils.js";
-import { Routes, root, normalizePath, refresh, navigate, setRoot } from "./routing.js";
+import {
+  Routes,
+  mini_root,
+  normalizePath,
+  refresh,
+  navigate,
+  setRoot,
+} from "./routing.js";
 import { fragment, element } from "./jsx.js";
 
 // TODO: check svg set attribute
@@ -39,7 +46,11 @@ function createDOM(vdom): void {
     case UTILS.ELEMENT: {
       switch (vdom.tag) {
         case "root":
-          if (root) destroyDOM(root); // to destroy children
+          if (mini_root) {
+            console.error("destroy root");
+            destroyDOM(mini_root); // to destroy children
+          }
+
           vdom.dom = document.getElementById("root");
           //@ts-ignore
           setRoot(vdom);
@@ -95,7 +106,7 @@ function destroyDOM(vdom: VDOM): void {
 function execute(mode: number, prev: VDOM, next: VDOM = null) {
   switch (mode) {
     case UTILS.CREATE: {
-      // console.warn("CREATE", prev.tag);
+      // console.warn("CREATE", prev);
       createDOM(prev);
       prev.children?.map((child) => {
         execute(mode, child as VDOM);
@@ -203,12 +214,6 @@ function reconciliate(prev, next) {
   }
 }
 
-function handle_reconciliate(vdom) {
-  maps.get(vdom.key).handler = () => {
-    reconciliate(vdom, vdom.render());
-  };
-}
-
 function display(vdom: VDOM): VDOM {
   console.log("display ", vdom);
   execute(UTILS.CREATE, vdom);
@@ -225,7 +230,8 @@ const Mino = {
   navigate,
   refresh,
   send: UTILS.send_HTTP_Request,
-  reconciliate
+  reconciliate,
+  execute,
 };
 
 export default Mino;

@@ -62,8 +62,7 @@ function ${nameParts[nameParts.length - 1]}()${
   const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,
-    render: () => {
-      return (
+    render: () => (
         <>
           <div className="${nameParts[nameParts.length - 1].toLowerCase()}">${name}</div>
           <br />
@@ -74,8 +73,7 @@ function ${nameParts[nameParts.length - 1]}()${
             clique me
           </button>
         </>
-      );
-    },
+      )
   };
 }
 export default ${nameParts[nameParts.length - 1]};
@@ -100,9 +98,8 @@ function ${nameParts[nameParts.length - 1]}()${
   const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
   return {
     key: key,
-    render: () => {
-      return (
-        <root>
+    render: () => (
+        <>
           <div id="${nameParts[
             nameParts.length - 1
           ].toLowerCase()}">${name} counter {getter()}</div>
@@ -114,9 +111,8 @@ function ${nameParts[nameParts.length - 1]}()${
           >
             clique me
           </button>
-        </root>
-      );
-    },
+        </>
+      )
   };
 }
 export default ${nameParts[nameParts.length - 1]};

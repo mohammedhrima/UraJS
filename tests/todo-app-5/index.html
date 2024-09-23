@@ -8,23 +8,4 @@
   </head>
   <div id="root"></div>
   <script type="module" src="./pages/main.js"></script>
-  <script>
-    const ws = new WebSocket(`ws://${window.location.host}`);
-    console.log(window.location.host);
-    ws.onmessage = (event) => {
-      if (event.data === "refresh") window.location.reload();
-    };
-    ws.onopen = () => {
-      console.log("WebSocket connection established");
-    };
-
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
-  </script>
-  <!-- <script src="./index.js"></script> -->
 </html>

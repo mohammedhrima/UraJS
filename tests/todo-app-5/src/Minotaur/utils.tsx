@@ -8,34 +8,6 @@ export function loadCSS(filename: string) {
   document.head.appendChild(link);
 }
 
-export function Error(props: Props | null) {
-  return {
-    key: null,
-    render: () => {
-      return Mino.element(
-        "root",
-        {},
-        Mino.element(
-          "h4",
-          {
-            style: {
-              fontFamily: "sans-serif",
-              fontSize: "6vw",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-            },
-          },
-          "Error:",
-          props && props["message"] ? ` Path '${props["message"]}'` : "",
-          " Not Found"
-        )
-      );
-    },
-  };
-}
-
 export function deepEqual(a: any, b: any) {
   if (a === b) return true;
   if (typeof a !== typeof b) return false;

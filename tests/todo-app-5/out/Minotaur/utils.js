@@ -1,26 +1,8 @@
-import Mino from "./code.js";
 export function loadCSS(filename) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = filename;
     document.head.appendChild(link);
-}
-export function Error(props) {
-    return {
-        key: null,
-        render: () => {
-            return Mino.element("root", {}, Mino.element("h4", {
-                style: {
-                    fontFamily: "sans-serif",
-                    fontSize: "6vw",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100%",
-                },
-            }, "Error:", props && props["message"] ? ` Path '${props["message"]}'` : "", " Not Found"));
-        },
-    };
 }
 export function deepEqual(a, b) {
     if (a === b)

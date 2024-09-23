@@ -3,8 +3,6 @@ import path from "path";
 import { SRCDIR, GET_CONFIG } from "./utils.js";
 
 const PageDir = path.resolve(SRCDIR, "./pages");
-const formatName = (name) => name.charAt(0).toUpperCase() + name.slice(1);
-
 const getRoutes = (dir) => {
   const result = {};
 
@@ -19,11 +17,10 @@ const getRoutes = (dir) => {
         const routeName = fileOrDir.toLowerCase();
         if (routeName != "_utils") {
           const subroutes = getRoutes(fullPath);
-
           result[routeName] = {
-            call: formatName(routeName),
+            call: fileOrDir,
             dir: path.relative(PageDir, fullPath).replace(/\\/g, "/"),
-            filename: `${formatName(routeName)}.js`,
+            filename: `${fileOrDir}.js`,
             subpaths: Object.keys(subroutes).length ? subroutes : undefined,
           };
         }
@@ -39,13 +36,16 @@ const getRoutes = (dir) => {
 const updateRoutes = () => {
   let routes = getRoutes(PageDir);
   const defaultRoute = GET_CONFIG().DEFAULT_ROUTE;
-  if (defaultRoute && routes[defaultRoute.toLowerCase()])
-  {
+  if (defaultRoute && routes[defaultRoute.toLowerCase()]) {
     console.warn("default route is", defaultRoute);
     routes[defaultRoute.toLowerCase()].default = true;
+  } else if (defaultRoute) {
+    console.error(`route '${defaultRoute}' not found in ./pages (update ./config.json)`);
+    process.exit(1);
+  } else {
+    console.error(`Default route is required (update ./config.json)`);
+    process.exit(1);
   }
-  else if (defaultRoute)
-    console.warn(`Default route '${defaultRoute}' not found in the routes.`);
 
   const output = JSON.stringify(routes, null, 2);
   fs.writeFileSync(path.join(SRCDIR, "./pages/routes.json"), output, "utf8");
