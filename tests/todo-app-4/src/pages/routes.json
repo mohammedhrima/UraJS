@@ -1,0 +1,28 @@
+{
+  "component": {
+    "call": "Component",
+    "dir": "Component",
+    "filename": "Component.js"
+  },
+  "home": {
+    "call": "Home",
+    "dir": "Home",
+    "filename": "Home.js",
+    "default": true
+  },
+  "test": {
+    "call": "Test",
+    "dir": "Test",
+    "filename": "Test.js"
+  },
+  "todo": {
+    "call": "Todo",
+    "dir": "Todo",
+    "filename": "Todo.js"
+  },
+  "user": {
+    "call": "User",
+    "dir": "User",
+    "filename": "User.js"
+  }
+}
