@@ -97,11 +97,11 @@ export const FRAGMENT = "fragment";
 export const TEXT = "text";
 
 export const CREATE = 12;
-export const KEEP = 4;
-export const INSERT = 5;
+// export const KEEP = 4;
+// export const INSERT = 5;
 export const REPLACE = 6;
 export const REMOVE = 7;
-export const UPDATE = 8;
+// export const UPDATE = 8;
 
 export const PROP_INSERT = 9;
 export const PROP_REPLACE = 10;

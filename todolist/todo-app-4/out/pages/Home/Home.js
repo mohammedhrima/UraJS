@@ -13,15 +13,9 @@ function Home() {
         key: key,
         render: () => {
             return (Mino.element("root", null,
-                Mino.element("button", { onclick: getter() % 2 != 0
-                        ? () => {
-                            console.log("is even");
-                            setter(getter() + 1);
-                        }
-                        : () => {
-                            console.log("is odd");
-                            setter(getter() + 1);
-                        } },
+                Mino.element("if", { cond: true },
+                    Mino.element("h1", { style: { backgroundColor: getter() % 2 == 0 ? "red" : "blue" } }, "hello")),
+                Mino.element("button", { onclick: () => setter(getter() + 1) },
                     "clique me ",
                     getter())));
         },

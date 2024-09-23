@@ -34,3 +34,5 @@
         + nested routes
         + similar nextJS routing
     + config.json
+
++ understand promises

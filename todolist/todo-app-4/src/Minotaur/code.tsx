@@ -3,6 +3,7 @@ import { VDOM, Tag, Props, VDOMNode } from "./types.js";
 import * as UTILS from "./utils.js";
 import { Routes, root, normalizePath, refresh, navigate, setRoot } from "./routing.js";
 import { fragment, element } from "./jsx.js";
+import debug from "./debug.js";
 
 // TODO: check svg set attribute
 function setProps(vdom) {
@@ -55,7 +56,7 @@ function createDOM(vdom): void {
       break;
     }
     case UTILS.FRAGMENT: {
-      vdom.dom = document.createDocumentFragment();
+      vdom.dom = document.createElement("fragment");
       break;
     }
     case UTILS.TEXT: {
@@ -76,7 +77,21 @@ function isSpecialVDOM(vdom) {
   );
 }
 
-function destroyDOM(vdom: VDOM): void {}
+function destroyDOM(vdom: VDOM): void {
+  if (!isSpecialVDOM(vdom)) {
+    for (const eventType in vdom.events) {
+      if (vdom.events.hasOwnProperty(eventType)) {
+        const callback = vdom.events[eventType];
+        vdom.dom.removeEventListener(eventType, callback);
+      }
+      vdom.events = {};
+    }
+    // console.log(vdom);
+    vdom.dom?.remove();
+    vdom.dom = null;
+  }
+  vdom.children?.map(destroyDOM);
+}
 
 function appendChildrenDOM(vdom: VDOM) {}
 
@@ -91,22 +106,18 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
       });
       break;
     }
-    case UTILS.KEEP: {
-      break;
-    }
-    case UTILS.INSERT: {
-      break;
-    }
+    // case UTILS.KEEP: {
+    //   break;
+    // }
     case UTILS.REMOVE: {
+      destroyDOM(prev);
       break;
     }
     case UTILS.REPLACE: {
       // TODO: handle children
       execute(UTILS.CREATE, next); // children get appended here
       prev.dom.replaceWith(next.dom);
-      prev.children?.map((child) => {
-        destroyDOM(child as VDOM);
-      });
+      prev.children?.map((child) => destroyDOM(child as VDOM));
       prev.dom = next.dom;
       break;
     }
@@ -119,31 +130,31 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 function reconciliateProps(oldProps: Props, newProps: Props, vdom) {
   // Remove old props that are not present in newProps
   Object.keys(oldProps || {}).forEach((key) => {
-    // if (!(key in newProps)) {
-    if (key.startsWith("on")) {
-      const eventType = key.slice(2).toLowerCase();
-      vdom.dom.removeEventListener(eventType, oldProps[key]);
-      delete vdom.events[eventType];
-    } else if (key === "style") {
-      // Clear removed styles
-      Object.keys(oldProps.style || {}).forEach((styleProp) => {
-        if (!newProps.style || !(styleProp in newProps.style)) {
-          vdom.dom.style[styleProp] = ""; // Reset the style
-        }
-      });
-    } else {
-      if (vdom.dom[key] !== undefined) {
-        delete vdom.dom[key]; // Remove the property
+    if (!(key in newProps) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+      if (key.startsWith("on")) {
+        const eventType = key.slice(2).toLowerCase();
+        vdom.dom.removeEventListener(eventType, oldProps[key]);
+        delete vdom.events[eventType];
+      } else if (key === "style") {
+        // Clear removed styles
+        Object.keys(oldProps.style || {}).forEach((styleProp) => {
+          if (!newProps.style || !(styleProp in newProps.style)) {
+            vdom.dom.style[styleProp] = ""; // Reset the style
+          }
+        });
       } else {
-        vdom.dom.removeAttribute(key); // Remove the attribute
+        if (vdom.dom[key] !== undefined) {
+          delete vdom.dom[key]; // Remove the property
+        } else {
+          vdom.dom.removeAttribute(key); // Remove the attribute
+        }
       }
     }
-    // }
   });
 
   // Add or update props that have changed
   Object.keys(newProps || {}).forEach((key) => {
-    // console.error("prop: ", key);
+    // console.error("new-prop: ", key);
     if (!UTILS.deepEqual(oldProps[key], newProps[key])) {
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
@@ -174,21 +185,26 @@ function reconciliate(prev, next) {
     prev.props = next.props;
   } else return execute(UTILS.REPLACE, prev, next);
 
-  const prev_children = prev.children || [];
-  const next_children = next.children || [];
+  const prevs = prev.children || [];
+  const nexts = next.children || [];
 
-  for (let i = 0; i < Math.max(prev_children.length, next_children.length); i++) {
-    const child1 = prev_children[i];
-    const child2 = next_children[i];
+  for (let i = 0; i < Math.max(prevs.length, nexts.length); i++) {
+    const child1 = prevs[i];
+    const child2 = nexts[i];
 
     if (child1 && child2) {
       reconciliate(child1, child2);
     } else if (!child1 && child2) {
-      execute(UTILS.INSERT, child2);
+      execute(UTILS.CREATE, child2);
+      prevs.push(child2);
+      prev.dom.appendChild(child2.dom);
     } else if (child1 && !child2) {
       execute(UTILS.REMOVE, child1);
+      prevs.splice(i, 1);
+      i--;
     }
   }
+
 }
 
 function display(vdom: VDOM, parent: VDOM = null): VDOM {
@@ -196,105 +212,15 @@ function display(vdom: VDOM, parent: VDOM = null): VDOM {
   execute(UTILS.CREATE, vdom);
   if (vdom.render && vdom.key && maps.get(vdom.key)) {
     maps.get(vdom.key).handler = () => {
-      console.log("found render");
+      // console.log("found render");
       let newTag = vdom.render();
-      newTag.func = vdom.render;
+      newTag.render = vdom.render;
       reconciliate(vdom, newTag);
       // execute(rec, newTag);
       console.log("old:", vdom);
       console.log("new:", newTag);
     };
   }
-  switch (vdom.type) {
-    case UTILS.ELEMENT: {
-      let { tag, props } = vdom;
-      switch (tag) {
-        case "loop": {
-          //@ts-ignore
-          // let { on } = props || {};
-          // let res = (props.on || []).map((elem, id) => {
-          //   return (children || []).map((child) => {
-          //     if (typeof child == "function") {
-          //       //@ts-ignore
-          //       return child(elem, id);
-          //     } else return child;
-          //   });
-          // });
-
-          // let arr = [];
-          // res.map((elem) => {
-          //   return elem?.map((child) => {
-          //     arr.push(child);
-          //   });
-          // });
-          // arr.map((child) => {
-          //   display(child, vdom);
-          //   vdom.dom.appendChild(child.dom);
-          // });
-          // vdom.children = arr;
-          break;
-        }
-        case "root": {
-          // appendChildrenDOM(vdom);
-          break;
-        }
-        case "if": {
-          //@ts-ignore
-          // if (props?.cond) appendChildrenDOM(vdom);
-          break;
-        }
-        case "root": {
-          // let { path, call } = props as { [key: string]: any };
-          // path = normalizePath(path);
-          // if (call) Routes[path] = call;
-          // vdom.children?.map((child) => {
-          //   // @ts-ignore
-          //   if (child.tag != "route")
-          //     throw "'route' tag can only have children of type route";
-          //   // @ts-ignore
-          //   child.props.path = normalizePath(path + "/" + child.props.path);
-          //   //@ts-ignore
-          //   display(child as VDOM, parent);
-          // });
-          break;
-        }
-        case "elif":
-        case "else": {
-          console.warn(`${tag} is ignored, beacause it should be inside if tag`);
-          break;
-        }
-        default: {
-          //@ts-ignore
-          // if (!(tag in UTILS.validTags))
-          //   console.warn(
-          //     `Invalid tag '${tag}',if it's a function, first character should be uppercase`
-          //   );
-          // appendChildrenDOM(vdom);
-          // setProps(vdom, parent);
-          break;
-        }
-      }
-      break;
-    }
-    case UTILS.FRAGMENT: {
-      // vdom.children?.map((child) => {
-      //   display(child as VDOM, vdom);
-      // });
-      // appendChildrenDOM(vdom);
-      break;
-    }
-    case UTILS.TEXT: {
-      // TODO: test this case
-      // if (vdom.value == "is even") {
-      //   console.log("text found");
-      // }
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-
   return vdom;
 }
 
@@ -312,15 +238,3 @@ const Mino = {
 };
 
 export default Mino;
-
-// let a = () => {
-//   console.log("yes");
-//   console.log("is even");
-// };
-
-// let b = () => {
-//   console.log("yes");
-//   console.log("is even");
-// };
-
-// console.log("is equal", UTILS.deepEqual(a, b));

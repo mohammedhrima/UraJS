@@ -18,8 +18,12 @@ export function initState() {
                 (newValue) => {
                     if (!deepEqual(newValue, map.state.get(key))) {
                         map.state.set(key, newValue);
-                        if (map.handler)
+                        if (map.handler) {
                             map.handler();
+                        }
+                        else {
+                            console.error("doesn't have handler");
+                        }
                     }
                 },
             ];

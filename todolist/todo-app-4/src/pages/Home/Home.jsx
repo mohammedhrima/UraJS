@@ -16,29 +16,15 @@ function Home() {
     render: () => {
       return (
         <root>
-          {/* <if cond={getter() == 0}>
-            hello 
-          </if> */}
+          <if cond={true}>
+            <h1 style={{ backgroundColor: getter() % 2 == 0 ? "red" : "blue" }}>hello</h1>
+          </if>
           {/* <loop on={gettArr()}>
             {(elem, id) => {
               return <>{`${elem} ${id}`}</>;
             }}
           </loop> */}
-          <button
-            onclick={
-              getter() % 2 != 0
-                ? () => {
-                    console.log("is even");
-                    setter(getter() + 1);
-                  }
-                : () => {
-                    console.log("is odd");
-                    setter(getter() + 1);
-                  }
-            }
-          >
-            clique me {getter()}
-          </button>
+          <button onclick={() => setter(getter() + 1)}>clique me {getter()}</button>
           {/* <h1>this is Home</h1> */}
         </root>
       );
