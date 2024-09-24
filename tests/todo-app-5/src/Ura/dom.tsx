@@ -66,7 +66,9 @@ function create(vdom): VDOM {
       break;
     }
     case UTILS.FRAGMENT: {
-      vdom.dom = document.createElement("fragment");
+      vdom.dom = document.createElement("span");
+      console.log("children:", vdom.children);
+
       break;
     }
     case UTILS.TEXT: {
@@ -101,7 +103,7 @@ const DOM = {
   create,
   destroy,
   removeProps,
-  setProps
+  setProps,
 };
 
 export default DOM;

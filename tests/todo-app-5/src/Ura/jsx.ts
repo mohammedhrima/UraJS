@@ -28,23 +28,19 @@ export function fragment(props: Props, ...children: Array<VDOMNode>): VDOM {
 export function element(tag: Tag, props: Props, ...children: Array<VDOMNode>): VDOM {
   // try {
   if (typeof tag === "function") {
-    console.log("before:", tag);
+    // console.log("before:", tag);
     let funcTag = tag(props || {});
-    console.log("after:", funcTag);
-    console.log("after:", funcTag.render);
+    // console.log("after:", funcTag);
 
-    if (funcTag.render) {
-      funcTag.vdom = funcTag.render();
-      return funcTag.vdom;
-    } else if (funcTag.type) {
-      return {
-        ...funcTag,
-        index: funcTag.index ? funcTag.index : vdom_index++,
+    if (funcTag.type == UTILS.FRAGMENT) {
+      funcTag = {
+        ...funcTag, 
         children: check(children || []),
-      };
-    } else {
-      throw `function ${tag} must return JSX`;
-    }
+      }
+      console.log("found fragment", funcTag);
+      return funcTag
+    } else if (funcTag.type) return funcTag;
+    throw `function ${tag} must return JSX`;
   }
   if (tag === "if") {
     return {

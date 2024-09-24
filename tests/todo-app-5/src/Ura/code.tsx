@@ -11,9 +11,11 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
       prev = DOM.create(prev);
       prev.children?.map((child) => {
         execute(mode, child as VDOM);
-        console.log(child);
+        // console.log(child);
         prev.dom.appendChild((child as VDOM).dom);
       });
+      // console.log(prev);
+      
       break;
     }
     case UTILS.REMOVE: {
@@ -118,7 +120,7 @@ function display(vdom: VDOM): VDOM {
 }
 
 const Ura = {
-  init,
+  createComponent: init,
   display,
   element,
   fragment,

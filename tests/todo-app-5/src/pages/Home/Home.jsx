@@ -1,9 +1,10 @@
-// pages/User/User.jsx
+// pages/Home/Home.jsx
 import Ura from "../../Ura/code.js";
+import Nav from "./_utils/Nav/Nav.js";
 
-Ura.loadCSS("pages/User/User.css");
+Ura.loadCSS("pages/Home/Home.css");
 
-function User() {
+function Home() {
   const { state, render } = Ura.createComponent();
   const [getter, setter] = state(0);
 
@@ -11,10 +12,11 @@ function User() {
 
   return render(() => (
     <root>
-      <div id="user">user counter {getter()}</div>
+      <Nav></Nav>
+      <div id="home">home counter {getter()}</div>
       <br />
       <button onclick={handleClique}>clique me</button>
     </root>
   ));
 }
-export default User;
+export default Home;

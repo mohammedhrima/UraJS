@@ -1,5 +1,5 @@
 import Mino from "./code.js";
-import { StateMap } from "./types.js";
+import { StateMap, VDOM } from "./types.js";
 import { deepEqual } from "./utils.js";
 
 export const maps = new Map<number, StateMap>();
@@ -18,13 +18,13 @@ export function init() {
     curr.store.set(key, initialValue);
 
     return [
-      () => curr.store.get(key) as T,
+      () => curr.store.get(key) as T, // Getter function
       (newValue: T) => {
         if (!deepEqual(newValue, curr.store.get(key))) {
           curr.store.set(key, newValue);
           if (curr.vdom) {
             //@ts-ignore
-            Mino.reconciliate(curr.vdom, curr.render());
+            Mino.reconciliate(curr.vdom, curr.render()); // Trigger re-render on state change
           } else {
             console.error("Render function is not defined.");
           }
@@ -32,6 +32,14 @@ export function init() {
       },
     ];
   };
-  index++;
-  return curr;
+
+  // Return object with state and render
+  return {
+    state: curr.state,
+    render: (newRender) => {
+      curr.render = newRender;
+      curr.vdom = newRender()
+      return curr.vdom;
+    },
+  };
 }

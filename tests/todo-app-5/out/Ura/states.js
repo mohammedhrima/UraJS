@@ -12,13 +12,13 @@ export function init() {
         const key = curr.store.size + 1;
         curr.store.set(key, initialValue);
         return [
-            () => curr.store.get(key),
+            () => curr.store.get(key), // Getter function
             (newValue) => {
                 if (!deepEqual(newValue, curr.store.get(key))) {
                     curr.store.set(key, newValue);
                     if (curr.vdom) {
                         //@ts-ignore
-                        Mino.reconciliate(curr.vdom, curr.render());
+                        Mino.reconciliate(curr.vdom, curr.render()); // Trigger re-render on state change
                     }
                     else {
                         console.error("Render function is not defined.");
@@ -27,6 +27,13 @@ export function init() {
             },
         ];
     };
-    index++;
-    return curr;
+    // Return object with state and render
+    return {
+        state: curr.state,
+        render: (newRender) => {
+            curr.render = newRender;
+            curr.vdom = newRender();
+            return curr.vdom;
+        },
+    };
 }

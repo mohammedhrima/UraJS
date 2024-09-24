@@ -42,7 +42,7 @@ filePath = path.join(
 );
 cssPath = path.join(dirPath, `${fileName}.css`);
 
-const miniPath = path.relative(dirPath, path.resolve(SRCDIR, "./Minotaur/code.js"));
+const miniPath = path.relative(dirPath, path.resolve(SRCDIR, "./Ura/code.js"));
 const typesPath = path.relative(dirPath, path.resolve(SRCDIR, "./mini/types.js"));
 const relativeCssPath = path.relative("src", cssPath);
 
@@ -51,69 +51,53 @@ let tsFileContent = "";
 
 if (command.toLowerCase() === "c" || command.toLowerCase() === "component") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
-import Mino from "${miniPath}";
+import Ura from "${miniPath}";
 ${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
-Mino.loadCSS("${relativeCssPath}");
+Ura.loadCSS("${relativeCssPath}");
 
-function ${nameParts[nameParts.length - 1]}()${
-    GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
-  } {
-  const [key, state] = Mino.initState();
-  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
-  return {
-    key: key,
-    render: () => (
-        <>
-          <div className="${nameParts[nameParts.length - 1].toLowerCase()}">${name}</div>
-          <br />
-          <button
-              onclick={() => {
-                setter(getter() + 1);
-              }} >
-            clique me
-          </button>
-        </>
-      )
-  };
+function ${nameParts[nameParts.length - 1]}()${GET_CONFIG().EXTENTION == "ts" ? ": MiniComponent" : ""} {
+  const { state, render } = Ura.createComponent();
+  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0);
+
+  const handleClique = () => setter(getter() + 1);
+  
+  return render(() => (
+    <>
+      <div className="${nameParts[nameParts.length - 1].toLowerCase()}">${name} counter {getter()}</div>
+      <br />
+      <button onclick={handleClique}>clique me</button>
+    </>
+  ));
 }
 export default ${nameParts[nameParts.length - 1]};
 `;
-  fs.writeFileSync(
-    cssPath,
-    `/* Add your styles here */\n.${nameParts[
-      nameParts.length - 1
-    ].toLowerCase()}\n{\n}\n`,
+  fs.writeFileSync(cssPath,
+    `/* Add your styles here */\n.${nameParts[nameParts.length - 1].toLowerCase()}\n{\n}\n`,
     "utf8"
   );
 } else if (command.toLowerCase() === "p" || command.toLowerCase() === "page") {
   tsFileContent = `// ${path.relative(SRCDIR, filePath)}
-import Mino from "${miniPath}";
+import Ura from "${miniPath}";
 ${GET_CONFIG().EXTENTION == "ts" ? `import { MiniComponent } from "${typesPath}";` : ""}
-Mino.loadCSS("${relativeCssPath}");
+Ura.loadCSS("${relativeCssPath}");
 
 function ${nameParts[nameParts.length - 1]}()${
-    GET_CONFIG().EXTENTION == "ts" ? `: MiniComponent` : ""
+    GET_CONFIG().EXTENTION == "ts" ? ": MiniComponent" : ""
   } {
-  const [key, state] = Mino.initState();
-  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0)
-  return {
-    key: key,
-    render: () => (
-        <>
-          <div id="${nameParts[
-            nameParts.length - 1
-          ].toLowerCase()}">${name} counter {getter()}</div>
-          <br />
-          <button
-            onclick={() => {
-              setter(getter() + 1);
-            }}
-          >
-            clique me
-          </button>
-        </>
-      )
-  };
+  const { state, render } = Ura.createComponent();
+  const [getter, setter] = state${GET_CONFIG().EXTENTION == "ts" ? `<number>` : ""}(0);
+
+  const handleClique = () => setter(getter() + 1);
+
+  return render(() => (
+    <root>
+      <div id="${nameParts[
+        nameParts.length - 1
+      ].toLowerCase()}">${name} counter {getter()}</div>
+      <br />
+      <button onclick={handleClique}>clique me</button>
+    </root>
+  ));
 }
 export default ${nameParts[nameParts.length - 1]};
 `;

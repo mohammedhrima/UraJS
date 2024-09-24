@@ -24,24 +24,20 @@ export function fragment(props, ...children) {
 export function element(tag, props, ...children) {
     // try {
     if (typeof tag === "function") {
-        console.log("before:", tag);
+        // console.log("before:", tag);
         let funcTag = tag(props || {});
-        console.log("after:", funcTag);
-        console.log("after:", funcTag.render);
-        if (funcTag.render) {
-            funcTag.vdom = funcTag.render();
-            return funcTag.vdom;
-        }
-        else if (funcTag.type) {
-            return {
+        // console.log("after:", funcTag);
+        if (funcTag.type == UTILS.FRAGMENT) {
+            funcTag = {
                 ...funcTag,
-                index: funcTag.index ? funcTag.index : vdom_index++,
                 children: check(children || []),
             };
+            console.log("found fragment", funcTag);
+            return funcTag;
         }
-        else {
-            throw `function ${tag} must return JSX`;
-        }
+        else if (funcTag.type)
+            return funcTag;
+        throw `function ${tag} must return JSX`;
     }
     if (tag === "if") {
         return {

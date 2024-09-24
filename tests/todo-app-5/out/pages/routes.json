@@ -1,4 +1,9 @@
 {
+  "home": {
+    "call": "Home",
+    "dir": "Home",
+    "filename": "Home.js"
+  },
   "user": {
     "call": "User",
     "dir": "User",
