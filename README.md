@@ -2,6 +2,6 @@
   <img src="./logo.png" alt="Logo" width="200">
 </p>
 
-# MinotaurJS
+# UraJS
 
-Welcome to the MinotaurJS framework!
+Welcome to the UraJS framework!

@@ -83,8 +83,8 @@ function createServer(port) {
         notifyTimeout = setTimeout(() => {
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              console.log("send refresh");
-              client.send("refresh");
+              console.warn("send reload");
+              client.send("mini-reload");
             }
           });
         }, GET_CONFIG().SERVER_TIMING || 1); // Adjust debounce time as needed

@@ -19,6 +19,8 @@
     + generate Docker for build
     + understand promises
     + verify refresh function
+    + when wrinting code in jsx component check if it's the page that should be loaded if so update it
+    + importing svg to image does not work, fix it
 
 
 + Documentation:

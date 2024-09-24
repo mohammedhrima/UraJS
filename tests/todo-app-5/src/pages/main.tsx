@@ -1,4 +1,4 @@
-import Mino from "../Minotaur/code.js";
+import Mino from "../Ura/code.js";
 import LoadedRoutes from "./routes.json" with { type: "json" };
 
 Mino.loadCSS("pages/main.css");
@@ -45,10 +45,9 @@ async function setupRoutes() {
 setupRoutes()
   .then(() => {
     console.log("LoadedRoutes initialization completed.");
-  })
-  .then(() => {
     window.addEventListener("hashchange", Mino.refresh);
     window.addEventListener("DOMContentLoaded", Mino.refresh);
+    window.addEventListener("popstate", Mino.refresh);
     Mino.refresh();
     console.log(Mino.Routes);
   });
@@ -56,11 +55,12 @@ setupRoutes()
 const ws = new WebSocket(`ws://${window.location.host}`);
 console.log(window.location.host);
 ws.onmessage = (event) => {
-  if (event.data === "refresh") {
-    console.log("refresh page");
+  if (event.data === "mini-reload") {
+    console.log("reload page");
     window.location.reload();
   }
 };
+
 ws.onopen = () => {
   console.log("WebSocket connection established");
 };

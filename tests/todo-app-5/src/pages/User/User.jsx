@@ -1,26 +1,26 @@
 // pages/User/User.jsx
-import Mino from "../../Minotaur/code.js";
+import Ura from "../../Ura/code.js";
 
-Mino.loadCSS("pages/User/User.css");
+Ura.loadCSS("pages/User/User.css");
 
 function User() {
-  const [key, state] = Mino.initState();
-  const [getter, setter] = state(0)
-  return {
-    key: key,
-    render: () => (
-        <>
-          <div id="user">user counter {getter()}</div>
-          <br />
-          <button
-            onclick={() => {
-              setter(getter() + 1);
-            }}
-          >
-            clique me
-          </button>
-        </>
-      )
-  };
+  const use = Ura.init();
+  const [getter, setter] = use.state(0);
+
+  use.render = () => (
+    <root>
+      <div id="user">user counter {getter()}</div>
+      <br />
+      <button
+        onclick={() => {
+          setter(getter() + 1);
+        }}
+      >
+        clique me
+      </button>
+    </root>
+  );
+  return use;
 }
+
 export default User;

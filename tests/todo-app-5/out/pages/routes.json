@@ -1,25 +1,8 @@
 {
-  "home": {
-    "call": "Home",
-    "dir": "Home",
-    "filename": "Home.js",
-    "subpaths": {
-      "test": {
-        "call": "Test",
-        "dir": "Home/Test",
-        "filename": "Test.js"
-      }
-    },
-    "default": true
-  },
-  "notfound": {
-    "call": "NotFound",
-    "dir": "NotFound",
-    "filename": "NotFound.js"
-  },
   "user": {
     "call": "User",
     "dir": "User",
-    "filename": "User.js"
+    "filename": "User.js",
+    "default": true
   }
 }
