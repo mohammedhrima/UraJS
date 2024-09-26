@@ -4,6 +4,11 @@
     "dir": "Home",
     "filename": "Home.js"
   },
+  "love": {
+    "call": "Love",
+    "dir": "Love",
+    "filename": "Love.js"
+  },
   "user": {
     "call": "User",
     "dir": "User",
