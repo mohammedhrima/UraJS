@@ -2,17 +2,12 @@
   "home": {
     "call": "Home",
     "dir": "Home",
-    "filename": "Home.js"
-  },
-  "love": {
-    "call": "Love",
-    "dir": "Love",
-    "filename": "Love.js"
+    "filename": "Home.js",
+    "default": true
   },
   "user": {
     "call": "User",
     "dir": "User",
-    "filename": "User.js",
-    "default": true
+    "filename": "User.js"
   }
 }

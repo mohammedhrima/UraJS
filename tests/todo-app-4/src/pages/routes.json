@@ -1,9 +1,4 @@
 {
-  "component": {
-    "call": "Component",
-    "dir": "Component",
-    "filename": "Component.js"
-  },
   "home": {
     "call": "Home",
     "dir": "Home",

@@ -1,17 +1,16 @@
 // pages/Home/Home.jsx
 import Ura from "../../Ura/code.js";
-import Nav from "./_utils/Nav/Nav.js";
+import Item from "./_utils/Item/Item.js";
 Ura.loadCSS("pages/Home/Home.css");
+const { state, render } = Ura.createComponent();
 function Home() {
-    const { state, render } = Ura.createComponent();
-    const [getter, setter] = state(0);
+    const [getter, setter] = state(11);
     const handleClique = () => setter(getter() + 1);
     return render(() => (Ura.element("root", null,
-        Ura.element(Nav, null),
         Ura.element("div", { id: "home" },
             "home counter ",
             getter()),
-        Ura.element("br", null),
-        Ura.element("button", { onclick: handleClique }, "clique me"))));
+        Ura.element(Item, { value: getter() }),
+        Ura.element("button", { onclick: handleClique }, "home clique me"))), "Home");
 }
 export default Home;

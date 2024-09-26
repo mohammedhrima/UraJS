@@ -20,9 +20,14 @@ function execute(mode, prev, next = null) {
             break;
         }
         case UTILS.REPLACE: {
+            // console.log("call replace:", prev);
             // clear prev vdom
-            DOM.removeProps(prev);
-            prev.children?.map((child) => DOM.destroy(child));
+            // DOM.removeProps(prev);
+            // prev.children?.map((child) => {
+            //   //@ts-ignore
+            //   // console.log("child: ", child);
+            //   DOM.destroy(child as VDOM);
+            // });
             // create next vdom
             execute(UTILS.CREATE, next); // next vdom's children get appended her
             prev.dom.replaceWith(next.dom);
@@ -38,9 +43,11 @@ function execute(mode, prev, next = null) {
     return prev;
 }
 function reconciliateProps(oldProps, newProps, vdom) {
+    let diff = false;
     // Remove old props that are not present in newProps
     Object.keys(oldProps || {}).forEach((key) => {
         if (!(key in newProps) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+            diff = true;
             if (key.startsWith("on")) {
                 const eventType = key.slice(2).toLowerCase();
                 vdom.dom.removeEventListener(eventType, oldProps[key]);
@@ -61,6 +68,7 @@ function reconciliateProps(oldProps, newProps, vdom) {
     // Add or update props that have changed
     Object.keys(newProps || {}).forEach((key) => {
         if (!UTILS.deepEqual(oldProps[key], newProps[key])) {
+            diff = true;
             if (key.startsWith("on")) {
                 const eventType = key.slice(2).toLowerCase();
                 vdom.dom.addEventListener(eventType, newProps[key]);
@@ -77,6 +85,7 @@ function reconciliateProps(oldProps, newProps, vdom) {
             }
         }
     });
+    return diff;
 }
 function reconciliate(prev, next) {
     // console.log("call reconciliate", prev, next);
@@ -95,6 +104,15 @@ function reconciliate(prev, next) {
         const child1 = prevs[i];
         const child2 = nexts[i];
         if (child1 && child2) {
+            // if (child1.isfunc) {
+            //   //   console.log("child is func");
+            //   if (reconciliateProps(child1.props, child2.props, child1)) {
+            //     console.log("found difrence in props");
+            //   }
+            //   //   // child1.props = child2.props;
+            //   //   DOM.setProps(child1);
+            //     reconciliate(child1, child2);
+            // } else
             reconciliate(child1, child2);
         }
         else if (!child1 && child2) {

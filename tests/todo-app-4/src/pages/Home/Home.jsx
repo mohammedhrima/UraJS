@@ -1,5 +1,6 @@
 // pages/Home/Home.jsx
 import Mino from "../../Minotaur/code.js";
+import Component from "./_utils/Component/Component.js";
 
 Mino.loadCSS("pages/Home/Home.css");
 
@@ -11,6 +12,8 @@ function Home() {
     render: () => {
       return (
         <root>
+          <Component/>
+          <Component/>
           <h1>Home page</h1>
           <div id="home">Home counter {getter()}</div>
           <br />

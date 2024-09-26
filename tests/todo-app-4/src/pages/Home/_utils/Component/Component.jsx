@@ -10,16 +10,17 @@ function Component() {
     key: key,
     render: () => {
       return (
-        <>
+        <div>
           <div className="component">home/component</div>
           <br />
           <button
               onclick={() => {
                 setter(getter() + 1);
+                console.log("clique", getter());
               }} >
-            clique me
+            clique me [{getter()}]
           </button>
-        </>
+        </div>
       );
     },
   };

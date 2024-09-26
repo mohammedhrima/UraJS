@@ -34,12 +34,22 @@ export function element(tag: Tag, props: Props, ...children: Array<VDOMNode>): V
 
     if (funcTag.type == UTILS.FRAGMENT) {
       funcTag = {
-        ...funcTag, 
+        ...funcTag,
+        isfunc: true,
+        funcProps: props,
         children: check(children || []),
-      }
-      console.log("found fragment", funcTag);
-      return funcTag
-    } else if (funcTag.type) return funcTag;
+      };
+      // console.log("found function", funcTag);
+      return funcTag;
+    } else if (funcTag.type) {
+      funcTag = {
+        ...funcTag,
+        isfunc: true,
+        funcProps: props,
+      };
+      // console.log("found function", funcTag);
+      return funcTag;
+    }
     throw `function ${tag} must return JSX`;
   }
   if (tag === "if") {

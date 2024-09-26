@@ -1,7 +1,9 @@
 export interface StateMap {
   store: Map<number, any>;
   vdom: VDOM;
-  render?: () => VDOM;
+  name?: string;
+  // props: Props;
+  render?: (props?: any) => VDOM;
   state?: <T>(initialValue: T) => [() => T, (newValue: T) => void];
 }
 
@@ -13,12 +15,14 @@ export type VDOM = {
   type: any;
   tag?: Tag;
   props?: Props;
+  funcProps?: Props;
   value?: string | number;
   dom?: HTMLElement;
   key?: number;
   render?: Function;
   index: number;
   children?: Array<VDOMNode>;
+  isfunc?: Boolean;
 };
 
 // export type Rec = {

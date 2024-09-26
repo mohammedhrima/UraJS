@@ -30,13 +30,22 @@ export function element(tag, props, ...children) {
         if (funcTag.type == UTILS.FRAGMENT) {
             funcTag = {
                 ...funcTag,
+                isfunc: true,
+                funcProps: props,
                 children: check(children || []),
             };
-            console.log("found fragment", funcTag);
+            // console.log("found function", funcTag);
             return funcTag;
         }
-        else if (funcTag.type)
+        else if (funcTag.type) {
+            funcTag = {
+                ...funcTag,
+                isfunc: true,
+                funcProps: props,
+            };
+            // console.log("found function", funcTag);
             return funcTag;
+        }
         throw `function ${tag} must return JSX`;
     }
     if (tag === "if") {
