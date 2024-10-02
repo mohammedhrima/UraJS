@@ -11,6 +11,7 @@ function Home() {
   const [getter, setter] = state(11);
 
   const handleClique = () => setter(getter() + 1);
+  // let x= 10;
 
   return render(() => (
     <root>

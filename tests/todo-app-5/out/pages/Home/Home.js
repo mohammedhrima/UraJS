@@ -6,10 +6,12 @@ const { state, render } = Ura.createComponent();
 function Home() {
     const [getter, setter] = state(11);
     const handleClique = () => setter(getter() + 1);
+    // let x= 10;
     return render(() => (Ura.element("root", null,
         Ura.element("div", { id: "home" },
             "home counter ",
             getter()),
+        Ura.element(Item, { value: getter() }),
         Ura.element(Item, { value: getter() }),
         Ura.element("button", { onclick: handleClique }, "home clique me"))), "Home");
 }
