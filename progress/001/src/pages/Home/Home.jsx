@@ -1,6 +1,6 @@
 // pages/Home/Home.jsx
 import Mino from "../../Minotaur/code.js";
-import Component from "./_utils/Component/Component.js";
+import Component from "./_utils/Component/Component.jsx";
 
 Mino.loadCSS("pages/Home/Home.css");
 
