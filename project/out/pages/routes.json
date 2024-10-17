@@ -1,0 +1,13 @@
+{
+  "home": {
+    "call": "Home",
+    "dir": "Home",
+    "filename": "Home.js",
+    "default": true
+  },
+  "user": {
+    "call": "User",
+    "dir": "User",
+    "filename": "User.js"
+  }
+}

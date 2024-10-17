@@ -2,8 +2,9 @@
   "name": "urajs",
   "version": "1.0.0",
   "description": "frontend framework",
+  "type": "module",
   "scripts": {
-    "start": "node ./scripts/server.js",
+    "start": "rm -rf ./out/* && node ./scripts/server.js",
     "gen": "node ./scripts/new-route.js",
     "clear": "rm -rf ./out/*"
   },

@@ -3,9 +3,10 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import UTILS from "./utils.js";
-const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES } = UTILS;
+const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES , TYPE} = UTILS;
 
 INIT();
+UPDATE_ROUTES();
 
 const createServer = (port) => {
   CHECK_PORT(port, (isInUse, availablePort, error) => {
@@ -19,14 +20,14 @@ const createServer = (port) => {
       let server = http.createServer((req, res) => {
         let reqPath = req.url.split("?")[0];
         let filePath = path.join(GET("OUTPUT"), reqPath);
-        if (reqPath === "/") filePath = path.join(GET("SOURCE"), "index.html");
+        if (reqPath === "/") filePath = path.join(GET("ROOT"), "index.html");
         fs.stat(filePath, (err, stats) => {
-          console.log("serve", path.relative(ROOTDIR, filePath));
+          console.log("serve", path.relative(GET("SOURCE"), filePath));
           if (err) {
             res.writeHead(404, { "Content-Type": "text/plain" });
             res.end(`${filePath} Not Found`);
           } else if (stats.isFile()) {
-            res.writeHead(200, { "Content-Type": getMimeType(path.extname(filePath)) });
+            res.writeHead(200, { "Content-Type": TYPE(path.extname(filePath)) });
             fs.createReadStream(filePath).pipe(res);
           } else {
             res.writeHead(404, { "Content-Type": "text/plain" });
@@ -66,15 +67,14 @@ const createServer = (port) => {
           UPDATE_ROUTES();
         }
         else if (event) {
-          console.log("handle event on ", GET("SOURCE"));
           COPY(_path)
         }
-        // notifyClients();
+        notifyClients();
       });
 
       WATCH(path.join(GET("ROOT"), "./index.html"), ["change"], {}, (param) => {
         console.log("index.html file changed");
-        // notifyClients();
+        notifyClients();
       });
 
       WATCH(path.join(GET("ROOT"), "./config.json"), ["change"], {}, (param) => {

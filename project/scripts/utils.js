@@ -5,10 +5,6 @@ import fs from "fs";
 import net from "net";
 import chokidar from "chokidar";
 
-
-const RED = "\x1b[31m";
-const RESET = "\x1b[0m";
-
 function getMimeType(ext) {
   const mimeTypes = {
     ".html": "text/html",
@@ -97,7 +93,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // TRANSPILE
-const tsConfigPath = path.resolve("./tsconfig.json");
+const tsConfigPath = path.join(__dirname, "../tsconfig.json");
 const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
 const parsedConfig = ts.parseJsonConfigFileContent(tsConfig, ts.sys, path.dirname(tsConfigPath));
 
@@ -112,12 +108,8 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
           diagnostic.start
         );
         const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
-        console.log(
-          RED,
-          `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,
-          RESET
-        );
-      } else console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+        console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,);
+      } else console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
     });
   } else {
     // Write compiled JavaScript to output file
@@ -125,25 +117,24 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
       compilerOptions: parsedConfig.options,
     }).outputText;
     fs.writeFileSync(outFilePath, outputText, "utf-8");
-    console.log("Transpile ", srcFilePath);
   }
 };
 
 // HANDLE FILES
 function Delete(pathname) {
   pathname = pathname.replace(GET("SOURCE"), GET("OUTPUT"))
-  if (fs.existsSync(pathname)) {
-    fs.rmSync(pathname, { recursive: true, force: true });
+  // if (fs.existsSync(pathname)) {
+  //   fs.rmSync(pathname, { recursive: true, force: true });
 
-    // if (fs.statSync(pathname).isDirectory()) {
-    //   fs.readdirSync(pathname).forEach(subpath => {
-    //     Delete(subpath);
-    //   })
-    //   fs.rmdirSync(pathname);
-    // }
-    // else
-    //   fs.unlinkSync(pathname);
-  }
+  //   // if (fs.statSync(pathname).isDirectory()) {
+  //   //   fs.readdirSync(pathname).forEach(subpath => {
+  //   //     Delete(subpath);
+  //   //   })
+  //   //   fs.rmdirSync(pathname);
+  //   // }
+  //   // else
+  //   //   fs.unlinkSync(pathname);
+  // }
 }
 
 let CONFIG = null;
@@ -162,20 +153,20 @@ const GET = (name) => {
 }
 
 function Copy(src) {
-  console.log("call copy", src);
-  const dest = src.replace(GET["SOURCE"], GET["OUTPUT"]);
+  const dest = src.replace("src", "out");
   if (!/\.(ts|tsx|jsx|js)$/i.test(src)) {
-    console.log("Copy ", path.relative(GET["SOURCE"], src));
+    console.log("Copy to ", dest);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
-    // fs.copyFileSync(src, dest);
+    fs.copyFileSync(src, dest);
   } else {
     const Jsfile = dest.replace(/\.(ts|tsx|jsx)$/i, ".js");
+    console.log("Transpile ", src);
     compileTypeScript(src, Jsfile);
   }
 }
 
 // ROUTING
-const PageDir = path.resolve("../" + GET("SOURCE"), "./pages");
+const PageDir = path.join( GET("SOURCE"), "./pages");
 const getRoutes = (dir) => {
   const result = {};
   try {
@@ -242,7 +233,7 @@ function checkPortInUse(port, callback) {
 function Watcher(watchPath, events, param, callback) {
   const watch = chokidar.watch(watchPath, param || {});
   events.forEach((event) => {
-    console.log(watchPath, "changed");
+    // console.log(watchPath, "changed");
     watch.on(event, callback);
   });
   watch.on("error", (error) => console.error(`Watcher error: ${error}`));
