@@ -122,19 +122,33 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
 
 // HANDLE FILES
 function Delete(pathname) {
-  pathname = pathname.replace(GET("SOURCE"), GET("OUTPUT"))
-  // if (fs.existsSync(pathname)) {
-  //   fs.rmSync(pathname, { recursive: true, force: true });
+  pathname = pathname.replace(/\.(ts|tsx|jsx)$/i, "");
+  const extensions = ['.js', '.ts', '.jsx', '.tsx'];
 
-  //   // if (fs.statSync(pathname).isDirectory()) {
-  //   //   fs.readdirSync(pathname).forEach(subpath => {
-  //   //     Delete(subpath);
-  //   //   })
-  //   //   fs.rmdirSync(pathname);
-  //   // }
-  //   // else
-  //   //   fs.unlinkSync(pathname);
-  // }
+  for (const ext of extensions) {
+    const fullPath = pathname + ext;
+    try {
+      fs.accessSync(fullPath);
+      return;
+    } catch {
+
+    }
+  }
+
+  pathname = pathname.replace("src", "out") + ".js";
+  console.log("delete", pathname);
+
+  try {
+    const stats = fs.statSync(pathname);
+    if (stats.isDirectory()) {
+      const entries = fs.readdirSync(pathname);
+      entries.forEach(entry => Delete(path.join(pathname, entry)));
+      fs.rmdirSync(pathname);
+    } else {
+      fs.unlinkSync(pathname);
+    }
+  } catch (error) {
+  }
 }
 
 let CONFIG = null;
@@ -166,7 +180,7 @@ function Copy(src) {
 }
 
 // ROUTING
-const PageDir = path.join( GET("SOURCE"), "./pages");
+const PageDir = path.join(GET("SOURCE"), "./pages");
 const getRoutes = (dir) => {
   const result = {};
   try {

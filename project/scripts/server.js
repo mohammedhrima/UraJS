@@ -3,7 +3,7 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import UTILS from "./utils.js";
-const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES , TYPE} = UTILS;
+const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES, TYPE } = UTILS;
 
 INIT();
 UPDATE_ROUTES();
@@ -54,7 +54,7 @@ const createServer = (port) => {
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
               console.warn("send reload");
-              client.send("mini-reload");
+              client.send("reload");
             }
           });
         }, GET("SERVER_TIMING") || 1); // debouncing
