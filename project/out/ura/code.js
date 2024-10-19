@@ -24,25 +24,11 @@ function check2(child) {
 }
 function fragment(props, ...children) {
     console.log("call fragment", children);
-    return {
-        type: FRAGMENT,
-        children: (children || []).map(check2)
-    };
+    throw ("Fragments (<></>) are not supported please use <fr></fr> tag instead");
 }
 function element(tag, props, ...children) {
     if (typeof tag === "function") {
         let funcTag = tag(props || {});
-        console.log("return", funcTag);
-        if (funcTag.type === FRAGMENT) {
-            console.log("hey", props);
-            // funcTag.props = props;
-            // funcTag.children = check(children || []);
-            // funcTag = {
-            //   ...funcTag,
-            //   children: check(children || []),
-            // };
-            // console.log("func is frag:", funcTag, "children", children);
-        }
         return funcTag;
     }
     if (tag === "if") {
@@ -262,7 +248,7 @@ function init() {
         ];
     };
     return [curr.state, (JSXfunc) => {
-            console.log("call from state");
+            // console.log("call from state", curr.vdom);
             curr.JSXfunc = JSXfunc;
             curr.vdom = JSXfunc();
             return curr.vdom;
