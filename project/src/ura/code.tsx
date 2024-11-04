@@ -109,7 +109,7 @@ function createDOM(vdom): VDOM {
     case FRAGMENT: {
       console.log("createDOM: found fragment", vdom);
       if (vdom.dom) console.error("fragment already has dom"); // TODO: to be removed
-      vdom.dom = document.createElement("span");
+      vdom.dom = document.createElement("container");
       break;
     }
     case TEXT: {
@@ -264,6 +264,17 @@ function init() {
 }
 
 // ROUTING
+const Routes: { [path: string]: Function } = {};
+
+function setRoute(path: string, call: Function) {
+  Routes[path] = call;
+}
+
+//TODO: set * route to not found
+function getRoute(hash) {
+  // TODO: do reconciliation here
+  return Routes[hash] || Routes["*"];
+}
 
 // WEBSOCKET
 function sync() {
@@ -290,10 +301,13 @@ function sync() {
 const Ura = {
   element,
   fragment,
+  setRoute,
+  getRoute,
   display,
   sync,
   loadCSS,
-  init
+  init,
+  Routes
 }
 
 export default Ura;

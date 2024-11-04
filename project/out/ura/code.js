@@ -103,7 +103,7 @@ function createDOM(vdom) {
             console.log("createDOM: found fragment", vdom);
             if (vdom.dom)
                 console.error("fragment already has dom"); // TODO: to be removed
-            vdom.dom = document.createElement("span");
+            vdom.dom = document.createElement("container");
             break;
         }
         case TEXT: {
@@ -248,13 +248,21 @@ function init() {
         ];
     };
     return [curr.state, (JSXfunc) => {
-            // console.log("call from state", curr.vdom);
             curr.JSXfunc = JSXfunc;
             curr.vdom = JSXfunc();
             return curr.vdom;
         }];
 }
 // ROUTING
+const Routes = {};
+function setRoute(path, call) {
+    Routes[path] = call;
+}
+//TODO: set * route to not found
+function getRoute(hash) {
+    // TODO: do reconciliation here
+    return Routes[hash] || Routes["*"];
+}
 // WEBSOCKET
 function sync() {
     const ws = new WebSocket(`ws://${window.location.host}`);
@@ -276,9 +284,12 @@ function sync() {
 const Ura = {
     element,
     fragment,
+    setRoute,
+    getRoute,
     display,
     sync,
     loadCSS,
-    init
+    init,
+    Routes
 };
 export default Ura;

@@ -5,8 +5,14 @@ import { WebSocketServer, WebSocket } from "ws";
 import UTILS from "./utils.js";
 const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES, TYPE } = UTILS;
 
-INIT();
+const outDir = GET("OUTPUT");
+const rootDir = GET("ROOT");
+const srcDir = GET("SOURCE");
+const timing = GET("SERVER_TIMING");
+
+
 UPDATE_ROUTES();
+INIT();
 
 const createServer = (port) => {
   CHECK_PORT(port, (isInUse, availablePort, error) => {
@@ -19,10 +25,10 @@ const createServer = (port) => {
 
       let server = http.createServer((req, res) => {
         let reqPath = req.url.split("?")[0];
-        let filePath = path.join(GET("OUTPUT"), reqPath);
-        if (reqPath === "/") filePath = path.join(GET("ROOT"), "index.html");
+        let filePath = path.join(outDir, reqPath);
+        if (reqPath === "/") filePath = path.join(rootDir, "index.html");
         fs.stat(filePath, (err, stats) => {
-          console.log("serve", path.relative(GET("SOURCE"), filePath));
+          console.log("serve", path.relative(srcDir, filePath));
           if (err) {
             res.writeHead(404, { "Content-Type": "text/plain" });
             res.end(`${filePath} Not Found`);
@@ -57,10 +63,10 @@ const createServer = (port) => {
               client.send("reload");
             }
           });
-        }, GET("SERVER_TIMING") || 1); // debouncing
+        }, timing || 1); // debouncing
       }
 
-      WATCH(GET("SOURCE"), ["add", "change", "unlink", "unlinkDir"], {}, (_path, event) => {
+      WATCH(srcDir, ["add", "change", "unlink", "unlinkDir"], {}, (_path, event) => {
         if (event === "unlink" || event === "unlinkDir" || !event) {
           console.log(_path, "was deleted");
           DELETE(_path)
@@ -72,12 +78,12 @@ const createServer = (port) => {
         notifyClients();
       });
 
-      WATCH(path.join(GET("ROOT"), "./index.html"), ["change"], {}, (param) => {
+      WATCH(path.join(rootDir, "./index.html"), ["change"], {}, (param) => {
         console.log("index.html file changed");
         notifyClients();
       });
 
-      WATCH(path.join(GET("ROOT"), "./config.json"), ["change"], {}, (param) => {
+      WATCH(path.join(rootDir, "./config.json"), ["change"], {}, (param) => {
         console.error("config.json file changed restart the server");
         process.exit(1);
       });
