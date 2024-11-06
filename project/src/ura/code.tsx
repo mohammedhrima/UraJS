@@ -35,6 +35,10 @@ function fragment(props: Props, ...children: Array<VDOMNode>) {
 function element(tag: Tag, props: Props, ...children: Array<VDOMNode>) {
   if (typeof tag === "function") {
     let funcTag = tag(props || {});
+    if (props) {
+      funcTag.isfunc = true;
+      funcTag.funcProps = props;
+    }
     return funcTag;
   }
   if (tag === "if") {
@@ -56,7 +60,7 @@ function element(tag: Tag, props: Props, ...children: Array<VDOMNode>) {
     tag: tag,
     type: ELEMENT,
     props: props,
-    children: (children || []).map(check2)
+    children: check(children || [])
   }
 }
 
@@ -144,11 +148,6 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
   }
 }
 
-function display(vdom: VDOM) {
-  console.log("display ", vdom);
-  execute(CREATE, vdom);
-}
-
 // RECONCILIATION
 function reconciliateProps(oldProps: Props, newProps: Props, vdom) {
   let diff = false;
@@ -194,10 +193,28 @@ function reconciliate(prev: VDOM, next: VDOM) {
   if (prev.type != next.type || (prev.type == TEXT && !deepEqual(prev.value, next.value)))
     return execute(REPLACE, prev, next);
 
-  if (prev.tag === next.tag) {
-    reconciliateProps(prev.props, next.props, prev);
-    prev.props = next.props;
-  } else return execute(UTILS.REPLACE, prev, next);
+  if (
+    prev.tag === next.tag &&
+    !prev.isfunc && !next.isfunc
+  ) {
+    if (reconciliateProps(prev.props, next.props, prev)) {
+      // console.error("there is diff in props");
+      // console.log("old", prev);
+      // console.log("new", next);
+      prev.props = next.props;
+    }
+  }
+  else if (prev.isfunc && next.isfunc) {
+    if (!deepEqual(prev.funcProps, next.funcProps)) {
+      // console.error("there is diff func in props");
+      // console.log("old", prev);
+      // console.log("new", next);
+      execute(UTILS.REPLACE, prev, next);
+      prev.funcProps = next.funcProps
+    }
+  }
+  else
+    return execute(UTILS.REPLACE, prev, next);
 
   const prevs = prev.children || [];
   const nexts = next.children || [];
@@ -219,6 +236,19 @@ function reconciliate(prev: VDOM, next: VDOM) {
   }
 }
 
+let GlobalVDOM = null;
+
+function display(vdom: VDOM) {
+  console.log("display ", vdom);
+  if (GlobalVDOM) {
+    reconciliate(GlobalVDOM, vdom);
+  }
+  else {
+    execute(CREATE, vdom);
+    GlobalVDOM = vdom;
+  }
+}
+
 // STATES
 const States = new Map();
 let pos = 0;
@@ -232,31 +262,35 @@ function init() {
   })
 
   const curr = States.get(pos);
-  console.log("call init", pos);
+  // console.log("call init", pos);
 
   curr.state = (value) => {
     let key = 0;
     key++;
-    console.log("call state", value);
+    // console.log("call state", value);
 
     if (!curr.store.has(key)) {
       curr.store.set(key, value);
-      console.log("init", value, "key:", key, "pos:", pos);
+      // console.log("init", value, "key:", key, "pos:", pos);
     }
     return [
       () => curr.store.get(key),
       (value) => {
         if (!deepEqual(value, curr.store.get(key))) {
           curr.store.set(key, value);
+          if (curr.vdom.funcProps) {
+            console.log(key, ":", pos, "=> has func props");
+          }
           reconciliate(curr.vdom, curr.JSXfunc());
         }
-        console.log("new value", value);
+        // console.log("new value", value);
 
       }
     ]
   }
 
   return [curr.state, (JSXfunc) => {
+    // pos++;
     curr.JSXfunc = JSXfunc;
     curr.vdom = JSXfunc();
     return curr.vdom;
@@ -272,7 +306,6 @@ function setRoute(path: string, call: Function) {
 
 //TODO: set * route to not found
 function getRoute(hash) {
-  // TODO: do reconciliation here
   return Routes[hash] || Routes["*"];
 }
 
@@ -284,15 +317,12 @@ function sync() {
     if (event.data === "reload")
       window.location.reload();
   };
-
   ws.onopen = () => {
     console.log("WebSocket connection established");
   };
-
   ws.onerror = (error) => {
     console.error("WebSocket error:", error);
   };
-
   ws.onclose = () => {
     console.log("WebSocket connection closed");
   };

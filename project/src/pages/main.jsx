@@ -58,6 +58,7 @@ function refresh() {
   hash = normalizePath(hash);
   const RouteConfig = Ura.getRoute(hash);
   console.log("go to", RouteConfig);
+  Ura.display(<RouteConfig/>)
 }
 
 async function loadRoutes() {
