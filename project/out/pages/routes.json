@@ -4,5 +4,10 @@
     "dir": "Home",
     "filename": "Home.js",
     "default": true
+  },
+  "test": {
+    "call": "Test",
+    "dir": "Test",
+    "filename": "Test.js"
   }
 }

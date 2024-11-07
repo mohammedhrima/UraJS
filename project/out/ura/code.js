@@ -28,12 +28,19 @@ function fragment(props, ...children) {
 }
 function element(tag, props, ...children) {
     if (typeof tag === "function") {
-        let funcTag = tag(props || {});
-        if (props) {
-            funcTag.isfunc = true;
-            funcTag.funcProps = props;
-        }
-        return funcTag;
+        // let funcTag = {
+        //   ...tag(props),
+        //   isfunc: true,
+        //   funcprops: props,
+        //   func: tag,
+        // };
+        // console.log("return", funcTag);
+        // return funcTag;
+        return tag(props || {});
+        // if (props) {
+        //   funcTag.isfunc = true;
+        //   funcTag.funcProps = props;
+        // }
     }
     if (tag === "if") {
         return {
@@ -119,21 +126,57 @@ function createDOM(vdom) {
     }
     return vdom;
 }
+function removeProps(vdom) {
+    const props = vdom.props;
+    Object.keys(props || {}).forEach((key) => {
+        if (key.startsWith("on")) {
+            const eventType = key.slice(2).toLowerCase();
+            vdom.dom.removeEventListener(eventType, props[key]);
+        }
+        else if (key === "style") {
+            Object.keys(props.style || {}).forEach((styleProp) => {
+                vdom.dom.style[styleProp] = "";
+            });
+        }
+        else {
+            if (vdom.dom[key] !== undefined)
+                delete vdom.dom[key];
+            vdom.dom.removeAttribute(key);
+        }
+    });
+    vdom.props = {};
+}
 // RENDERING
 function execute(mode, prev, next = null) {
     switch (mode) {
         case CREATE: {
+            // if (prev.isfunc) {
+            //   console.log("is func");
+            //   //@ts-ignore
+            //   return execute(CREATE, prev.func(prev.funcprops));
+            // }
+            // else {
             createDOM(prev);
             prev.children?.map(child => {
-                execute(mode, child);
+                child = execute(mode, child);
                 prev.dom.appendChild(child.dom);
             });
+            return prev;
+            // }
             break;
         }
         case REPLACE: {
             execute(CREATE, next);
             prev.dom.replaceWith(next.dom);
             prev.dom = next.dom;
+            removeProps(prev);
+            // prev.props = next.props;
+            // TODO: te be edited, props must reconciled or something
+            // Object.keys(next).forEach(key => {
+            //   prev[key] = next[key];
+            // })
+            return prev;
+            // prev.props = next.props;
             break;
         }
         default:
@@ -189,22 +232,10 @@ function reconciliateProps(oldProps, newProps, vdom) {
 function reconciliate(prev, next) {
     if (prev.type != next.type || (prev.type == TEXT && !deepEqual(prev.value, next.value)))
         return execute(REPLACE, prev, next);
-    if (prev.tag === next.tag &&
-        !prev.isfunc && !next.isfunc) {
+    if (prev.tag === next.tag) {
         if (reconciliateProps(prev.props, next.props, prev)) {
-            // console.error("there is diff in props");
-            // console.log("old", prev);
-            // console.log("new", next);
-            prev.props = next.props;
-        }
-    }
-    else if (prev.isfunc && next.isfunc) {
-        if (!deepEqual(prev.funcProps, next.funcProps)) {
-            // console.error("there is diff func in props");
-            // console.log("old", prev);
-            // console.log("new", next);
-            execute(UTILS.REPLACE, prev, next);
-            prev.funcProps = next.funcProps;
+            console.error("there is diff in props");
+            return execute(UTILS.REPLACE, prev, next);
         }
     }
     else
@@ -234,6 +265,7 @@ function display(vdom) {
     console.log("display ", vdom);
     if (GlobalVDOM) {
         reconciliate(GlobalVDOM, vdom);
+        execute(CREATE, vdom);
     }
     else {
         execute(CREATE, vdom);
@@ -243,12 +275,14 @@ function display(vdom) {
 // STATES
 const States = new Map();
 let pos = 0;
-function init() {
+function init0(props = null) {
     pos++;
     States.set(pos, {
         store: new Map(),
+        index: pos,
         vdom: null,
         state: null,
+        props: props,
         JSXfunc: null
     });
     const curr = States.get(pos);
@@ -266,10 +300,10 @@ function init() {
             (value) => {
                 if (!deepEqual(value, curr.store.get(key))) {
                     curr.store.set(key, value);
-                    if (curr.vdom.funcProps) {
-                        console.log(key, ":", pos, "=> has func props");
+                    if (curr.props) {
+                        console.log(curr.index, ":", key, "=> has func props", curr.props);
                     }
-                    reconciliate(curr.vdom, curr.JSXfunc());
+                    reconciliate(curr.vdom, curr.JSXfunc(curr.props));
                 }
                 // console.log("new value", value);
             }
@@ -277,10 +311,49 @@ function init() {
     };
     return [curr.state, (JSXfunc) => {
             // pos++;
+            console.log("render with props:", curr.props);
             curr.JSXfunc = JSXfunc;
-            curr.vdom = JSXfunc();
+            curr.vdom = JSXfunc(curr.props);
+            console.log(curr.vdom);
             return curr.vdom;
         }];
+}
+function init1() {
+    let index = 1;
+    let vdom = {};
+    let states = {};
+    let view = () => Ura.element("empty", null);
+    const State = (initValue) => {
+        const stateIndex = index++;
+        states[stateIndex] = initValue;
+        const getter = () => states[stateIndex];
+        const setter = (newValue) => {
+            if (!Ura.deepEqual(states[stateIndex], newValue)) {
+                states[stateIndex] = newValue;
+                updateState();
+            }
+        };
+        return [getter, setter];
+    };
+    const updateState = () => {
+        console.log("call updateState");
+        const newVDOM = view();
+        if (vdom) {
+            console.log("old:", vdom);
+            console.log("new:", newVDOM);
+            Ura.reconciliate(vdom, newVDOM);
+        }
+        else {
+            vdom = newVDOM;
+        }
+    };
+    const render = (call) => {
+        console.log("render :", call);
+        view = call;
+        vdom = call();
+        return vdom;
+    };
+    return [render, State];
 }
 // ROUTING
 const Routes = {};
@@ -317,7 +390,9 @@ const Ura = {
     display,
     sync,
     loadCSS,
-    init,
-    Routes
+    init: init1,
+    Routes,
+    reconciliate,
+    deepEqual
 };
 export default Ura;

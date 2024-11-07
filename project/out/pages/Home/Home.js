@@ -1,26 +1,62 @@
 import Ura from "ura";
-function Nav(props) {
-    const [state, render] = Ura.init();
-    const [getter, setter] = state(10);
-    return render((props) => (Ura.element("div", null,
+class Comp {
+    constructor() {
+        this.index = 1; // Initialize index here to avoid undefined error
+        this.vdom = null;
+        this.states = {};
+        this.view = () => Ura.element("empty", null);
+    }
+    State(initialValue) {
+        const stateIndex = this.index++;
+        this.states[stateIndex] = initialValue;
+        const getter = () => this.states[stateIndex];
+        const setter = (newValue) => {
+            if (!Ura.deepEqual(this.states[stateIndex], newValue)) {
+                this.states[stateIndex] = newValue;
+                this.updateState();
+            }
+        };
+        return [getter, setter];
+    }
+    updateState() {
+        console.log("call updateState");
+        const newVDOM = this.view();
+        if (this.vdom) {
+            console.log("old:", this.vdom);
+            console.log("new:", newVDOM);
+            Ura.reconciliate(this.vdom, newVDOM);
+        }
+        else {
+            this.vdom = newVDOM;
+        }
+    }
+    render(call) {
+        console.log("render :", call);
+        this.view = call;
+        this.vdom = call();
+        return this.vdom;
+    }
+}
+// Component definitions
+function Child(props) {
+    const [render, State] = Ura.init();
+    const [getter, setter] = State(20);
+    return render(() => (Ura.element("div", null,
         Ura.element("h1", null,
-            "this is Nav ",
+            "child ",
             props.id),
-        Ura.element("button", { onclick: () => { setter(getter() + 1); } },
-            "clique me ",
-            props.id,
-            " : ",
+        Ura.element("button", { onclick: () => setter(getter() + 1) },
+            "click ",
             getter()))));
 }
-function Home() {
-    const [state, render] = Ura.init();
-    const [getter, setter] = state(10);
+function Tag() {
+    const [render, State] = Ura.init();
+    const [getter, setter] = State(10);
     return render(() => (Ura.element("root", null,
         Ura.element("h1", null,
-            "this is home ",
+            "hello world ",
             getter()),
-        Ura.element("button", { onclick: () => { setter(getter() + 1); } }, "clique me"),
-        Ura.element(Nav, { id: getter() ? "a0" : "a1" }),
-        Ura.element(Nav, { id: getter() % 2 != 0 ? "b0" : "b1" }))));
+        Ura.element("button", { onclick: () => setter(getter() + 1) }, "click"),
+        Ura.element(Child, { id: getter() }))));
 }
-export default Home;
+export default Tag;
