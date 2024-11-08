@@ -316,7 +316,23 @@ function init() {
     return [render, State];
 }
 // ROUTING
+function Error(props) {
+    const [render, State] = init();
+    return render(() => {
+        return element("h4", {
+            style: {
+                fontFamily: "sans-serif",
+                fontSize: "6vw",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+            },
+        }, "Error: [", props.message, "] Not Found");
+    });
+}
 const Routes = {};
+Routes["*"] = () => Error({ message: window.location.hash });
 function setRoute(path, call) {
     Routes[path] = call;
 }
@@ -378,7 +394,7 @@ const Ura = {
     display,
     sync,
     loadCSS,
-    init: init,
+    init,
     Routes,
     reconciliate,
     deepEqual,
