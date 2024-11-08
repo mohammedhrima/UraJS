@@ -1,5 +1,5 @@
 {
-  "DEFAULT_ROUTE": "/Home",
+  "DEFAULT_ROUTE": "home",
   "EXTENSION": "ts",
   "PORT": 17000,
   "SERVER_TIMING": 30

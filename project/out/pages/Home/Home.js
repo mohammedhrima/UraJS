@@ -2,7 +2,7 @@ import Ura from "ura";
 function Child(props) {
     const [render, State] = Ura.init();
     const [getter, setter] = State(20);
-    return render(() => (Ura.element("div", null,
+    return render(() => (Ura.element("fr", null,
         Ura.element("h1", null,
             "child ",
             props.id),
@@ -10,13 +10,14 @@ function Child(props) {
             "click ",
             getter()))));
 }
-function Tag() {
+function Home() {
     const [render, State] = Ura.init();
     const [getter, setter] = State(10);
-    return render(() => (Ura.element("root", null,
+    return render(() => (Ura.element("div", null,
         Ura.element("h1", null,
-            "hello world ",
+            "hello from Home ",
             getter()),
-        Ura.element("button", { onclick: () => setter(getter() + 1) }, "click"))));
+        Ura.element("button", { onclick: () => Ura.navigate("/test") }, "click"),
+        Ura.element(Child, { id: 5 }))));
 }
-export default Tag;
+export default Home;

@@ -3,6 +3,6 @@
 **/.vite
 **/.vscode/
 **/package-lock.json
-/out
+**/project/out
 **/*.db
 **/.DS_Store

@@ -180,62 +180,50 @@ function Copy(src) {
 }
 
 // ROUTING
-const pagesDir = path.join(GET("SOURCE"), "pages");
-const routesFile = path.join(pagesDir, "routes.js");
-
-function generateRoutes(dirPath, parentRoute = '') {
-  if(dirPath == "_utils") return;
-  const routes = [];
-  const dirContents = fs.readdirSync(dirPath, { withFileTypes: true });
-
-  dirContents.forEach((dir) => {
-    if (dir.isDirectory() && dir.name != "_utils") {
-      // Construct the current route path by combining parent route and the current directory name
-      const currentRoute = `${parentRoute}/${dir.name}`;
-
-      // Check for a valid JS/JSX/TS/TSX file in the current directory
-      const fileExtensions = [".js", ".jsx", ".ts", ".tsx"];
-      let filePath = null;
-      let cssfile = null;
-
-      // Check if the files with supported extensions exist in the directory
-      for (const ext of fileExtensions) {
-        const potentialPath = path.join(dirPath, dir.name, `${dir.name}${ext}`);
-        if (fs.existsSync(potentialPath)) {
-          if (fs.existsSync(path.join(dirPath, dir.name, `${dir.name}.css`)))
-            cssfile = `.${parentRoute}/${dir.name}/${dir.name}.css`
-          filePath = potentialPath;
-          break;
+const PageDir = path.join(GET("SOURCE"), "./pages");
+const getRoutes = (dir) => {
+  const result = {};
+  try {
+    fs.readdirSync(dir).forEach((fileOrDir) => {
+      const fullPath = path.join(dir, fileOrDir);
+      if (fs.statSync(fullPath).isDirectory()) {
+        const routeName = fileOrDir.toLowerCase();
+        if (routeName != "_utils") {
+          const subroutes = getRoutes(fullPath);
+          result[routeName] = {
+            call: fileOrDir,
+            dir: path.relative(PageDir, fullPath).replace(/\\/g, "/"),
+            filename: `${fileOrDir}.js`,
+            subpaths: Object.keys(subroutes).length ? subroutes : undefined,
+          };
         }
       }
+    });
+  } catch (error) {
+    console.error("Error reading directory:", error.message);
+  }
+  return result;
+};
 
-      if (filePath) {
-        // Push the current route with the corresponding file path
-        routes.push({
-          path: currentRoute,
-          from: `.${parentRoute}/${dir.name}/${dir.name}.js`,
-          ...(GET("DEFAULT_ROUTE") === currentRoute && { base: true }), // Add `base` only if true
-          ...(cssfile && { css: cssfile }) // Add `css` only if it exists
-        });
-      }
+const updateRoutes = () => {
+  let routes = getRoutes(PageDir);
+  const defaultRoute = GET("DEFAULT_ROUTE");
+  if (defaultRoute && routes[defaultRoute.toLowerCase()]) {
+    console.warn("default route is", defaultRoute);
+    routes[defaultRoute.toLowerCase()].default = true;
+  } else if (defaultRoute) {
+    console.error(`route '${defaultRoute}' not found in ./pages (update ./config.json)`);
+    process.exit(1);
+  } else {
+    console.error(`Default route is required (update ./config.json)`);
+    process.exit(1);
+  }
 
-      // Recursively generate routes for any subdirectories
-      routes.push(...generateRoutes(path.join(dirPath, dir.name), currentRoute));
-    }
-  });
-
-  return routes;
-}
-
-// Write the updated Routes array to Routes.js
-function updateRoutes() {
-  const routes = generateRoutes(pagesDir);
-  const content = `const Routes = ${JSON.stringify(routes, null, 4)};\n\nexport default Routes;`;
-
-  fs.writeFileSync(routesFile, content, "utf8");
-  console.log("Routes file updated successfully!");
-}
-
+  const output = JSON.stringify(routes, null, 2);
+  const outPath = path.join(PageDir, "./routes.json");
+  fs.writeFileSync(outPath, output, "utf8");
+  console.log("Routes saved to routes.js");
+};
 
 // CHECK PORT
 function checkPortInUse(port, callback) {
