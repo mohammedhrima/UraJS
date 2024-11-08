@@ -36,9 +36,20 @@ function element(tag, props, ...children) {
         //   funcprops: props,
         //   func: tag,
         // };
-        // console.log("return", funcTag);
+        let functag;
+        try {
+            functag = tag(props || {});
+        }
+        catch (error) {
+            // console.log(error);
+            console.error("Error: while rendering ", tag);
+            return {
+                type: FRAGMENT,
+                children: []
+            };
+        }
         // return funcTag;
-        return tag(props || {});
+        return functag;
         // if (props) {
         //   funcTag.isfunc = true;
         //   funcTag.funcProps = props;
@@ -357,7 +368,7 @@ function refresh() {
     hash = normalizePath(hash);
     const RouteConfig = getRoute(hash);
     console.log("go to", RouteConfig);
-    display(Ura.element("root", null,
+    display(Ura.element("root", { style: { height: "100vh", width: "100vw" } },
         Ura.element(RouteConfig, null)));
 }
 function navigate(route, params = {}) {

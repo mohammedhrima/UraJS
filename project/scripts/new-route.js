@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import UTILS from "./utils.js";
-const { GET } = UTILS;
+const { GET , UPDATE_ROUTES} = UTILS;
 let routeName = process.argv[2];
 
 if (!routeName) {
@@ -54,7 +54,7 @@ export default ${capitalize(path.basename(routeName))}
   }
 
   console.log(`Component "${routeName}" created successfully`);
-
+UPDATE_ROUTES();
 } catch (error) {
   console.error(`Error: ${error.message}`);
   process.exit(1);

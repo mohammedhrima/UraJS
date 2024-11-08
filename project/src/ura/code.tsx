@@ -44,9 +44,19 @@ function element(tag: Tag, props: Props, ...children: Array<VDOMNode>) {
     //   funcprops: props,
     //   func: tag,
     // };
-    // console.log("return", funcTag);
+    let functag;
+    try {
+      functag = tag(props || {})
+    } catch (error) {
+      // console.log(error);
+      console.error("Error: while rendering ", tag);
+      return {
+        type: FRAGMENT,
+        children: []
+      };
+    }
     // return funcTag;
-    return tag(props || {});
+    return functag;
 
     // if (props) {
     //   funcTag.isfunc = true;
@@ -377,7 +387,7 @@ function refresh() {
   hash = normalizePath(hash);
   const RouteConfig = getRoute(hash);
   console.log("go to", RouteConfig);
-  display(<root>
+  display(<root style={{ height: "100vh", width: "100vw" }}>
     <RouteConfig />
   </root>
   )

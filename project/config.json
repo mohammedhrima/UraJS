@@ -2,6 +2,6 @@
   "DEFAULT_ROUTE": "/home",
   "EXTENSION": "jsx",
   "PORT": 17000,
-  "SERVER_TIMING": 30,
+  "SERVER_TIMING": 5,
   "ENABLE_CSS": true
 }
