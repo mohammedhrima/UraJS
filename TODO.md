@@ -25,3 +25,6 @@
         + nested routes
     + config.json
     + HTTP
+
++ use react tutrials:
+    + https://react.dev/learn/tutorial-tic-tac-toe
