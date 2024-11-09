@@ -9,6 +9,11 @@ const Routes = [
         "path": "/login",
         "from": "./login/login.js",
         "css": "./login/login.css"
+    },
+    {
+        "path": "/user",
+        "from": "./user/user.js",
+        "css": "./user/user.css"
     }
 ];
 

@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 import UTILS from "./utils.js";
-const { GET , UPDATE_ROUTES} = UTILS;
+const { GET, UPDATE_ROUTES } = UTILS;
+
 let routeName = process.argv[2];
 
 if (!routeName) {
@@ -44,17 +45,14 @@ function ${capitalize(path.basename(routeName))}() {
 export default ${capitalize(path.basename(routeName))}
 `;
   fs.writeFileSync(jsxFilePath, jsxContent);
-  if(GET("ENABLE_CSS"))
-  {
+  if (GET("ENABLE_CSS")) {
     // Write a basic CSS file
-    const cssContent = `.${path.basename(routeName).toLowerCase()} {
-      }`;
-  
+    const cssContent = `.${path.basename(routeName).toLowerCase()}\n{\n}`;
     fs.writeFileSync(cssFilePath, cssContent);
   }
 
   console.log(`Component "${routeName}" created successfully`);
-UPDATE_ROUTES();
+  UPDATE_ROUTES();
 } catch (error) {
   console.error(`Error: ${error.message}`);
   process.exit(1);

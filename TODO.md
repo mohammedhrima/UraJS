@@ -11,26 +11,16 @@
     + add build step:
         + for docker
         + generate nginx
-    + remove "clean dir" step when server runs
-    + make sure to test props in reconcilation
     + generate Docker for build
     + understand promises
     + verify refresh function
     + when wrinting code in jsx component check if it's the page that should be loaded if so update it
     + importing svg to image does not work, fix it
     + support js and ts
+    + move ura dir in root dir
 
 + Documentation:
     + routes:
         + routes.json
-        + strict / simple routes
         + nested routes
-        + similar nextJS routing
     + config.json
-
-
-
-
-+ TODO:
-    + verify server.js code
-    + 

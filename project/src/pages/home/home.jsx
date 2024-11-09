@@ -57,8 +57,9 @@ function Game(props) {
           <div className="perecent">
             <svg style={{ width: "150px", height: "150px" }}>
               <circle cx="70" cy="70" r="70"></circle>
-              <circle cx="70" cy="70" r="70"
-                style={{ strokeDashoffset: `calc(440 - (440 * ${props.UserLevel}) / 100)` }}
+              <circle cx="70" cy="70" r="70" style={
+                { strokeDashoffset: `calc(440 - (440 * ${props.UserLevel}) / 100)` }
+              }
               ></circle>
             </svg>
             <div className="number">

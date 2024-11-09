@@ -184,12 +184,11 @@ const pagesDir = path.join(GET("SOURCE"), "pages");
 const routesFile = path.join(pagesDir, "routes.js");
 
 function generateRoutes(dirPath, parentRoute = '') {
-  if(dirPath == "_utils") return;
   const routes = [];
   const dirContents = fs.readdirSync(dirPath, { withFileTypes: true });
 
   dirContents.forEach((dir) => {
-    if (dir.isDirectory() && dir.name != "_utils") {
+    if (dir.isDirectory()) {
       // Construct the current route path by combining parent route and the current directory name
       const currentRoute = `${parentRoute}/${dir.name}`;
 
@@ -210,17 +209,14 @@ function generateRoutes(dirPath, parentRoute = '') {
       }
 
       if (filePath) {
-        // Push the current route with the corresponding file path
         routes.push({
           path: currentRoute,
           from: `.${parentRoute}/${dir.name}/${dir.name}.js`,
-          ...(GET("DEFAULT_ROUTE") === currentRoute && { base: true }), // Add `base` only if true
-          ...(cssfile && { css: cssfile }) // Add `css` only if it exists
+          ...(GET("DEFAULT_ROUTE") === currentRoute && { base: true }),
+          ...(cssfile && { css: cssfile })
         });
+        routes.push(...generateRoutes(path.join(dirPath, dir.name), currentRoute));
       }
-
-      // Recursively generate routes for any subdirectories
-      routes.push(...generateRoutes(path.join(dirPath, dir.name), currentRoute));
     }
   });
 
