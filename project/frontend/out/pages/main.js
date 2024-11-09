@@ -1,5 +1,6 @@
 import Ura from "ura";
 import dir_routes from "./routes.js";
+Ura.loadCSS("./pages/main.css");
 Ura.sync();
 async function loadRoutes(dir_routes) {
     //@ts-ignore

@@ -1,5 +1,5 @@
 {
-  "DEFAULT_ROUTE": "/home",
+  "DEFAULT_ROUTE": "/login",
   "EXTENSION": "jsx",
   "PORT": 17000,
   "SERVER_TIMING": 5,

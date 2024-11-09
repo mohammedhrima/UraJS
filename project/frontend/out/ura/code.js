@@ -1,12 +1,11 @@
 import * as UTILS from "./utils.js";
-const { ELEMENT, FRAGMENT, TEXT, CREATE, REMOVE, REPLACE, deepEqual, loadCSS } = UTILS;
+const { IF, LOOP, CREATE, REPLACE, deepEqual, loadCSS } = UTILS;
+const { ELEMENT, FRAGMENT, TEXT } = UTILS;
 // JSX
 function check(children) {
     //@ts-ignore
     return children.map((child) => {
-        if (child == null ||
-            typeof child === "string" ||
-            typeof child === "number") {
+        if (child === null || typeof child === "string" || typeof child === "number") {
             return {
                 type: TEXT,
                 value: child,
@@ -15,20 +14,13 @@ function check(children) {
         return child;
     });
 }
-function check2(child) {
-    if (child == null || typeof child === "string" || typeof child === "number") {
-        return {
-            type: TEXT,
-            value: child,
-        };
-    }
-    return child;
-}
 function fragment(props, ...children) {
     console.log("call fragment", children);
     throw "Fragments (<></>) are not supported please use <fr></fr> tag instead";
 }
-function element(tag, props, ...children) {
+let cond_index = 0;
+let cond_map = new Map();
+function element(tag, props = {}, ...children) {
     if (typeof tag === "function") {
         // let funcTag = {
         //   ...tag(props),
@@ -42,7 +34,7 @@ function element(tag, props, ...children) {
         }
         catch (error) {
             // console.log(error);
-            console.error("Error: while rendering ", tag);
+            console.error("Error: while rendering", tag);
             return {
                 type: FRAGMENT,
                 children: []
@@ -56,19 +48,47 @@ function element(tag, props, ...children) {
         // }
     }
     if (tag === "if") {
-        return {
-            type: FRAGMENT,
-            children: check(props?.cond && children ? children : []),
+        cond_index++;
+        cond_map.set(cond_index, props);
+        let res = {
+            type: IF,
+            tag: "if",
+            props: props,
+            children: check(props.cond && children.length ? children : []),
         };
+        cond_map.set(cond_index, undefined);
+        cond_index--;
+        return res;
     }
+    // else if (tag === "else") {
+    //   if (cond_index) {
+    //     let res = {
+    //       type: IF,
+    //       tag: "if",
+    //       props: props,
+    //       children: check(cond_map[cond_index].cond && children.length ? children : []),
+    //     };
+    //     return res;
+    //   }
+    //   else {
+    //     console.error("Error: while rendering", tag);
+    //     console.error("there must be an if statement before it");
+    //   }
+    // }
     else if (tag === "loop") {
-        let res = (props.on || []).flatMap((elem, id) => 
-        // @ts-ignore
-        (children || []).map((child) => typeof child === "function" ? child(elem, id) : child));
-        return {
-            type: FRAGMENT,
-            children: check(res || []),
+        let loopChildren = (props.on || []).flatMap((elem, id) => (children || []).map((child) => {
+            //@ts-ignore
+            const evaluatedChild = typeof child === "function" ? child(elem, id) : child;
+            return structuredClone ? structuredClone(evaluatedChild) : JSON.parse(JSON.stringify(evaluatedChild));
+        }));
+        let res = {
+            type: LOOP,
+            tag: "loop",
+            props: props,
+            children: check(loopChildren || []),
         };
+        // console.log("loop tag", res);
+        return res;
     }
     return {
         tag: tag,
@@ -87,7 +107,12 @@ function setProps(vdom) {
             console.warn("Invalid property 'class' did you mean 'className' ?");
         else if (key.startsWith("on")) {
             const eventType = key.slice(2).toLowerCase();
-            vdom.dom.addEventListener(eventType, props[key]);
+            if (eventType === "hover") {
+                vdom.dom.addEventListener("mouseover", props[key]);
+                vdom.dom.addEventListener("mouseout", props[key]);
+            }
+            else
+                vdom.dom.addEventListener(eventType, props[key]);
         }
         else if (key === "style")
             Object.assign(style, props[key]);
@@ -118,7 +143,8 @@ function createDOM(vdom) {
                 default:
                     if (vdom.dom)
                         console.error("element already has dom"); // TODO: to be removed
-                    vdom.dom = document.createElement(vdom.tag);
+                    else
+                        vdom.dom = document.createElement(vdom.tag);
                     break;
             }
             setProps(vdom);
@@ -133,6 +159,14 @@ function createDOM(vdom) {
         }
         case TEXT: {
             vdom.dom = document.createTextNode(vdom.value);
+            break;
+        }
+        case IF: {
+            vdom.dom = document.createElement("if");
+            break;
+        }
+        case LOOP: {
+            vdom.dom = document.createElement("loop");
             break;
         }
         default:
@@ -171,10 +205,14 @@ function execute(mode, prev, next = null) {
             // }
             // else {
             createDOM(prev);
-            prev.children?.map((child) => {
-                child = execute(mode, child);
-                prev.dom.appendChild(child.dom);
-            });
+            //@ts-ignore
+            // if (prev.type === IF && prev.props.cond) 
+            {
+                prev.children?.map((child) => {
+                    child = execute(mode, child);
+                    prev.dom.appendChild(child.dom);
+                });
+            }
             return prev;
             // }
             break;
@@ -248,8 +286,8 @@ function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
     return diff;
 }
 function reconciliate(prev, next) {
-    if (prev.type != next.type ||
-        (prev.type == TEXT && !deepEqual(prev.value, next.value)))
+    if (prev.type != next.type || prev.tag != next.tag ||
+        (prev.type === TEXT && !deepEqual(prev.value, next.value)))
         return execute(REPLACE, prev, next);
     if (prev.tag === next.tag) {
         if (reconciliateProps(prev.props, next.props, prev)) {
@@ -283,7 +321,7 @@ let GlobalVDOM = null;
 function display(vdom) {
     // console.log("Global ", GlobalVDOM);
     console.log("display ", vdom);
-    console.log("old", GlobalVDOM);
+    // console.log("old", GlobalVDOM);
     if (GlobalVDOM) {
         reconciliate(GlobalVDOM, vdom);
         // execute(CREATE, vdom);
@@ -313,6 +351,8 @@ function init() {
     const updateState = () => {
         // console.log("call updateState");
         const newVDOM = Ura.element(View, null);
+        // console.log("old", vdom);
+        // console.log("new", newVDOM);
         if (vdom)
             reconciliate(vdom, newVDOM);
         else
@@ -397,6 +437,29 @@ function sync() {
         console.log("WebSocket connection closed");
     };
 }
+// HTTP
+const defaultHeaders = {
+    "Content-Type": "application/json",
+};
+async function HTTP_Request(method, url, headers = {}, body) {
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: { ...defaultHeaders, ...headers },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        const responseData = await response.json();
+        return {
+            data: responseData,
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+        };
+    }
+    catch (error) {
+        throw error;
+    }
+}
 const Ura = {
     element,
     fragment,
@@ -411,6 +474,7 @@ const Ura = {
     deepEqual,
     normalizePath,
     refresh,
-    navigate
+    navigate,
+    send: HTTP_Request
 };
 export default Ura;

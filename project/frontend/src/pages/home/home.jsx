@@ -17,7 +17,7 @@ function Play(props) {
   }
   const handleHover = () => setHover(!getHover());
   return render(() => (
-    <div className={"play_game"} onmouseover={handleHover} onmouseout={handleHover}>
+    <div className={"play_game"} hover={handleHover}>
       <img
         src={props.path}
         loading="lazy"

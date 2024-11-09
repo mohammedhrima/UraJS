@@ -2,6 +2,8 @@
 export const ELEMENT = "element";
 export const FRAGMENT = "fragment";
 export const TEXT = "text";
+export const IF = "if";
+export const LOOP = "loop";
 export const CREATE = 1;
 export const REPLACE = 2;
 export const REMOVE = 3;
