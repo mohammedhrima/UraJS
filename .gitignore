@@ -1,7 +1,6 @@
 **/node_modules/
 **/.parcel-cache/
 **/.vite
-**/.vscode/
 **/package-lock.json
 **/project/out
 **/*.db
