@@ -4,4 +4,4 @@
 
 # UraJS
 
-Welcome to the UraJS framework!
+Welcome to UraJS framework!
