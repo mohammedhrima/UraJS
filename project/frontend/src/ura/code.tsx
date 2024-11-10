@@ -197,27 +197,24 @@ function removeProps(vdom: VDOM) {
   vdom.props = {};
 }
 
+function destroy(vdom: VDOM): void {
+  removeProps(vdom);
+  vdom.dom?.remove();
+  vdom.dom = null;
+  vdom.children?.map(destroy);
+}
+
+
 // RENDERING
 function execute(mode: number, prev: VDOM, next: VDOM = null) {
   switch (mode) {
     case CREATE: {
-      // if (prev.isfunc) {
-      //   console.log("is func");
-      //   //@ts-ignore
-      //   return execute(CREATE, prev.func(prev.funcprops));
-      // }
-      // else {
       createDOM(prev);
-      //@ts-ignore
-      // if (prev.type === IF && prev.props.cond) 
-      {
-        prev.children?.map((child) => {
-          child = execute(mode, child as VDOM);
-          prev.dom.appendChild((child as VDOM).dom);
-        });
-      }
+      prev.children?.map((child) => {
+        child = execute(mode, child as VDOM);
+        prev.dom.appendChild((child as VDOM).dom);
+      });
       return prev;
-      // }
       break;
     }
     case REPLACE: {
@@ -227,13 +224,11 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
       prev.children = next.children;
       removeProps(prev);
       prev.props = next.props
-      // prev.props = next.props;
-      // TODO: te be edited, props must reconciled or something
-      // Object.keys(next).forEach(key => {
-      //   prev[key] = next[key];
-      // })
       return prev;
-      // prev.props = next.props;
+      break;
+    }
+    case REMOVE: {
+      destroy(prev);
       break;
     }
     default:
@@ -462,7 +457,7 @@ const defaultHeaders = {
 
 async function HTTP_Request(method, url, headers = {}, body) {
   try {
-    
+
     const response = await fetch(url, {
       method,
       headers: { ...defaultHeaders, ...headers },
