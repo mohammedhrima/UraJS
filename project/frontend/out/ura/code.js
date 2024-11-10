@@ -1,6 +1,7 @@
 import * as UTILS from "./utils.js";
-const { IF, LOOP, CREATE, REPLACE, REMOVE, deepEqual, loadCSS } = UTILS;
+const { IF, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
+const { deepEqual, loadCSS } = UTILS;
 // JSX
 function check(children) {
     //@ts-ignore
@@ -20,30 +21,18 @@ function fragment(props, ...children) {
 }
 function element(tag, props = {}, ...children) {
     if (typeof tag === "function") {
-        // let funcTag = {
-        //   ...tag(props),
-        //   isfunc: true,
-        //   funcprops: props,
-        //   func: tag,
-        // };
         let functag;
         try {
             functag = tag(props || {});
         }
         catch (error) {
-            // console.log(error);
             console.error("Error: while rendering", tag);
             return {
                 type: FRAGMENT,
                 children: []
             };
         }
-        // return funcTag;
         return functag;
-        // if (props) {
-        //   funcTag.isfunc = true;
-        //   funcTag.funcProps = props;
-        // }
     }
     if (tag === "if") {
         let res = {
@@ -54,21 +43,6 @@ function element(tag, props = {}, ...children) {
         };
         return res;
     }
-    // else if (tag === "else") {
-    //   if (cond_index) {
-    //     let res = {
-    //       type: IF,
-    //       tag: "if",
-    //       props: props,
-    //       children: check(cond_map[cond_index].cond && children.length ? children : []),
-    //     };
-    //     return res;
-    //   }
-    //   else {
-    //     console.error("Error: while rendering", tag);
-    //     console.error("there must be an if statement before it");
-    //   }
-    // }
     else if (tag === "loop") {
         let loopChildren = (props.on || []).flatMap((elem, id) => (children || []).map((child) => {
             //@ts-ignore
@@ -81,7 +55,6 @@ function element(tag, props = {}, ...children) {
             props: props,
             children: check(loopChildren || []),
         };
-        // console.log("loop tag", res);
         return res;
     }
     return {
@@ -96,7 +69,6 @@ function setProps(vdom) {
     const { tag, props } = vdom;
     const style = {};
     Object.keys(props || {}).forEach((key) => {
-        // console.log("set prop");
         if (key == "class")
             console.warn("Invalid property 'class' did you mean 'className' ?");
         else if (key.startsWith("on")) {
@@ -111,8 +83,7 @@ function setProps(vdom) {
         else if (key === "style")
             Object.assign(style, props[key]);
         else {
-            if (tag == "svg" ||
-                vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/)
+            if (tag == "svg" || vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/)
                 vdom.dom.setAttribute(key, props[key]);
             else
                 vdom.dom[key] = props[key];
@@ -123,8 +94,7 @@ function setProps(vdom) {
             .map((styleProp) => {
             const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
             return `${Camelkey}:${style[styleProp]}`;
-        })
-            .join(";");
+        }).join(";");
     }
 }
 function createDOM(vdom) {
@@ -188,27 +158,21 @@ function removeProps(vdom) {
     });
     vdom.props = {};
 }
+function destroy(vdom) {
+    removeProps(vdom);
+    vdom.dom?.remove();
+    vdom.dom = null;
+    vdom.children?.map(destroy);
+}
 // RENDERING
 function execute(mode, prev, next = null) {
     switch (mode) {
         case CREATE: {
-            // if (prev.isfunc) {
-            //   console.log("is func");
-            //   //@ts-ignore
-            //   return execute(CREATE, prev.func(prev.funcprops));
-            // }
-            // else {
             createDOM(prev);
-            //@ts-ignore
-            // if (prev.type === IF && prev.props.cond) 
-            {
-                prev.children?.map((child) => {
-                    child = execute(mode, child);
-                    prev.dom.appendChild(child.dom);
-                });
-            }
-            return prev;
-            // }
+            prev.children?.map((child) => {
+                child = execute(mode, child);
+                prev.dom.appendChild(child.dom);
+            });
             break;
         }
         case REPLACE: {
@@ -218,25 +182,22 @@ function execute(mode, prev, next = null) {
             prev.children = next.children;
             removeProps(prev);
             prev.props = next.props;
-            // prev.props = next.props;
-            // TODO: te be edited, props must reconciled or something
-            // Object.keys(next).forEach(key => {
-            //   prev[key] = next[key];
-            // })
-            return prev;
-            // prev.props = next.props;
+            break;
+        }
+        case REMOVE: {
+            destroy(prev);
             break;
         }
         default:
             break;
     }
+    return prev;
 }
 // RECONCILIATION
 function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
     oldProps = oldProps || {};
     newProps = newProps || {};
     let diff = false;
-    // Remove old props that are not present in newProps
     Object.keys(oldProps || {}).forEach((key) => {
         if (!newProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
             diff = true;
@@ -257,7 +218,6 @@ function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
             }
         }
     });
-    // Add or update props that have changed
     Object.keys(newProps || {}).forEach((key) => {
         if (!oldProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
             diff = true;
@@ -268,12 +228,10 @@ function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
             else if (key === "style")
                 Object.assign(vdom.dom.style, newProps[key]);
             else {
-                if (vdom.tag === "svg" || vdom.dom instanceof SVGElement) {
-                    vdom.dom.setAttribute(key, newProps[key]); // Use setAttribute for SVG
-                }
-                else {
+                if (vdom.tag === "svg" || vdom.dom instanceof SVGElement)
+                    vdom.dom.setAttribute(key, newProps[key]);
+                else
                     vdom.dom[key] = newProps[key];
-                }
             }
         }
     });
@@ -284,10 +242,8 @@ function reconciliate(prev, next) {
         (prev.type === TEXT && !deepEqual(prev.value, next.value)))
         return execute(REPLACE, prev, next);
     if (prev.tag === next.tag) {
-        if (reconciliateProps(prev.props, next.props, prev)) {
-            // console.error("there is diff in props");
+        if (reconciliateProps(prev.props, next.props, prev))
             return execute(REPLACE, prev, next);
-        }
     }
     else
         return execute(REPLACE, prev, next);
@@ -313,13 +269,9 @@ function reconciliate(prev, next) {
 }
 let GlobalVDOM = null;
 function display(vdom) {
-    // console.log("Global ", GlobalVDOM);
-    console.log("display ", vdom);
-    // console.log("old", GlobalVDOM);
-    if (GlobalVDOM) {
+    // console.log("display ", vdom);
+    if (GlobalVDOM)
         reconciliate(GlobalVDOM, vdom);
-        // execute(CREATE, vdom);
-    }
     else {
         execute(CREATE, vdom);
         GlobalVDOM = vdom;
@@ -343,17 +295,13 @@ function init() {
         return [getter, setter];
     };
     const updateState = () => {
-        // console.log("call updateState");
         const newVDOM = Ura.element(View, null);
-        // console.log("old", vdom);
-        // console.log("new", newVDOM);
         if (vdom)
             reconciliate(vdom, newVDOM);
         else
             vdom = newVDOM;
     };
     const render = (call) => {
-        // console.log("render :", call);
         View = call;
         updateState();
         return vdom;
@@ -381,7 +329,6 @@ Routes["*"] = () => Error({ message: window.location.hash });
 function setRoute(path, call) {
     Routes[path] = call;
 }
-//TODO: set * route to not found
 function getRoute(hash) {
     return Routes[hash] || Routes["*"];
 }
@@ -406,7 +353,6 @@ function refresh() {
         Ura.element(RouteConfig, null)));
 }
 function navigate(route, params = {}) {
-    // console.log("call navigate");
     route = route.split("?")[0];
     route = normalizePath(route);
     window.history.pushState({}, "", `#${route}`);

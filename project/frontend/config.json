@@ -1,7 +1,8 @@
 {
-  "DEFAULT_ROUTE": "/login",
+  "DEFAULT_ROUTE": "/home",
   "EXTENSION": "js",
   "PORT": 17000,
   "SERVER_TIMING": 5,
-  "ENABLE_CSS": true
+  "ENABLE_CSS": true,
+  "DIR_ROUTING": true
 }

@@ -1,19 +1,22 @@
+import Ura from "ura";
+Ura.loadCSS("./pages/main.css")
+
 const Routes = [
     {
         "path": "/home",
         "from": "./home/home.js",
-        "css": "./home/home.css"
+        "style": "./home/home.css",
+        "base": true
     },
     {
         "path": "/login",
         "from": "./login/login.js",
-        "base": true,
-        "css": "./login/login.css"
+        "style": "./login/login.css"
     },
     {
         "path": "/user",
         "from": "./user/user.js",
-        "css": "./user/user.css"
+        "style": "./user/user.css"
     }
 ];
 

@@ -1,12 +1,11 @@
 import Ura from "ura";
 import dir_routes from "./routes.js";
-Ura.loadCSS("./pages/main.css");
 Ura.sync();
 async function loadRoutes(dir_routes) {
     //@ts-ignore
     for (let i = 0; i < dir_routes.length; i++) {
         //@ts-ignore
-        let { path, from, css, base } = dir_routes[i];
+        let { path, from, style, base } = dir_routes[i];
         if (!path || !from)
             throw "path and from are required, check routes.js file";
         const module = await import(from);
@@ -16,8 +15,8 @@ async function loadRoutes(dir_routes) {
         Ura.setRoute(path, module.default);
         if (base)
             Ura.setRoute("*", module.default);
-        if (css)
-            Ura.loadCSS("./pages/" + css);
+        if (style)
+            Ura.loadCSS("./pages/" + style);
     }
     window.addEventListener("hashchange", Ura.refresh);
     window.addEventListener("DOMContentLoaded", Ura.refresh);

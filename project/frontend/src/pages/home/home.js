@@ -17,7 +17,7 @@ function Play(props) {
   }
   const handleHover = () => setHover(!getHover());
   return render(() => (
-    <div className={"play_game"} hover={handleHover}>
+    <div className="play_game" hover={handleHover}>
       <img
         src={props.path}
         loading="lazy"
@@ -39,7 +39,7 @@ function History() {
   return render(() => (
     <div className="history">
       <h3>vs </h3>
-      <img src={"assets/007.png"} />
+      <img src="assets/007.png" loading="lazy" />
       <h3>User name</h3>
       <h3>17:05</h3>
       <span></span>
@@ -95,7 +95,7 @@ function Home() {
       {/* User  */}
       <div className="user">
         <div className="info">
-          <img src={"assets/001.svg"} loading="lazy" />
+          <img src="assets/001.svg" loading="lazy" />
           <div className="infos">
             <h2>Mohammed hrima</h2>
             <button onclick={(e) => Ura.navigate("/login")}>Clique me</button>

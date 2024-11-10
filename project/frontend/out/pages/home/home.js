@@ -27,7 +27,7 @@ function History() {
     const [render, State] = Ura.init();
     return render(() => (Ura.element("div", { className: "history" },
         Ura.element("h3", null, "vs "),
-        Ura.element("img", { src: "assets/007.png" }),
+        Ura.element("img", { src: "assets/007.png", loading: "lazy" }),
         Ura.element("h3", null, "User name"),
         Ura.element("h3", null, "17:05"),
         Ura.element("span", null))));

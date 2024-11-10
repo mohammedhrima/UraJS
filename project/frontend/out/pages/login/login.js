@@ -1,4 +1,5 @@
 import Ura from 'ura';
+import Navbar from './utils/navbar/navbar.js';
 function Login() {
     const [render, State] = Ura.init();
     const [getusers, setusers] = State([]);
@@ -23,6 +24,7 @@ function Login() {
             .catch((error) => { console.error("Error:", error); });
     };
     return render(() => (Ura.element("div", { className: "login" },
+        Ura.element(Navbar, null),
         Ura.element("h1", null, "User page"),
         Ura.element("form", { id: "userForm", onsubmit: POST },
             Ura.element("input", { type: "text", id: "name", placeholder: "Name", required: true }),
