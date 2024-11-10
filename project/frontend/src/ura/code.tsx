@@ -1,9 +1,7 @@
 import * as UTILS from "./utils.js";
 import { VDOM, VDOMNode, Props, Tag } from "./types.js";
-
-const { IF, LOOP, CREATE, REPLACE, deepEqual, loadCSS } = UTILS;
+const { IF, LOOP, CREATE, REPLACE, REMOVE, deepEqual, loadCSS } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
-
 
 // JSX
 function check(children: Array<VDOMNode>): Array<VDOMNode> {
@@ -23,9 +21,6 @@ function fragment(props: Props, ...children: Array<VDOMNode>) {
   console.log("call fragment", children);
   throw "Fragments (<></>) are not supported please use <fr></fr> tag instead";
 }
-
-let cond_index = 0;
-let cond_map = new Map();
 
 function element(tag: Tag, props: Props = {}, ...children: Array<VDOMNode>) {
   if (typeof tag === "function") {
@@ -55,16 +50,12 @@ function element(tag: Tag, props: Props = {}, ...children: Array<VDOMNode>) {
     // }
   }
   if (tag === "if") {
-    cond_index++;
-    cond_map.set(cond_index, props);
     let res = {
       type: IF,
       tag: "if",
       props: props,
       children: check(props.cond && children.length ? children : []),
     };
-    cond_map.set(cond_index, undefined);
-    cond_index--;
     return res;
   }
   // else if (tag === "else") {
@@ -257,7 +248,7 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
   let diff = false;
   // Remove old props that are not present in newProps
   Object.keys(oldProps || {}).forEach((key) => {
-    if (!newProps.hasOwnProperty(key) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+    if (!newProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
       diff = true;
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
@@ -275,7 +266,7 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
 
   // Add or update props that have changed
   Object.keys(newProps || {}).forEach((key) => {
-    if (!oldProps.hasOwnProperty(key) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+    if (!oldProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
       diff = true;
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
@@ -303,9 +294,9 @@ function reconciliate(prev: VDOM, next: VDOM) {
   if (prev.tag === next.tag) {
     if (reconciliateProps(prev.props, next.props, prev)) {
       // console.error("there is diff in props");
-      return execute(UTILS.REPLACE, prev, next);
+      return execute(REPLACE, prev, next);
     }
-  } else return execute(UTILS.REPLACE, prev, next);
+  } else return execute(REPLACE, prev, next);
 
   const prevs = prev.children || [];
   const nexts = next.children || [];
@@ -320,7 +311,7 @@ function reconciliate(prev: VDOM, next: VDOM) {
       prevs.push(child2);
       prev.dom.appendChild((child2 as VDOM).dom);
     } else if (child1 && !child2) {
-      execute(UTILS.REMOVE, child1 as VDOM);
+      execute(REMOVE, child1 as VDOM);
       prevs.splice(i, 1);
       i--;
     }

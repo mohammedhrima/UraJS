@@ -1,6 +1,6 @@
 {
   "DEFAULT_ROUTE": "/login",
-  "EXTENSION": "jsx",
+  "EXTENSION": "js",
   "PORT": 17000,
   "SERVER_TIMING": 5,
   "ENABLE_CSS": true

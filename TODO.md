@@ -18,6 +18,7 @@
     + importing svg to image does not work, fix it
     + support js and ts
     + move ura dir in root dir
+    + try injecting children inside props
 
 + Documentation:
     + routes:

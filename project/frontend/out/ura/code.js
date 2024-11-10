@@ -1,5 +1,5 @@
 import * as UTILS from "./utils.js";
-const { IF, LOOP, CREATE, REPLACE, deepEqual, loadCSS } = UTILS;
+const { IF, LOOP, CREATE, REPLACE, REMOVE, deepEqual, loadCSS } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
 // JSX
 function check(children) {
@@ -18,8 +18,6 @@ function fragment(props, ...children) {
     console.log("call fragment", children);
     throw "Fragments (<></>) are not supported please use <fr></fr> tag instead";
 }
-let cond_index = 0;
-let cond_map = new Map();
 function element(tag, props = {}, ...children) {
     if (typeof tag === "function") {
         // let funcTag = {
@@ -48,16 +46,12 @@ function element(tag, props = {}, ...children) {
         // }
     }
     if (tag === "if") {
-        cond_index++;
-        cond_map.set(cond_index, props);
         let res = {
             type: IF,
             tag: "if",
             props: props,
             children: check(props.cond && children.length ? children : []),
         };
-        cond_map.set(cond_index, undefined);
-        cond_index--;
         return res;
     }
     // else if (tag === "else") {
@@ -244,7 +238,7 @@ function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
     let diff = false;
     // Remove old props that are not present in newProps
     Object.keys(oldProps || {}).forEach((key) => {
-        if (!newProps.hasOwnProperty(key) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+        if (!newProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
             diff = true;
             if (key.startsWith("on")) {
                 const eventType = key.slice(2).toLowerCase();
@@ -265,7 +259,7 @@ function reconciliateProps(oldProps = {}, newProps = {}, vdom) {
     });
     // Add or update props that have changed
     Object.keys(newProps || {}).forEach((key) => {
-        if (!oldProps.hasOwnProperty(key) || !UTILS.deepEqual(oldProps[key], newProps[key])) {
+        if (!oldProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
             diff = true;
             if (key.startsWith("on")) {
                 const eventType = key.slice(2).toLowerCase();
@@ -292,11 +286,11 @@ function reconciliate(prev, next) {
     if (prev.tag === next.tag) {
         if (reconciliateProps(prev.props, next.props, prev)) {
             // console.error("there is diff in props");
-            return execute(UTILS.REPLACE, prev, next);
+            return execute(REPLACE, prev, next);
         }
     }
     else
-        return execute(UTILS.REPLACE, prev, next);
+        return execute(REPLACE, prev, next);
     const prevs = prev.children || [];
     const nexts = next.children || [];
     for (let i = 0; i < Math.max(prevs.length, nexts.length); i++) {
@@ -311,7 +305,7 @@ function reconciliate(prev, next) {
             prev.dom.appendChild(child2.dom);
         }
         else if (child1 && !child2) {
-            execute(UTILS.REMOVE, child1);
+            execute(REMOVE, child1);
             prevs.splice(i, 1);
             i--;
         }
