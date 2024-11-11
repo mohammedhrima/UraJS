@@ -1,4 +1,5 @@
-import Ura from 'ura';
+import Ura from "ura";
+import Foo from "./utils/foo/foo.js";
 
 function User() {
   const [render, State] = Ura.init();
@@ -6,12 +7,16 @@ function User() {
 
   return render(() => (
     <div className="user">
-      <h1>Hello from User component!</h1>
-      <button onclick={() => setter(getter() + 1)}>
-        clique me [{getter()}]
-      </button>
+      <>
+        <Foo />
+        <h1>Hello from User component!</h1>
+        <button onclick={() => setter(getter() + 1)}>
+          clique me [{getter()}]
+        </button>
+        <h1>hello</h1>
+      </>
     </div>
   ));
 }
-  
-export default User
+
+export default User;

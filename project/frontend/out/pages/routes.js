@@ -4,8 +4,7 @@ const Routes = [
     {
         "path": "/home",
         "from": "./home/home.js",
-        "style": "./home/home.css",
-        "base": true
+        "style": "./home/home.css"
     },
     {
         "path": "/login",
@@ -15,7 +14,8 @@ const Routes = [
     {
         "path": "/user",
         "from": "./user/user.js",
-        "style": "./user/user.css"
+        "style": "./user/user.css",
+        "base": true
     }
 ];
 export default Routes;

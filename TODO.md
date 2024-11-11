@@ -1,29 +1,14 @@
-+ support:
-    + X O game
-    + TODO list game
-    + simple full stack app
-
 + TODO:
-    + test the library carefully before sharing it
     + add build step:
-        + for docker
-        + generate nginx
-    + generate Docker for build
-    + understand promises
-    + verify refresh function
+        + with and without docker
+        + generate nginx if it's docker
+    + verify refresh function (forward/backward)
     + importing svg to image does not work, fix it
     + move ura dir in root dir
-    + try injecting children inside props
-
-+ Documentation:
-    + routes:
-        + routes.json
-        + nested routes
-        + default route
-    + config.json
-    + HTTP
-    + if / loop tags
-
+    + understand promises
 
 + use react tutorials:
     + https://react.dev/learn/tutorial-tic-tac-toe
+
++ build some nextjs full stack applications to get inspiration
++ use session in trancedance to save user JWT https://www.youtube.com/watch?v=mL8EuL7jSbg&t=38s

@@ -1,14 +1,18 @@
 import * as UTILS from "./utils.js";
-import { VDOM, VDOMNode, Props, Tag } from "./types.js";
+import { VDOM, Props, Tag } from "./types.js";
 const { IF, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
 const { deepEqual, loadCSS } = UTILS;
 
 // JSX
-function check(children: Array<VDOMNode>): Array<VDOMNode> {
+function check(children: any): any {
   //@ts-ignore
   return children.map((child) => {
-    if (child === null || typeof child === "string" || typeof child === "number") {
+    if (
+      child === null ||
+      typeof child === "string" ||
+      typeof child === "number"
+    ) {
       return {
         type: TEXT,
         value: child,
@@ -18,22 +22,33 @@ function check(children: Array<VDOMNode>): Array<VDOMNode> {
   });
 }
 
-function fragment(props: Props, ...children: Array<VDOMNode>) {
-  console.log("call fragment", children);
+function fragment(props: Props, ...children: any) {
+  return {
+    type: FRAGMENT,
+    children: children,
+  };
   throw "Fragments (<></>) are not supported please use <fr></fr> tag instead";
 }
 
-function element(tag: Tag, props: Props = {}, ...children: Array<VDOMNode>) {
+function element(tag: Tag, props: Props = {}, ...children: any) {
   if (typeof tag === "function") {
     let functag;
     try {
-      functag = tag(props || {})
+      functag = tag(props || {});
     } catch (error) {
       console.error("Error: while rendering", tag);
       return {
         type: FRAGMENT,
-        children: []
+        children: [],
       };
+    }
+    if(functag.type === FRAGMENT)
+    {
+      console.log("is fragemnt");
+      functag = {
+        ...functag,
+        children: children
+      }
     }
     return functag;
   }
@@ -45,13 +60,15 @@ function element(tag: Tag, props: Props = {}, ...children: Array<VDOMNode>) {
       children: check(props.cond && children.length ? children : []),
     };
     return res;
-  }
-  else if (tag === "loop") {
+  } else if (tag === "loop") {
     let loopChildren = (props.on || []).flatMap((elem, id) =>
       (children || []).map((child) => {
-        //@ts-ignore
-        const evaluatedChild = typeof child === "function" ? child(elem, id) : child;
-        return structuredClone ? structuredClone(evaluatedChild) : JSON.parse(JSON.stringify(evaluatedChild));
+        const evaluatedChild =
+          //@ts-ignore
+          typeof child === "function" ? child(elem, id) : child;
+        return structuredClone
+          ? structuredClone(evaluatedChild)
+          : JSON.parse(JSON.stringify(evaluatedChild));
       })
     );
 
@@ -76,17 +93,20 @@ function setProps(vdom) {
   const { tag, props } = vdom;
   const style = {};
   Object.keys(props || {}).forEach((key) => {
-    if (key == "class") console.warn("Invalid property 'class' did you mean 'className' ?");
+    if (key == "class")
+      console.warn("Invalid property 'class' did you mean 'className' ?");
     else if (key.startsWith("on")) {
       const eventType = key.slice(2).toLowerCase();
       if (eventType === "hover") {
         vdom.dom.addEventListener("mouseover", props[key]);
         vdom.dom.addEventListener("mouseout", props[key]);
-      }
-      else vdom.dom.addEventListener(eventType, props[key]);
+      } else vdom.dom.addEventListener(eventType, props[key]);
     } else if (key === "style") Object.assign(style, props[key]);
     else {
-      if (tag == "svg" || vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/)
+      if (
+        tag == "svg" ||
+        vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/
+      )
         vdom.dom.setAttribute(key, props[key]);
       else vdom.dom[key] = props[key];
     }
@@ -94,9 +114,13 @@ function setProps(vdom) {
   if (Object.keys(style).length > 0) {
     vdom.dom.style.cssText = Object.keys(style)
       .map((styleProp) => {
-        const Camelkey = styleProp.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+        const Camelkey = styleProp.replace(
+          /[A-Z]/g,
+          (match) => `-${match.toLowerCase()}`
+        );
         return `${Camelkey}:${style[styleProp]}`;
-      }).join(";");
+      })
+      .join(";");
   }
 }
 
@@ -108,7 +132,8 @@ function createDOM(vdom): VDOM {
           vdom.dom = document.getElementById("root");
           break;
         default:
-          if (vdom.dom) console.error("element already has dom"); // TODO: to be removed
+          if (vdom.dom)
+            console.error("element already has dom"); // TODO: to be removed
           else vdom.dom = document.createElement(vdom.tag);
           break;
       }
@@ -118,7 +143,8 @@ function createDOM(vdom): VDOM {
     case FRAGMENT: {
       console.log("createDOM: found fragment", vdom);
       if (vdom.dom) console.error("fragment already has dom"); // TODO: to be removed
-      vdom.dom = document.createElement("container");
+      // vdom.dom = document.createElement("container");
+      vdom.dom = document.createDocumentFragment()
       break;
     }
     case TEXT: {
@@ -126,11 +152,13 @@ function createDOM(vdom): VDOM {
       break;
     }
     case IF: {
-      vdom.dom = document.createElement("if");
+      // vdom.dom = document.createElement("if");
+      vdom.dom = document.createDocumentFragment()
       break;
     }
     case LOOP: {
-      vdom.dom = document.createElement("loop");
+      // vdom.dom = document.createElement("loop");
+      vdom.dom = document.createDocumentFragment()
       break;
     }
     default:
@@ -181,7 +209,7 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
       prev.dom = next.dom;
       prev.children = next.children;
       removeProps(prev);
-      prev.props = next.props
+      prev.props = next.props;
       break;
     }
     case REMOVE: {
@@ -200,7 +228,10 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
   newProps = newProps || {};
   let diff = false;
   Object.keys(oldProps || {}).forEach((key) => {
-    if (!newProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
+    if (
+      !newProps.hasOwnProperty(key) ||
+      !deepEqual(oldProps[key], newProps[key])
+    ) {
       diff = true;
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
@@ -216,7 +247,10 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
     }
   });
   Object.keys(newProps || {}).forEach((key) => {
-    if (!oldProps.hasOwnProperty(key) || !deepEqual(oldProps[key], newProps[key])) {
+    if (
+      !oldProps.hasOwnProperty(key) ||
+      !deepEqual(oldProps[key], newProps[key])
+    ) {
       diff = true;
       if (key.startsWith("on")) {
         const eventType = key.slice(2).toLowerCase();
@@ -233,9 +267,9 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
 }
 
 function reconciliate(prev: VDOM, next: VDOM) {
-
   if (
-    prev.type != next.type || prev.tag != next.tag ||
+    prev.type != next.type ||
+    prev.tag != next.tag ||
     (prev.type === TEXT && !deepEqual(prev.value, next.value))
   )
     return execute(REPLACE, prev, next);
@@ -327,8 +361,8 @@ function Error(props: Props | null) {
       "Error: [",
       props.message,
       "] Not Found"
-    )
-  })
+    );
+  });
 }
 
 const Routes: { [path: string]: Function } = {};
@@ -352,25 +386,24 @@ function normalizePath(path) {
 }
 
 function refresh() {
-
   let hash = window.location.hash.slice(1) || "/";
   console.log("call refresh", hash);
   hash = normalizePath(hash);
   const RouteConfig = getRoute(hash);
   console.log("go to", RouteConfig);
-  display(<root style={{ height: "100vh", width: "100vw" }}>
-    <RouteConfig />
-  </root>
-  )
+  display(
+    <root style={{ height: "100vh", width: "100vw" }}>
+      <RouteConfig />
+    </root>
+  );
 }
-
 
 function navigate(route, params = {}) {
   route = route.split("?")[0];
   route = normalizePath(route);
   window.history.pushState({}, "", `#${route}`);
   refresh();
-};
+}
 
 // WEBSOCKET
 function sync() {
@@ -409,8 +442,7 @@ async function HTTP_Request(method, url, headers = {}, body) {
       statusText: response.statusText,
       headers: response.headers,
     };
-  }
-  catch (error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -430,7 +462,7 @@ const Ura = {
   normalizePath,
   refresh,
   navigate,
-  send: HTTP_Request
+  send: HTTP_Request,
 };
 
 export default Ura;

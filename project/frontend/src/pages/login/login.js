@@ -9,7 +9,7 @@ function Login() {
     e.preventDefault();
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
-    Ura.send("POST", "http://localhost:3000/users", {}, { name, email })
+    Ura.send("POST", "http://localhost:3000/users", {credentials: "include"}, { name, email })
       .then((res) => { if (res.status != 201) console.error("Error creating user"); })
       .catch((error) => { console.error("Error:", error); });
   };
