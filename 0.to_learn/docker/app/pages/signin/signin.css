@@ -1,0 +1,23 @@
+.signin {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+.signin #top {
+  position: fixed;
+  width: 100%;
+}
+.signin #center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.signin #center #card {
+  border: 1px solid red;
+}
+.signin #center #card #input-section {
+  display: flex;
+  flex-direction: column;
+}

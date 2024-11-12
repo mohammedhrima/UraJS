@@ -1,0 +1,12 @@
+# docker-compose.yml
+version: '3'
+
+services:
+  debian_nginx:
+    build: .
+    container_name: debian_nginx_service
+    ports:
+      - "17000:17000"          # Map port 8080 on the host to port 80 in the container
+    volumes:
+      - ./app:/app         # Map the local app directory to /app in the container
+    restart: always
