@@ -4,6 +4,7 @@ import ts from "typescript";
 import fs from "fs";
 import net from "net";
 import chokidar from "chokidar";
+import * as sass from "sass";
 
 function getMimeType(ext) {
   const mimeTypes = {
@@ -95,27 +96,45 @@ const __dirname = path.dirname(__filename);
 // TRANSPILE
 const tsConfigPath = path.join(__dirname, "../tsconfig.json");
 const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
-const parsedConfig = ts.parseJsonConfigFileContent(tsConfig, ts.sys, path.dirname(tsConfigPath));
+const parsedConfig = ts.parseJsonConfigFileContent(
+  tsConfig,
+  ts.sys,
+  path.dirname(tsConfigPath)
+);
 
 const compileTypeScript = (srcFilePath, outFilePath) => {
   const program = ts.createProgram([srcFilePath], parsedConfig.options);
   const emitResult = program.emit();
-  const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+  const allDiagnostics = ts
+    .getPreEmitDiagnostics(program)
+    .concat(emitResult.diagnostics);
   if (allDiagnostics.length > 0) {
     allDiagnostics.forEach((diagnostic) => {
       if (diagnostic.file && diagnostic.start !== undefined) {
-        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-          diagnostic.start
+        const { line, character } =
+          diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        const message = ts.flattenDiagnosticMessageText(
+          diagnostic.messageText,
+          "\n"
         );
-        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
-        console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,);
-      } else console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+        console.error(
+          `${diagnostic.file.fileName} (${line + 1},${
+            character + 1
+          }): ${message}`
+        );
+      } else
+        console.error(
+          ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
+        );
     });
   } else {
     // Write compiled JavaScript to output file
-    const outputText = ts.transpileModule(fs.readFileSync(srcFilePath, "utf-8"), {
-      compilerOptions: parsedConfig.options,
-    }).outputText;
+    const outputText = ts.transpileModule(
+      fs.readFileSync(srcFilePath, "utf-8"),
+      {
+        compilerOptions: parsedConfig.options,
+      }
+    ).outputText;
     fs.writeFileSync(outFilePath, outputText, "utf-8");
   }
 };
@@ -123,96 +142,178 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
 // HANDLE FILES
 function Delete(srcPath) {
   let outPath = srcPath.replace("src", "out");
+
   try {
+    // Check if the output path is a directory
     if (fs.statSync(outPath).isDirectory()) {
       fs.rmSync(outPath, { recursive: true, force: true });
       console.log("Deleted directory:", outPath);
       return;
     }
 
-    srcPath = srcPath.replace(/\.(ts|tsx|jsx|js)$/i, "");
-    const extensions = ['.ts', '.tsx', '.jsx', '.js'];
-    const srcExists = extensions.some(ext => fs.existsSync(srcPath + ext));
+    let extensions = null;
+    let srcExists = false;
 
-    if (srcExists) {
-      console.log("Skipping delete as alternative exists in src:", srcPath);
-      return;
+    // Check if the file is a source file that could have multiple extensions
+    if (/\.(ts|tsx|jsx|js)$/i.test(srcPath)) {
+      extensions = [".ts", ".tsx", ".jsx", ".js"];
+    } else if (/\.(scss|css)$/i.test(srcPath)) {
+      extensions = [".scss", ".css"];
     }
+
+    // If extensions were set (meaning the file could have multiple extensions), check for their existence
+    if (extensions !== null && extensions.length) {
+      // Remove the extension from the path
+      let basePath = srcPath.replace(/\.(ts|tsx|jsx|js|scss|css)$/i, "");
+
+      // Check if any of the extensions exist in the source path
+      srcExists = extensions.some((ext) => fs.existsSync(basePath + ext));
+
+      // If alternative source file exists, skip the delete
+      if (srcExists) {
+        console.log("Skipping delete as alternative exists in src:", basePath);
+        return;
+      }
+    }
+
+    // If it's a file, delete it
     console.log("Deleted file:", outPath);
     fs.unlinkSync(outPath);
   } catch (error) {
-    if (error.code !== 'ENOENT') {
+    // If the file or directory doesn't exist (ENOENT), ignore it
+    if (error.code !== "ENOENT") {
       console.error("Error deleting:", outPath, error);
     }
   }
 }
 
-
 let CONFIG = null;
 
 function open_config() {
-  let data = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8"));
-  data["SOURCE"] = path.join(__dirname, "../src")
-  data["OUTPUT"] = path.join(__dirname, "../out")
+  let data = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8")
+  );
+  data["SOURCE"] = path.join(__dirname, "../src");
+  data["OUTPUT"] = path.join(__dirname, "../out");
   data["ROOT"] = path.join(__dirname, "../");
-  return data
+  return data;
 }
 
 const GET = (name) => {
-  if (CONFIG == null) CONFIG = open_config()
-  return CONFIG[name]
+  if (CONFIG == null) CONFIG = open_config();
+  return CONFIG[name];
+};
+
+function transpileSass(src, dest) {
+  try {
+    const result = sass.compile(src);
+    if (!fs.existsSync(path.dirname(dest))) {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+    }
+    fs.writeFileSync(dest, result.css);
+    console.log(`Sass file compiled and saved to: ${dest}`);
+  } catch (error) {
+    console.error("Error compiling Sass:", error);
+  }
 }
 
 function Copy(src) {
-  const dest = src.replace("src", "out");
-  if (!/\.(ts|tsx|jsx|js)$/i.test(src)) {
-    console.log("Copy", path.relative(GET("SOURCE"), src));
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
-  } else {
-    const Jsfile = dest.replace(/\.(ts|tsx|jsx)$/i, ".js");
-    console.log("Transpile", path.relative(GET("SOURCE"), src));
-    compileTypeScript(src, Jsfile);
+  try {
+    const dest = src.replace("src", "out");
+    if (!/\.(ts|tsx|jsx|js|scss)$/i.test(src)) {
+      console.log("Copy", path.relative(GET("SOURCE"), src));
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
+    } else if (/\.(ts|tsx|jsx|js)$/i.test(src)) {
+      const Jsfile = dest.replace(/\.(ts|tsx|jsx|js)$/i, ".js");
+      console.log("Transpile", path.relative(GET("SOURCE"), src));
+      compileTypeScript(src, Jsfile);
+    } else if (/\.(scss)$/i.test(src)) {
+      console.log("Transpile Sass", path.relative(GET("SOURCE"), src));
+      const outputFileName = path.basename(src, ".scss") + ".css"; // Use the original src path for the output file name
+      const destDir = path.dirname(dest); // Get the correct directory for destination
+      transpileSass(src, path.join(destDir, outputFileName));
+    }
+  } catch (error) {
+    console.error("an Error accured while copying file", src);
   }
 }
 
 // ROUTING
 const pagesDir = path.join(GET("SOURCE"), "pages");
-const routesFile = path.join(pagesDir, "routes.js");
+const routesFile = path.join(pagesDir, "routes.json");
+let routes = {};
+let styles = [];
 
-function generateRoutes(dirPath, parentRoute = '') {
-  const routes = [];
+function generateRoutes(dirPath, parentRoute, addingRoute) {
+  const Contents = fs.readdirSync(dirPath, { withFileTypes: true });
+  Contents.forEach((sub) => {
+    if (sub.isDirectory()) {
+      const currentRoute = `${parentRoute}/${sub.name}`;
+      if (addingRoute) {
+        const Extensions = [".js", ".jsx", ".ts", ".tsx"];
+
+        let filePath = null;
+        for (const ext of Extensions) {
+          const curr = path.join(dirPath, sub.name, `${sub.name}${ext}`);
+          if (fs.existsSync(curr)) {
+            filePath = curr;
+            break;
+          }
+        }
+        if (filePath !== null)
+          routes[currentRoute] = `.${parentRoute}/${sub.name}/${sub.name}.js`;
+        else addingRoute = false;
+      }
+      generateRoutes(path.join(dirPath, sub.name), currentRoute, addingRoute);
+    } else if (sub.isFile() && /\.(css|scss)$/.test(sub.name)) {
+      const cssFile = `.${parentRoute}/${path
+        .basename(sub.name)
+        .replace(/\.(scss|css)$/i, ".css")}`;
+      // console.log("parent", parentRoute);
+      // console.log("append", path.basename(sub.name).replace(/\.(scss|css)$/i, ".css"));
+      // console.log(cssFile);
+      styles.push(cssFile);
+    }
+  });
+}
+
+function generateRoutes1(dirPath, parentRoute = "") {
   const dirContents = fs.readdirSync(dirPath, { withFileTypes: true });
 
   dirContents.forEach((dir) => {
     if (dir.isDirectory()) {
-      // Construct the current route path by combining parent route and the current directory name
       const currentRoute = `${parentRoute}/${dir.name}`;
 
-      // Check for a valid JS/JSX/TS/TSX file in the current directory
       const fileExtensions = [".js", ".jsx", ".ts", ".tsx"];
       let filePath = null;
       let cssfile = null;
 
-      // Check if the files with supported extensions exist in the directory
       for (const ext of fileExtensions) {
         const potentialPath = path.join(dirPath, dir.name, `${dir.name}${ext}`);
         if (fs.existsSync(potentialPath)) {
-          if (fs.existsSync(path.join(dirPath, dir.name, `${dir.name}.css`)))
-            cssfile = `.${parentRoute}/${dir.name}/${dir.name}.css`
+          if (
+            [".css", ".scss"].some((ext) =>
+              fs.existsSync(path.join(dirPath, dir.name, `${dir.name}${ext}`))
+            )
+          )
+            cssfile = `.${parentRoute}/${dir.name}/${dir.name}.css`;
           filePath = potentialPath;
           break;
         }
       }
 
-      if (filePath) {
+      if (filePath !== null) {
         routes.push({
           path: currentRoute,
           from: `.${parentRoute}/${dir.name}/${dir.name}.js`,
-          ...(cssfile && { style: cssfile }),
+          ...(cssfile && { styles: [cssfile] }),
           ...(GET("DEFAULT_ROUTE") === currentRoute && { base: true }),
         });
-        routes.push(...generateRoutes(path.join(dirPath, dir.name), currentRoute));
+        routes.push(
+          ...generateRoutes1(path.join(dirPath, dir.name), currentRoute)
+        );
+      } else {
       }
     }
   });
@@ -222,13 +323,16 @@ function generateRoutes(dirPath, parentRoute = '') {
 
 // Write the updated Routes array to Routes.js
 function updateRoutes() {
-  const routes = generateRoutes(pagesDir);
-  let content = `import Ura from \"ura\";\n`
-  if (fs.existsSync(path.join(GET("SOURCE"), "./pages/main.css")))
-    content += "Ura.loadCSS(\"./pages/main.css\")\n";
-  content += `\nconst Routes = ${JSON.stringify(routes, null, 4)};\n\nexport default Routes;\n`;
-  fs.writeFileSync(routesFile, content, "utf8");
+  routes = {};
+  styles = [];
+  generateRoutes(pagesDir, "", true);
+  fs.writeFileSync(
+    routesFile,
+    JSON.stringify({ routes, styles, base: GET("DEFAULT_ROUTE") }, null, 2),
+    "utf8"
+  );
   console.log("Routes file updated successfully!");
+  // process.exit(1);
 }
 
 // CHECK PORT
@@ -262,13 +366,13 @@ function Watcher(watchPath, events, param, callback) {
 
 const UTILS = {
   GET: (name) => CONFIG[name],
-  INIT: () => CONFIG = open_config(),
+  INIT: () => (CONFIG = open_config()),
   TYPE: getMimeType,
   DELETE: Delete,
   COPY: Copy,
   UPDATE_ROUTES: updateRoutes,
   CHECK_PORT: checkPortInUse,
-  WATCH: Watcher
-}
+  WATCH: Watcher,
+};
 
-export default UTILS
+export default UTILS;

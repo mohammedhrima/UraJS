@@ -20,15 +20,15 @@ function check(children) {
 function fragment(props, ...children) {
     return {
         type: FRAGMENT,
-        children: children,
+        children: children || [],
     };
     throw "Fragments (<></>) are not supported please use <fr></fr> tag instead";
 }
 function element(tag, props = {}, ...children) {
     if (typeof tag === "function") {
-        let functag;
+        let functag = null;
         try {
-            functag = tag(props || {});
+            functag = tag(props || {}, children);
         }
         catch (error) {
             console.error("Error: while rendering", tag);
@@ -37,13 +37,8 @@ function element(tag, props = {}, ...children) {
                 children: [],
             };
         }
-        if (functag.type === FRAGMENT) {
-            console.log("is fragemnt");
-            functag = {
-                ...functag,
-                children: children
-            };
-        }
+        if (functag.type === FRAGMENT)
+            functag = element("fr", functag.props, ...check(children || []));
         return functag;
     }
     if (tag === "if") {
@@ -135,8 +130,8 @@ function createDOM(vdom) {
             console.log("createDOM: found fragment", vdom);
             if (vdom.dom)
                 console.error("fragment already has dom"); // TODO: to be removed
-            // vdom.dom = document.createElement("container");
-            vdom.dom = document.createDocumentFragment();
+            vdom.dom = document.createElement("container");
+            // vdom.dom = document.createDocumentFragment()
             break;
         }
         case TEXT: {
@@ -189,6 +184,7 @@ function execute(mode, prev, next = null) {
     switch (mode) {
         case CREATE: {
             createDOM(prev);
+            // console.log("prev", prev);
             prev.children?.map((child) => {
                 child = execute(mode, child);
                 prev.dom.appendChild(child.dom);

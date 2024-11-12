@@ -11,8 +11,10 @@ if (!routeName) {
 }
 
 const folderPath = path.join(GET("SOURCE") + "/pages", routeName);
-const jsxFilePath = path.join(folderPath, `${path.basename(routeName)}.${GET("EXTENSION")}`);
-const cssFilePath = path.join(folderPath, `${path.basename(routeName)}.css`);
+const jsxFilePath = path.join(
+  folderPath,
+  `${path.basename(routeName)}.${GET("EXTENSION")}`
+);
 
 if (fs.existsSync(folderPath)) {
   console.error(`Error: Folder "${folderPath}" already exists.`);
@@ -45,8 +47,12 @@ function ${capitalize(path.basename(routeName))}() {
 export default ${capitalize(path.basename(routeName))}
 `;
   fs.writeFileSync(jsxFilePath, jsxContent);
-  if (GET("ENABLE_CSS")) {
+  if (GET("STYLE_EXTENTION")) {
     // Write a basic CSS file
+    const cssFilePath = path.join(
+      folderPath,
+      `${path.basename(routeName)}.${GET("STYLE_EXTENTION")}`
+    );
     const cssContent = `.${path.basename(routeName).toLowerCase()}\n{\n}`;
     fs.writeFileSync(cssFilePath, cssContent);
   }

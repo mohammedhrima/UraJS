@@ -1,33 +1,38 @@
 import Ura from "ura";
-import dir_routes from "./routes.js";
+// import dir_routes from "./routes.js";
 Ura.sync();
 
-async function loadRoutes(dir_routes) {
-  //@ts-ignore
-  for (let i = 0; i < dir_routes.length; i++) {
-    //@ts-ignore
-    let { path, from, style, base } = dir_routes[i];
-    if (!path || !from)
-      throw "path and from are required, check routes.js file"
-    const module = await import(from);
-    if (!module.default)
-      throw `${path}: ${from} must have a default export`
-    path = Ura.normalizePath(path);
-    Ura.setRoute(path, module.default)
-    if (base)
-      Ura.setRoute("*", module.default);
-    if (style)
-      Ura.loadCSS("./pages/"+ style);
+async function loadRoutes() {
+  try {
+    const response = await fetch("/pages/routes.json");
 
+    const data = await response.json();
+    const { routes, styles, base } = data;
+
+    if (routes) {
+      for (const route of Object.keys(routes)) {
+        const module = await import(routes[route]);
+        if (!module.default)
+          throw `${route}: ${routes[route]} must have a default export`;
+        Ura.setRoute(Ura.normalizePath(route), module.default);
+        if (base && route === base) Ura.setRoute("*", module.default);
+      }
+    }
+
+    // Load CSS styles
+    styles?.forEach((style) => {
+      Ura.loadCSS("/pages/" + style);
+    });
+
+    window.addEventListener("hashchange", Ura.refresh);
+    window.addEventListener("DOMContentLoaded", Ura.refresh);
+    window.addEventListener("popstate", Ura.refresh);
+
+    Ura.refresh();
+    console.log("Routes and styles loaded:", Ura.Routes);
+  } catch (error) {
+    console.error("Error loading JSON or importing modules:", error);
   }
-  window.addEventListener("hashchange", Ura.refresh);
-  window.addEventListener("DOMContentLoaded", Ura.refresh);
-  window.addEventListener("popstate", Ura.refresh);
-  Ura.refresh();
 }
 
-try {
-  loadRoutes(dir_routes)
-} catch (error) {
-  console.error(error);
-}
+loadRoutes();

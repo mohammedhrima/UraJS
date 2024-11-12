@@ -1,0 +1,28 @@
+:root {
+  --prime0: #cb4601;
+  --prime1: #fe5701;
+  --prime2: #fe7934;
+  --prime3: #febc9a;
+  --prime4: #ffeee6;
+  --prime4: #fef8f6;
+  --prime5: #fffffe;
+
+  --second0: #136db9;
+  --second1: #1888e7;
+  --second2: #46a0ec;
+  --second3: #a3d0f5;
+  --second4: #e8f3fd;
+  --second5: #fafdff;
+
+}
+
+@mixin button-styles($color0, $color1) {
+  color: $color0;
+  background-color: $color1;
+  border: 1px solid $color0;
+  &:hover {
+    color: $color1;
+    background-color: $color0;
+    border: 1px solid $color0;
+  }
+}

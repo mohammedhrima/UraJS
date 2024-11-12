@@ -1,8 +1,8 @@
 {
-  "DEFAULT_ROUTE": "/user",
-  "EXTENSION": "js",
+  "DEFAULT_ROUTE": "/home",
+  "EXTENSION": "jsx",
+  "STYLE_EXTENTION": "css",
   "PORT": 17000,
   "SERVER_TIMING": 5,
-  "ENABLE_CSS": true,
   "DIR_ROUTING": true
 }
