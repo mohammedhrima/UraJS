@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <meta name="description" content="" />
+  </head>
+  <style>
+    body {
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+    .card {
+      height: 30px;
+    }
+    button {
+      height: 30px;
+      cursor: pointer;
+    }
+  </style>
+  <body>
+    <div class="container">
+      <div class="card">
+        <nav>
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </nav>
+      </div>
+      <img src="./logo.png" alt="" />
+      <button>clique me</button>
+      <br />
+      <div id="content"></div>
+    </div>
+    <script src="index.js" type="module"></script>
+  </body>
+</html>

@@ -32,8 +32,11 @@ const createServer = (port) => {
         fs.stat(filePath, (err, stats) => {
           console.log("\x1b[36m%s\x1b[0m", "serve", path.relative(srcDir, filePath));
           if (err) {
-            res.writeHead(404, { "Content-Type": "text/plain" });
-            res.end(`${filePath} Not Found`);
+            filePath = path.join(rootDir, "index.html");
+            res.writeHead(200, { "Content-Type": TYPE(path.extname(filePath)) });
+            fs.createReadStream(filePath).pipe(res);
+            // res.writeHead(404, { "Content-Type": "text/plain" });
+            // res.end(`${filePath} Not Found`);
           } else if (stats.isFile()) {
             res.writeHead(200, { "Content-Type": TYPE(path.extname(filePath)) });
             fs.createReadStream(filePath).pipe(res);

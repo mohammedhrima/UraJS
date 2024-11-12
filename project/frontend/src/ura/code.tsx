@@ -366,14 +366,14 @@ function Error(props: Props | null) {
 }
 
 const Routes: { [path: string]: Function } = {};
-Routes["*"] = () => Error({ message: window.location.hash });
+Routes["*"] = () => Error({ message: window.location.pathname });
 
 function setRoute(path: string, call: Function) {
   Routes[path] = call;
 }
 
-function getRoute(hash) {
-  return Routes[hash] || Routes["*"];
+function getRoute(path) {
+  return Routes[path] || Routes["*"];
 }
 
 function normalizePath(path) {
@@ -386,10 +386,10 @@ function normalizePath(path) {
 }
 
 function refresh() {
-  let hash = window.location.hash.slice(1) || "/";
-  console.log("call refresh", hash);
-  hash = normalizePath(hash);
-  const RouteConfig = getRoute(hash);
+  let path = window.location.pathname || "/";
+  console.log("call refresh", path);
+  path = normalizePath(path);
+  const RouteConfig = getRoute(path);
   console.log("go to", RouteConfig);
   display(
     <root style={{ height: "100vh", width: "100vw" }}>
