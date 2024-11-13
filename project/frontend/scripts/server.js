@@ -3,10 +3,11 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import UTILS from "./utils.js";
-const { GET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES, TYPE } =
+const { GET, SET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES, TYPE } =
   UTILS;
 
 INIT();
+SET("TYPE", "dev");
 let server;
 let wss;
 const outDir = GET("OUTPUT");
@@ -24,13 +25,15 @@ function convertToJs(filePath) {
   }
   return filePath;
 }
+
 const createServer = (port) => {
   CHECK_PORT(port, (isInUse, availablePort, error) => {
     if (error) {
       console.error(`Error occurred: ${error.message}`);
       process.exit(1);
     } else {
-      console.log(`Starting server on port ${availablePort}...`);
+      // console.log(`Starting server on port ${availablePort}...`);
+     
 
       server = http.createServer((req, res) => {
         let reqPath = req.url.split("?")[0];
@@ -67,13 +70,20 @@ const createServer = (port) => {
       });
 
       server.listen(availablePort, () => {
-        console.log(`Server running on port ${availablePort}`);
+        console.clear();
+        console.log(`
+        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+        \x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
+        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+        \x1b[1m\x1b[32m    open http://localhost:${availablePort}      \x1b[0m
+        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+        `);
       });
 
       // Create WebSocket server after HTTP server is ready
       wss = new WebSocketServer({ server });
       wss.on("connection", () => {
-        console.log("Client connected");
+        // console.log("Client connected");
       });
 
       let notifyTimeout;
@@ -98,7 +108,7 @@ const createServer = (port) => {
             // console.log(_path, "was deleted");
             DELETE(_path);
             if (dir_routing) UPDATE_ROUTES();
-          } else if (event) {
+          } else if (event) {            
             COPY(_path);
           }
           notifyClients();

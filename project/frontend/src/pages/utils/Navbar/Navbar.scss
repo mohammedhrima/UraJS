@@ -1,7 +1,7 @@
-@use "../../global";
+@use "../../global.scss" as global;
 
-$second2: var(--second2);
-$second5: var(--second5);
+$white: var(--blue0);
+$blue: var(--blue3);
 
 .navbar {
   display: flex;
@@ -10,12 +10,11 @@ $second5: var(--second5);
   justify-content: space-between;
   padding: 0 2%;
 
-  
-
   #logo {
     height: 50px;
     display: flex;
     align-items: center;
+    cursor: pointer;
   }
   fr {
     // background-color: red;
@@ -29,16 +28,15 @@ $second5: var(--second5);
       border-radius: 8px;
     }
     #login-btn {
-      @include global.button-styles($second2, $second5);
-      // border: 1px solid;
+      @include global.button-styles($blue, $white);
     }
 
     #signup-btn {
-      @include global.button-styles($second5, $second2);
-      border: 1px solid $second2;
+      @include global.button-styles($white, $blue);
+      border: 1px solid $blue;
 
-      &:hover{
-        border: 1px solid $second2;
+      &:hover {
+        border: 1px solid $blue;
       }
     }
   }

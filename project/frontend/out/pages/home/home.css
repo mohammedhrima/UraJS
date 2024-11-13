@@ -1,17 +1,19 @@
 :root {
-  --prime0: #cb4601;
-  --prime1: #fe5701;
-  --prime2: #fe7934;
-  --prime3: #febc9a;
-  --prime4: #ffeee6;
-  --prime4: #fef8f6;
-  --prime5: #fffffe;
-  --second0: #136db9;
-  --second1: #1888e7;
-  --second2: #46a0ec;
-  --second3: #a3d0f5;
-  --second4: #e8f3fd;
-  --second5: #fafdff;
+  --red0: #fcf6f3;
+  --red1: #febc9a;
+  --red2: #fe7934;
+  --red3: #fe5701;
+  --red4: #cb4601;
+  --blue0: #fafcfe;
+  --blue1: #a3d0f5;
+  --blue2: #46a0ec;
+  --blue3: #1888e7;
+  --blue4: #136db9;
+  --black0: #999999;
+  --black1: #666666;
+  --black2: #4d4d4d;
+  --black3: #333333;
+  --black4: #1a1a1a;
 }
 
 .home {
@@ -20,6 +22,7 @@
   align-items: center;
   width: 100%;
   height: 100%;
+  background-color: var(--red0);
 }
 .home #top {
   position: fixed;
@@ -35,10 +38,10 @@
   text-align: center;
 }
 .home #center b {
-  color: var(--second2);
+  color: var(--blue3);
 }
 .home #center o {
-  color: var(--prime2);
+  color: var(--red2);
 }
 .home #bottom {
   flex: 1;
@@ -52,17 +55,17 @@
   width: 400px;
   height: 40%;
   background-color: transparent;
-  box-shadow: inset 0 0 0 0 var(--second2);
-  color: var(--second2);
-  border: 2px solid var(--second2);
-  border-radius: 0px 16px 16px 0px;
+  box-shadow: inset 0 0 0 0 var(--blue3);
+  color: var(--blue3);
+  border: 2px solid var(--blue3);
+  border-radius: 16px;
   padding: 0 1.25rem;
   margin: 0 -1.25rem;
   transition: color 0.8s ease-in-out, box-shadow 0.6s ease-in-out;
 }
 .home #bottom button:hover {
-  color: var(--second5);
-  box-shadow: inset 400px 0 0 0 var(--second2);
+  color: var(--blue1);
+  box-shadow: inset 400px 0 0 0 var(--blue3);
 }
 
 @media only screen and (max-width: 500px) {

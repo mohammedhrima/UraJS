@@ -1,7 +1,7 @@
 import * as UTILS from "./utils.js";
 const { IF, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
-const { deepEqual, loadCSS } = UTILS;
+const { deepEqual, loadCSS, svgElements } = UTILS;
 // JSX
 function check(children) {
     //@ts-ignore
@@ -31,7 +31,8 @@ function element(tag, props = {}, ...children) {
             functag = tag(props || {}, children);
         }
         catch (error) {
-            console.error("Error: while rendering", tag);
+            // console.error("Error: while rendering", tag);
+            console.error(error);
             return {
                 type: FRAGMENT,
                 children: [],
@@ -93,8 +94,7 @@ function setProps(vdom) {
         else if (key === "style")
             Object.assign(style, props[key]);
         else {
-            if (tag == "svg" ||
-                vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/)
+            if (svgElements.has(tag))
                 vdom.dom.setAttribute(key, props[key]);
             else
                 vdom.dom[key] = props[key];
@@ -119,8 +119,12 @@ function createDOM(vdom) {
                 default:
                     if (vdom.dom)
                         console.error("element already has dom"); // TODO: to be removed
-                    else
-                        vdom.dom = document.createElement(vdom.tag);
+                    else {
+                        if (svgElements.has(vdom.tag))
+                            vdom.dom = document.createElementNS("http://www.w3.org/2000/svg", vdom.tag);
+                        else
+                            vdom.dom = document.createElement(vdom.tag);
+                    }
                     break;
             }
             setProps(vdom);
@@ -364,17 +368,18 @@ function normalizePath(path) {
 }
 function refresh() {
     let path = window.location.pathname || "/";
-    console.log("call refresh", path);
+    // console.log("call refresh", path);
     path = normalizePath(path);
     const RouteConfig = getRoute(path);
-    console.log("go to", RouteConfig);
+    // console.log("go to", RouteConfig);
     display(Ura.element("root", { style: { height: "100vh", width: "100vw" } },
         Ura.element(RouteConfig, null)));
 }
 function navigate(route, params = {}) {
     route = route.split("?")[0];
     route = normalizePath(route);
-    window.history.pushState({}, "", `#${route}`);
+    // console.log("navigate to", route);
+    window.history.pushState({}, "", `${route}`);
     refresh();
 }
 // WEBSOCKET

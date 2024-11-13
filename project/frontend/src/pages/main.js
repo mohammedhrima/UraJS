@@ -1,13 +1,12 @@
 import Ura from "ura";
 // import dir_routes from "./routes.js";
-Ura.sync();
 
 async function loadRoutes() {
   try {
     const response = await fetch("/pages/routes.json");
 
     const data = await response.json();
-    const { routes, styles, base } = data;
+    const { routes, styles, base, type } = data;
 
     if (routes) {
       for (const route of Object.keys(routes)) {
@@ -29,7 +28,8 @@ async function loadRoutes() {
     window.addEventListener("popstate", Ura.refresh);
 
     Ura.refresh();
-    console.log("Routes and styles loaded:", Ura.Routes);
+    console.log(data);
+    if (type === "dev") Ura.sync();
   } catch (error) {
     console.error("Error loading JSON or importing modules:", error);
   }

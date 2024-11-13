@@ -1,18 +1,13 @@
-all:
+all: # start container
 	docker-compose up -d
 
-down:
-	@docker-compose down
+down: # stop container
+	docker-compose down
 
-exec:
-	@for container_id in $$(docker ps -q); do \
-	    gnome-terminal --tab -- bash -c "docker exec -it $$container_id /bin/bash"; \
-	done
+list: # list container
+	docker ps --format "{{.Names}} {{.ID}}"
 
-ps:
-	@docker ps --format "{{.Names}} {{.ID}}"
-
-clean: down
+clean: down # clear
 	@docker system prune -a -f
 	@docker volume prune -f
 	@docker image prune -f
@@ -23,6 +18,5 @@ clean: down
             docker volume rm $$volume; \
         done; \
     fi
-	sudo rm -rf /home/$(USER)/data
 
 re: clean all

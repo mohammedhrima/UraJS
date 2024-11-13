@@ -11,18 +11,8 @@ body {
 }
 
 #root {
-  /* background-color: red;    */
-  background-color: var(--prime4);
   height: 100%;
   width: 100%;
-}
-
-b {
-  color: blue;
-}
-
-o {
-  color: orange;
 }
 
 img {
@@ -51,4 +41,8 @@ h3 {
 h4 {
   font-size: 14px;
   font-weight: 100;
+}
+
+input:focus {
+  outline: none;
 }

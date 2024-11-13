@@ -2,7 +2,7 @@ import * as UTILS from "./utils.js";
 import { VDOM, Props, Tag } from "./types.js";
 const { IF, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
-const { deepEqual, loadCSS } = UTILS;
+const { deepEqual, loadCSS, svgElements } = UTILS;
 
 // JSX
 function check(children: any): any {
@@ -36,13 +36,14 @@ function element(tag: Tag, props: Props = {}, ...children: any) {
     try {
       functag = tag(props || {}, children);
     } catch (error) {
-      console.error("Error: while rendering", tag);
+      // console.error("Error: while rendering", tag);
+      console.error(error);
       return {
         type: FRAGMENT,
         children: [],
       };
     }
-    if(functag.type === FRAGMENT)
+    if (functag.type === FRAGMENT)
       functag = element("fr", functag.props, ...check(children || []));
 
     return functag;
@@ -98,11 +99,7 @@ function setProps(vdom) {
       } else vdom.dom.addEventListener(eventType, props[key]);
     } else if (key === "style") Object.assign(style, props[key]);
     else {
-      if (
-        tag == "svg" ||
-        vdom.dom instanceof SVGElement /*|| parent?.tag == "svg"*/
-      )
-        vdom.dom.setAttribute(key, props[key]);
+      if (svgElements.has(tag)) vdom.dom.setAttribute(key, props[key]);
       else vdom.dom[key] = props[key];
     }
   });
@@ -129,7 +126,11 @@ function createDOM(vdom): VDOM {
         default:
           if (vdom.dom)
             console.error("element already has dom"); // TODO: to be removed
-          else vdom.dom = document.createElement(vdom.tag);
+          else {
+            if (svgElements.has(vdom.tag))
+              vdom.dom = document.createElementNS("http://www.w3.org/2000/svg", vdom.tag);
+            else vdom.dom = document.createElement(vdom.tag);
+          }
           break;
       }
       setProps(vdom);
@@ -148,12 +149,12 @@ function createDOM(vdom): VDOM {
     }
     case IF: {
       // vdom.dom = document.createElement("if");
-      vdom.dom = document.createDocumentFragment()
+      vdom.dom = document.createDocumentFragment();
       break;
     }
     case LOOP: {
       // vdom.dom = document.createElement("loop");
-      vdom.dom = document.createDocumentFragment()
+      vdom.dom = document.createDocumentFragment();
       break;
     }
     default:
@@ -383,10 +384,10 @@ function normalizePath(path) {
 
 function refresh() {
   let path = window.location.pathname || "/";
-  console.log("call refresh", path);
+  // console.log("call refresh", path);
   path = normalizePath(path);
   const RouteConfig = getRoute(path);
-  console.log("go to", RouteConfig);
+  // console.log("go to", RouteConfig);
   display(
     <root style={{ height: "100vh", width: "100vw" }}>
       <RouteConfig />
@@ -397,7 +398,9 @@ function refresh() {
 function navigate(route, params = {}) {
   route = route.split("?")[0];
   route = normalizePath(route);
-  window.history.pushState({}, "", `#${route}`);
+  // console.log("navigate to", route);
+
+  window.history.pushState({}, "", `${route}`);
   refresh();
 }
 

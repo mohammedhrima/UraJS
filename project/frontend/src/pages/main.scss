@@ -3,26 +3,16 @@
   margin: 0;
   box-sizing: border-box;
   font-family: "Roboto", sans-serif;
+  // color: var(--black4);
 }
-body{
+body {
   height: 100vh;
   width: 100vw;
 }
 
 #root {
-  /* background-color: red;    */
-  // background-color: var(--second5);
-  background-color: var(--prime4);
   height: 100%;
   width: 100%;
-}
-
-b {
-  color: blue;
-}
-
-o {
-  color: orange;
 }
 
 img {
@@ -33,7 +23,6 @@ button {
   cursor: pointer;
   outline: none;
   border: none;
-  // transition: all 0.4s ease;
   -webkit-transition: all 0.4s ease;
 }
 
@@ -52,4 +41,8 @@ h3 {
 h4 {
   font-size: 14px;
   font-weight: 100;
+}
+
+input:focus {
+  outline: none;
 }

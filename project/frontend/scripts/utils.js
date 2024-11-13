@@ -211,16 +211,35 @@ function transpileSass(src, dest) {
       fs.mkdirSync(path.dirname(dest), { recursive: true });
     }
     fs.writeFileSync(dest, result.css);
-    console.log(`Sass file compiled and saved to: ${dest}`);
   } catch (error) {
     console.error("Error compiling Sass:", error);
   }
 }
 
+function transpileSassDirectory(srcDir, destDir) {
+  fs.readdirSync(srcDir).forEach((file) => {
+    const fullPath = path.join(srcDir, file);
+    const destPath = path.join(destDir, file.replace(/\.scss$/, ".css"));
+
+    if (fs.statSync(fullPath).isDirectory()) {
+      transpileSassDirectory(fullPath, path.join(destDir, file));
+    } else if (/\.(scss)$/i.test(file)) {
+      transpileSass(fullPath, destPath);
+    }
+  });
+}
+
 function Copy(src) {
   try {
     const dest = src.replace("src", "out");
-    if (!/\.(ts|tsx|jsx|js|scss)$/i.test(src)) {
+    // Check if src is a directory
+    if (fs.lstatSync(src).isDirectory()) {
+      const entries = fs.readdirSync(src); // Get all items in the directory
+      entries.forEach((entry) => {
+        const fullPath = path.join(src, entry); // Construct the full path for each item
+        Copy(fullPath); // Recursively call Copy on each item
+      });
+    } else if (!/\.(ts|tsx|jsx|js|scss)$/i.test(src)) {
       console.log("Copy", path.relative(GET("SOURCE"), src));
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.copyFileSync(src, dest);
@@ -230,12 +249,16 @@ function Copy(src) {
       compileTypeScript(src, Jsfile);
     } else if (/\.(scss)$/i.test(src)) {
       console.log("Transpile Sass", path.relative(GET("SOURCE"), src));
-      const outputFileName = path.basename(src, ".scss") + ".css"; // Use the original src path for the output file name
-      const destDir = path.dirname(dest); // Get the correct directory for destination
-      transpileSass(src, path.join(destDir, outputFileName));
+      const outputFileName = path.basename(src, ".scss") + ".css";
+      if (outputFileName === "global.css") {
+        transpileSassDirectory(GET("SOURCE"), GET("OUTPUT"));
+      } else {
+        const destDir = path.dirname(dest);
+        transpileSass(src, path.join(destDir, outputFileName));
+      }
     }
   } catch (error) {
-    console.error("an Error accured while copying file", src);
+    console.error("An error occurred while copying file:", src, error);
   }
 }
 
@@ -328,7 +351,16 @@ function updateRoutes() {
   generateRoutes(pagesDir, "", true);
   fs.writeFileSync(
     routesFile,
-    JSON.stringify({ routes, styles, base: GET("DEFAULT_ROUTE") }, null, 2),
+    JSON.stringify(
+      {
+        routes,
+        styles,
+        base: GET("DEFAULT_ROUTE"),
+        type: GET("TYPE") === "dev" ? "dev" : "build",
+      },
+      null,
+      2
+    ),
     "utf8"
   );
   console.log("Routes file updated successfully!");
@@ -361,11 +393,14 @@ function Watcher(watchPath, events, param, callback) {
     watch.on(event, callback);
   });
   watch.on("error", (error) => console.error(`Watcher error: ${error}`));
-  console.log(`Started watching: ${path.relative("../", watchPath)}`);
+  // console.log(`Started watching: ${path.relative("../", watchPath)}`);
 }
 
 const UTILS = {
   GET: (name) => CONFIG[name],
+  SET: (name, value) => {
+    CONFIG[name] = value;
+  },
   INIT: () => (CONFIG = open_config()),
   TYPE: getMimeType,
   DELETE: Delete,

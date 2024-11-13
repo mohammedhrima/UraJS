@@ -1,5 +1,5 @@
 import Ura from "ura";
-import Navbar from "../utils/Navbar/Navbar.jsx";
+import Navbar from "../utils/Navbar/Navbar.js";
 Navbar;
 function Signin() {
     const [render, State] = Ura.init();

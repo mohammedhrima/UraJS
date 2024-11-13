@@ -669,3 +669,35 @@ export const validTags = {
     br: [],
     script: [],
 };
+export const svgElements = new Set([
+    "svg", // The root SVG container
+    "path", // Defines a shape with a series of points and commands
+    "circle", // Defines a circle with a center point and radius
+    "rect", // Defines a rectangle
+    "line", // Defines a straight line between two points
+    "polyline", // Defines a series of connected straight lines
+    "polygon", // Defines a closed shape made of straight lines
+    "ellipse", // Defines an ellipse with a center point, radiusX, and radiusY
+    "text", // Defines text
+    "tspan", // A container for text with a position adjustment
+    "textPath", // Aligns text along a path
+    "defs", // Container for elements that can be reused in the SVG
+    "g", // Group container for grouping multiple elements
+    "symbol", // Defines reusable elements
+    "use", // References reusable elements
+    "image", // Embeds an image
+    "marker", // Defines arrowheads or other markers
+    "linearGradient", // Defines a linear color gradient
+    "radialGradient", // Defines a radial color gradient
+    "stop", // Defines a color stop in a gradient
+    "clipPath", // Defines a clipping path
+    "mask", // Defines a mask
+    "pattern", // Defines a repeating pattern
+    "filter", // Defines a filter effect
+    "feGaussianBlur", // Example of a filter (Gaussian blur)
+    "feOffset", // Example of a filter (Offset)
+    "feBlend", // Example of a filter (Blend)
+    "feColorMatrix", // Example of a filter (Color matrix)
+    "foreignObject", // Embeds external content, such as HTML
+    // add other elements as needed
+]);

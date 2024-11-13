@@ -6,7 +6,8 @@
   "scripts": {
     "start": "rm -rf ./out/* && node ./scripts/server.js",
     "gen": "node ./scripts/new-route.js",
-    "clear": "rm -rf ./out/*"
+    "clear": "rm -rf ./out/*",
+    "build": "node ./scripts/build.js"
   },
   "author": "Hrima Mohammed",
   "license": "MIT",

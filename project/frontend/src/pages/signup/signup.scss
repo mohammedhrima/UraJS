@@ -1,0 +1,113 @@
+@use "../global.scss" as global;
+
+$red0: var(--red0);
+$red2: var(--red2);
+$red4: var(--red4);
+
+$blue2: var(--blue2);
+$blue4: var(--blue4);
+
+$black4: var(--black4);
+
+.signup {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-color: $red0;
+  color: var(--black4);
+
+  #top {
+    position: fixed;
+    // background-color: #333;
+    width: 100%;
+  }
+  #center {
+    flex: 2;
+
+    // height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    display: flex;
+
+    #card {
+      height: 40%;
+      min-height: 350px;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      // justify-content: space-between;
+
+      border: 1px solid $blue2;
+      border-radius: 10px;
+      padding: 16px;
+
+      #title {
+        display: flex;
+        flex: 2;
+        // background-color: brown;
+        align-items: center;
+        justify-content: center;
+      }
+      #input-section {
+        flex: 4;
+        // background-color: rgb(108, 165, 42);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+
+        input[type="text"],
+        input[type="password"] {
+          font-size: 14px;
+          padding: 0px 0px 3px 2px;
+        //   margin: 5px;
+          border: 0;
+          border-bottom: 1.5px solid $red2;
+          background-color: transparent;
+          color: $black4;
+        }
+        // input[type="checkbox"] {
+        //   margin: 0px 5px;
+        //   cursor: pointer;
+        // }
+        #checkbox {
+          display: flex;
+          align-items: center;
+        }
+      }
+      #button-section {
+        flex: 4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        button {
+          @include global.button-styles($red4, transparent);
+          padding: 15px;
+          border-radius: 10px;
+          svg path {
+            fill: $black4;
+          }
+          svg {
+            width: 100%;
+            height: 100%;
+          }
+          &:hover {
+            svg path {
+              fill: $red0;
+            }
+          }
+        }
+      }
+      #signin {
+        cursor: pointer;
+        text-decoration: underline;
+        &:hover {
+          color: var(--red4);
+        }
+      }
+    }
+  }
+}
