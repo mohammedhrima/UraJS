@@ -56,9 +56,11 @@ function element(tag, props = {}, ...children) {
             const evaluatedChild = 
             //@ts-ignore
             typeof child === "function" ? child(elem, id) : child;
-            return structuredClone
-                ? structuredClone(evaluatedChild)
-                : JSON.parse(JSON.stringify(evaluatedChild));
+            // I commented this line it caused me problem 
+            // in slider when copying input that has function onchange
+            // return structuredClone ? structuredClone(evaluatedChild)
+            //   : JSON.parse(JSON.stringify(evaluatedChild));
+            return JSON.parse(JSON.stringify(evaluatedChild));
         }));
         let res = {
             type: LOOP,
@@ -200,7 +202,9 @@ function execute(mode, prev, next = null) {
             prev.dom.replaceWith(next.dom);
             prev.dom = next.dom;
             prev.children = next.children;
-            removeProps(prev);
+            // I commented it because it caused me an error
+            // in the slider
+            // removeProps(prev);
             prev.props = next.props;
             break;
         }
@@ -292,7 +296,7 @@ function reconciliate(prev, next) {
 }
 let GlobalVDOM = null;
 function display(vdom) {
-    // console.log("display ", vdom);
+    console.log("display ", vdom);
     if (GlobalVDOM)
         reconciliate(GlobalVDOM, vdom);
     else {
@@ -319,6 +323,8 @@ function init() {
     };
     const updateState = () => {
         const newVDOM = Ura.element(View, null);
+        // console.log("old", vdom);
+        // console.log("new", newVDOM);
         if (vdom)
             reconciliate(vdom, newVDOM);
         else

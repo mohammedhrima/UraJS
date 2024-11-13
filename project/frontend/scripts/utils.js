@@ -396,6 +396,17 @@ function Watcher(watchPath, events, param, callback) {
   // console.log(`Started watching: ${path.relative("../", watchPath)}`);
 }
 
+function logServerMsg(port) {
+  console.clear();
+  console.log(`
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+\x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+\x1b[1m\x1b[32m    open http://localhost:${port}               \x1b[0m
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+    `);
+}
+
 const UTILS = {
   GET: (name) => CONFIG[name],
   SET: (name, value) => {
@@ -408,6 +419,7 @@ const UTILS = {
   UPDATE_ROUTES: updateRoutes,
   CHECK_PORT: checkPortInUse,
   WATCH: Watcher,
+  LOG: logServerMsg,
 };
 
 export default UTILS;

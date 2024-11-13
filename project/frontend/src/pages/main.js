@@ -29,6 +29,8 @@ async function loadRoutes() {
 
     Ura.refresh();
     console.log(data);
+    console.log(Ura.Routes);
+
     if (type === "dev") Ura.sync();
   } catch (error) {
     console.error("Error loading JSON or importing modules:", error);
@@ -36,3 +38,4 @@ async function loadRoutes() {
 }
 
 loadRoutes();
+

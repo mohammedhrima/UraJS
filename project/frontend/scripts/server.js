@@ -3,8 +3,18 @@ import path from "path";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import UTILS from "./utils.js";
-const { GET, SET, INIT, CHECK_PORT, WATCH, DELETE, COPY, UPDATE_ROUTES, TYPE } =
-  UTILS;
+const {
+  GET,
+  SET,
+  INIT,
+  CHECK_PORT,
+  WATCH,
+  DELETE,
+  COPY,
+  UPDATE_ROUTES,
+  TYPE,
+  LOG,
+} = UTILS;
 
 INIT();
 SET("TYPE", "dev");
@@ -33,7 +43,6 @@ const createServer = (port) => {
       process.exit(1);
     } else {
       // console.log(`Starting server on port ${availablePort}...`);
-     
 
       server = http.createServer((req, res) => {
         let reqPath = req.url.split("?")[0];
@@ -70,14 +79,7 @@ const createServer = (port) => {
       });
 
       server.listen(availablePort, () => {
-        console.clear();
-        console.log(`
-        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-        \x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
-        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-        \x1b[1m\x1b[32m    open http://localhost:${availablePort}      \x1b[0m
-        \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-        `);
+        LOG(availablePort);
       });
 
       // Create WebSocket server after HTTP server is ready
@@ -94,6 +96,7 @@ const createServer = (port) => {
             if (client.readyState === WebSocket.OPEN) {
               console.warn("send reload");
               client.send("reload");
+             LOG(availablePort);
             }
           });
         }, timing || 1); // debouncing
@@ -108,7 +111,7 @@ const createServer = (port) => {
             // console.log(_path, "was deleted");
             DELETE(_path);
             if (dir_routing) UPDATE_ROUTES();
-          } else if (event) {            
+          } else if (event) {
             COPY(_path);
           }
           notifyClients();

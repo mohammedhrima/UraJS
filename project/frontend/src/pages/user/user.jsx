@@ -1,19 +1,42 @@
-import Ura from 'ura';
-import Swords from '../utils/Swords/Swords.jsx';
-import WinCup from '../utils/WinCup/WinCup.jsx';
+import Ura from "ura";
+import Swords from "../utils/Swords/Swords.jsx";
+import WinCup from "../utils/WinCup/WinCup.jsx";
 
 function User() {
   const [render, State] = Ura.init();
-  const [getter, setter] = State(0);
+  const [getItem, setItem] = State("item-1");
 
   return render(() => (
     <div className="user">
-      <h1>Hello from User component!</h1>
-      <button onclick={() => setter(getter() + 1)}>
-        clique me [{getter()}]
-      </button>
+      <loop on={[1, 2, 3]}>
+        {(elem) => (
+          <input
+            type="radio"
+            name="slider"
+            id={`item-${elem}`}
+            checked={getItem() === `item-${elem}`}
+            onchange={() => setItem(`item-${elem}`)}
+          >
+            {elem}
+          </input>
+        )}
+      </loop>
+
+      <div className="cards">
+        <loop on={[1, 2, 3]}>
+          {(elem) => (
+            <label
+              className="card"
+              htmlFor={`item-${elem}`}
+              id={`song-${elem}`}
+            >
+              <img src={`/assets/img${elem}.avif`} alt="song" />
+            </label>
+          )}
+        </loop>
+      </div>
     </div>
   ));
 }
-  
-export default User
+
+export default User;

@@ -24,6 +24,7 @@ async function loadRoutes() {
         window.addEventListener("popstate", Ura.refresh);
         Ura.refresh();
         console.log(data);
+        console.log(Ura.Routes);
         if (type === "dev")
             Ura.sync();
     }
