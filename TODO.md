@@ -12,3 +12,17 @@
 
 + build some nextjs full stack applications to get inspiration
 + use session in trancedance to save user JWT https://www.youtube.com/watch?v=mL8EuL7jSbg&t=38s
+
+
++ Documentation:
+    + SPA
+    + routes:
+        + routes.json
+        + nested routes
+        + default route
+    + config.json
+    + HTTP
+    + if / loop tags
+    + typexcript/javascript support
+    + scss / css support:
+        + global.scss (used for global variables)
