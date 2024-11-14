@@ -13,35 +13,20 @@ function Signup() {
 
   return render(() => (
     <div className="signup">
-      <div id="top">
         <Navbar />
-      </div>
       <div id="center">
         <div id="card">
           <h3 id="title">Sign up</h3>
           <div id="input-section">
-            <input type="text" id="usernmae" placeholder={"Firstname"} />
-            <input type="text" id="usernmae" placeholder={"Lastname"} />
+            <input type="text" placeholder={"Firstname"} />
+            <input type="text" placeholder={"Lastname"} />
             <br />
-            <input type="text" id="usernmae" placeholder={"Username"} />
-            <input type="password" id="password" placeholder={"Password"} />
-            <input
-              type="password"
-              id="password"
-              placeholder={"Confirm Password"}
-            />
-            {/* <div id="checkbox">
-              <label>
-                <input type="checkbox" onChange={checkbox} />
-                Remember me
-              </label>
-            </div> */}
+            <input type="text" placeholder={"Username"} />
+            <input type="password" placeholder={"Password"} />
+            <input type="password" placeholder={"Confirm Password"} />
           </div>
           <div id={"button-section"}>
-            <button id={"btn"}>
-              {/* <img src="/assets/arrow.svg" alt="" /> */}
-              <Arrow />
-            </button>
+            <button id={"btn"}><Arrow /></button>
           </div>
           <h4
             id="signin"

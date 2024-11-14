@@ -388,13 +388,100 @@ function navigate(route, params = {}) {
     window.history.pushState({}, "", `${route}`);
     refresh();
 }
-// WEBSOCKET
-function sync() {
+// loadfiles
+async function loadRoutes() {
+    try {
+        const response = await fetch("/pages/routes.json");
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        console.error("Error loading routes.json:", error);
+        throw error;
+    }
+}
+function loadCSSFiles(styles) {
+    styles?.forEach((style) => {
+        Ura.loadCSS(Ura.normalizePath(style));
+    });
+}
+async function loadJSFiles(routes, base) {
+    for (const route of Object.keys(routes)) {
+        try {
+            const module = await import(routes[route]);
+            if (!module.default) {
+                throw `${route}: ${routes[route]} must have a default export`;
+            }
+            Ura.setRoute(Ura.normalizePath(route), module.default);
+            if (base && route === base) {
+                Ura.setRoute("*", module.default);
+            }
+        }
+        catch (error) {
+            console.error("Error loading JavaScript module:", error);
+        }
+    }
+}
+function setEventListeners() {
+    window.addEventListener("hashchange", Ura.refresh);
+    window.addEventListener("DOMContentLoaded", Ura.refresh);
+    window.addEventListener("popstate", Ura.refresh);
+}
+function handleCSSUpdate(filename) {
+    const path = normalizePath("/" + filename);
+    console.log(path);
+    let found = false;
+    document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+        //@ts-ignore
+        const linkUri = new URL(link.href).pathname;
+        console.log("old", linkUri);
+        if (linkUri === path) {
+            console.log("found");
+            found = true;
+            const newLink = link.cloneNode();
+            //@ts-ignore
+            newLink.href = link.href.split("?")[0] + "?t=" + new Date().getTime(); // Append timestamp to force reload
+            link.parentNode.replaceChild(newLink, link);
+            return;
+        }
+    });
+    if (!found) {
+        console.log("CSS file not found in <link> tags. Adding it.");
+        loadCSS(path);
+    }
+}
+async function sync() {
     const ws = new WebSocket(`ws://${window.location.host}`);
     console.log(window.location.host);
-    ws.onmessage = (event) => {
-        if (event.data === "reload")
+    ws.onmessage = async (socket_event) => {
+        const event = JSON.parse(socket_event.data);
+        if (event.action === "update") {
+            if (event.type === "css") {
+                handleCSSUpdate(event.filename);
+            }
+            else if (event.type === "js") {
+                // Handle JS update (if necessary)
+            }
+            else if (event.type === "json") {
+                try {
+                    const data = await loadRoutes();
+                    const { routes, styles, base, type } = data;
+                    if (routes)
+                        await loadJSFiles(routes, base);
+                    loadCSSFiles(styles);
+                    setEventListeners();
+                    Ura.refresh();
+                    console.log(data);
+                    console.log(Ura.Routes);
+                }
+                catch (error) {
+                    console.error("Error during JSON update:", error);
+                }
+            }
+        }
+        else if (event.action === "reload") {
             window.location.reload();
+        }
     };
     ws.onopen = () => {
         console.log("WebSocket connection established");
@@ -405,6 +492,24 @@ function sync() {
     ws.onclose = () => {
         console.log("WebSocket connection closed");
     };
+}
+async function activate() {
+    try {
+        const data = await loadRoutes();
+        const { routes, styles, base, type } = data;
+        if (routes)
+            await loadJSFiles(routes, base);
+        loadCSSFiles(styles);
+        setEventListeners();
+        Ura.refresh();
+        console.log(data);
+        console.log(Ura.Routes);
+        if (type === "dev")
+            sync();
+    }
+    catch (error) {
+        console.error("Error loading resources:", error);
+    }
 }
 // HTTP
 const defaultHeaders = {
@@ -445,5 +550,6 @@ const Ura = {
     refresh,
     navigate,
     send: HTTP_Request,
+    activate
 };
 export default Ura;

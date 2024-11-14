@@ -1,0 +1,70 @@
+// .user {
+//   width: 100%;
+//   height: 100%;
+//   position: fixed;
+//   transform-style: preserve-3d;
+//   display: flex;
+//   justify-content: center;
+//   flex-direction: column;
+//   align-items: center;
+
+//   input[type="radio"] {
+//     display: none;
+//   }
+
+//   .card {
+//     position: absolute;
+//     width: 60%;
+//     height: 100%;
+//     left: 0;
+//     right: 0;
+//     margin: auto;
+//     transition: transform 0.4s ease;
+//     cursor: pointer;
+//   }
+
+//   .cards {
+//     position: relative;
+//     width: 100%;
+//     height: 100%;
+//     margin-bottom: 20px;
+//     label{
+//         cursor: pointer;
+//     }
+//   }
+
+//   img {
+//     width: 100%;
+//     height: 100%;
+//     border-radius: 10px;
+//     object-fit: cover;
+//   }
+
+//   #item-1:checked ~ .cards #song-3,
+//   #item-2:checked ~ .cards #song-1,
+//   #item-3:checked ~ .cards #song-2 {
+//     transform: translatex(-100%) scale(0.8);
+//     opacity: 0.4;
+//     z-index: 0;
+//   }
+
+//   #item-1:checked ~ .cards #song-2,
+//   #item-2:checked ~ .cards #song-3,
+//   #item-3:checked ~ .cards #song-1 {
+//     transform: translatex(100%) scale(0.8);
+//     opacity: 0.4;
+//     z-index: 0;
+//   }
+
+//   #item-1:checked ~ .cards #song-1,
+//   #item-2:checked ~ .cards #song-2,
+//   #item-3:checked ~ .cards #song-3 {
+//     transform: translatex(0) scale(1);
+//     opacity: 1;
+//     z-index: 1;
+
+//     img {
+//       box-shadow: 0px 0px 5px 0px rgba(81, 81, 81, 0.47);
+//     }
+//   }
+// }

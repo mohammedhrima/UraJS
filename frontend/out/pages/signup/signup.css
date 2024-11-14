@@ -23,10 +23,6 @@
   background-color: var(--red0);
   color: var(--black4);
 }
-.signup #top {
-  position: fixed;
-  width: 100%;
-}
 .signup #center {
   flex: 2;
   display: flex;

@@ -285,12 +285,12 @@ function generateRoutes(dirPath, parentRoute, addingRoute) {
           }
         }
         if (filePath !== null)
-          routes[currentRoute] = `.${parentRoute}/${sub.name}/${sub.name}.js`;
+          routes[currentRoute] = `/pages${parentRoute}/${sub.name}/${sub.name}.js`;
         else addingRoute = false;
       }
       generateRoutes(path.join(dirPath, sub.name), currentRoute, addingRoute);
     } else if (sub.isFile() && /\.(css|scss)$/.test(sub.name)) {
-      const cssFile = `.${parentRoute}/${path
+      const cssFile = `/pages${parentRoute}/${path
         .basename(sub.name)
         .replace(/\.(scss|css)$/i, ".css")}`;
       // console.log("parent", parentRoute);

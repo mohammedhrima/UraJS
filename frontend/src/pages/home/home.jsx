@@ -7,9 +7,7 @@ function Home() {
 
   return render(() => (
     <div className="home">
-      <div id="top">
         <Navbar />
-      </div>
       <div id="center">
         <h1>
           Join Your <b>Friends</b>
@@ -20,7 +18,7 @@ function Home() {
         </h1>
       </div>
       <div id="bottom">
-        <button>
+        <button onclick={() => Ura.navigate("/user")}>
           <h3>Enter the Arena</h3>
         </button>
       </div>

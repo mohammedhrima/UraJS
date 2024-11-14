@@ -1,11 +1,18 @@
-import Ura from "ura";
+import Ura from 'ura';
+import Navbar from '../utils/Navbar/Navbar.jsx';
 function User() {
     const [render, State] = Ura.init();
-    const [getItem, setItem] = State("item-1");
+    const [getter, setter] = State(0);
     return render(() => (Ura.element("div", { className: "user" },
-        Ura.element("loop", { on: [1, 2, 3] }, (elem) => (Ura.element("input", { type: "radio", name: "slider", id: `item-${elem}`, checked: getItem() === `item-${elem}`, onchange: () => setItem(`item-${elem}`) }, elem))),
-        Ura.element("div", { className: "cards" },
-            Ura.element("loop", { on: [1, 2, 3] }, (elem) => (Ura.element("label", { className: "card", htmlFor: `item-${elem}`, id: `song-${elem}` },
-                Ura.element("img", { src: `/assets/img${elem}.avif`, alt: "song" }))))))));
+        Ura.element(Navbar, null),
+        Ura.element("div", { id: "center" }),
+        Ura.element("div", { id: "bottom" },
+            Ura.element("div", { className: "user-card" },
+                Ura.element("img", { src: "/assets/profile.png", alt: "" }),
+                Ura.element("h3", null, "Hrima mohammed")),
+            Ura.element("div", { id: "games" },
+                Ura.element("h1", null, "this is games")),
+            Ura.element("div", { id: "friends" },
+                Ura.element("h1", null, "this is friends"))))));
 }
 export default User;

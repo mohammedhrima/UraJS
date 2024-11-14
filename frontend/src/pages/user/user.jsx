@@ -1,42 +1,35 @@
-import Ura from "ura";
-import Swords from "../utils/Swords/Swords.jsx";
-import WinCup from "../utils/WinCup/WinCup.jsx";
+import Ura from 'ura';
+import Navbar from '../utils/Navbar/Navbar.jsx';
 
 function User() {
   const [render, State] = Ura.init();
-  const [getItem, setItem] = State("item-1");
+  const [getter, setter] = State(0);
 
   return render(() => (
     <div className="user">
-      <loop on={[1, 2, 3]}>
-        {(elem) => (
-          <input
-            type="radio"
-            name="slider"
-            id={`item-${elem}`}
-            checked={getItem() === `item-${elem}`}
-            onchange={() => setItem(`item-${elem}`)}
-          >
-            {elem}
-          </input>
-        )}
-      </loop>
-
-      <div className="cards">
-        <loop on={[1, 2, 3]}>
-          {(elem) => (
-            <label
-              className="card"
-              htmlFor={`item-${elem}`}
-              id={`song-${elem}`}
-            >
-              <img src={`/assets/img${elem}.avif`} alt="song" />
-            </label>
-          )}
-        </loop>
+      <Navbar />
+      <div id="center" />
+      <div id="bottom">
+      <div className="user-card">
+        <img src="/assets/profile.png" alt="" />
+        <h3>
+          Hrima mohammed
+        </h3>
       </div>
+        <div id="games">
+          <h1>
+            this is games
+          </h1>
+        </div>
+        <div id="friends">
+          <h1>
+            this is friends
+          </h1>
+        </div>
+      </div>
+
     </div>
   ));
 }
 
-export default User;
+export default User

@@ -18,10 +18,14 @@
 
 .navbar {
   display: flex;
-  height: 100%;
   width: 100%;
   justify-content: space-between;
   padding: 0 2%;
+  position: fixed;
+  top: 0;
+}
+.navbar img {
+  height: 100%;
 }
 .navbar #logo {
   height: 50px;

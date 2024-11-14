@@ -1,11 +1,10 @@
 import Ura from "ura";
-import Navbar from "../utils/Navbar/Navbar.js";
+import Navbar from "../utils/Navbar/Navbar.jsx";
 function Home() {
     const [render, State] = Ura.init();
     const [getter, setter] = State(0);
     return render(() => (Ura.element("div", { className: "home" },
-        Ura.element("div", { id: "top" },
-            Ura.element(Navbar, null)),
+        Ura.element(Navbar, null),
         Ura.element("div", { id: "center" },
             Ura.element("h1", null,
                 "Join Your ",
@@ -15,7 +14,7 @@ function Home() {
                 Ura.element("o", null, "Beat"),
                 " them")),
         Ura.element("div", { id: "bottom" },
-            Ura.element("button", null,
+            Ura.element("button", { onclick: () => Ura.navigate("/user") },
                 Ura.element("h3", null, "Enter the Arena"))))));
 }
 export default Home;

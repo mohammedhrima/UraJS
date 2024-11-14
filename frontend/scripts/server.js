@@ -89,14 +89,18 @@ const createServer = (port) => {
       });
 
       let notifyTimeout;
-      function notifyClients() {
+      function notifyClients(message) {
         if (notifyTimeout) clearTimeout(notifyTimeout);
         notifyTimeout = setTimeout(() => {
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
-              console.warn("send reload");
-              client.send("reload");
-             LOG(availablePort);
+              if (message) {
+                client.send(JSON.stringify(message));
+              } else {
+                console.warn("send reload");
+                client.send(JSON.stringify({ action: "reload" }));
+                LOG(availablePort);
+              }
             }
           });
         }, timing || 1); // debouncing
@@ -111,10 +115,29 @@ const createServer = (port) => {
             // console.log(_path, "was deleted");
             DELETE(_path);
             if (dir_routing) UPDATE_ROUTES();
+            notifyClients();
           } else if (event) {
             COPY(_path);
+            if (/\.scss$|\.css$/.test(_path)) {
+              _path = _path.replace(/\.scss$/, ".css");
+              notifyClients({
+                action: "update",
+                filename: path.relative(srcDir, _path),
+                type: "css",
+              });
+            }
+            // else if (/\.(js|jsx|tsx|ts)$/.test(_path)) {
+            //   console.log("notify client about js");
+            //   notifyClients({
+            //     action: "update",
+            //     filename: "/routes.json",
+            //     type: "json",
+            //   });
+            // }
+            else notifyClients();
           }
-          notifyClients();
+
+          // notifyClients();
         }
       );
 

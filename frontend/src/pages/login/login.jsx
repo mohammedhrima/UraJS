@@ -12,25 +12,19 @@ function Login() {
   };
   return render(() => (
     <div className="login">
-      <div id="top">
         <Navbar />
-      </div>
       <div id="center">
         <div id="card">
           <h3 id="title">Login</h3>
           <div id="input-section">
-            <input type="text" id="usernmae" placeholder={"Username"} />
-            <input type="password" id="password" placeholder={"Password"} />
+            <input type="text" placeholder={"Username"} />
+            <input type="password" placeholder={"Password"} />
             <div id="checkbox">
-              <label>
-                <input type="checkbox" onChange={checkbox} />
-                Remember me
-              </label>
+              <label><input type="checkbox" onChange={checkbox} /> Remember me</label>
             </div>
           </div>
           <div id={"button-section"}>
             <button id={"btn"}>
-              {/* <img src="/assets/arrow.svg" alt="" /> */}
               <Arrow />
             </button>
           </div>
