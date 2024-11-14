@@ -1,7 +1,0 @@
-**/node_modules/
-**/.parcel-cache/
-**/.vite
-**/package-lock.json
-**/project/out
-**/*.db
-**/.DS_Store
