@@ -1,9 +1,0 @@
-{
-  "DEFAULT_ROUTE": "/home",
-  "EXTENSION": "jsx",
-  "STYLE_EXTENTION": "scss",
-  "PORT": 17000,
-  "SERVER_TIMING": 5,
-  "DIR_ROUTING": true,
-  "TYPE": "dev"
-}
