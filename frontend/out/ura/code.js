@@ -378,7 +378,7 @@ function refresh() {
     path = normalizePath(path);
     const RouteConfig = getRoute(path);
     // console.log("go to", RouteConfig);
-    display(Ura.element("root", { style: { height: "100vh", width: "100vw" } },
+    display(Ura.element("root", null,
         Ura.element(RouteConfig, null)));
 }
 function navigate(route, params = {}) {

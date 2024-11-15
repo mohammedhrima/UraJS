@@ -397,7 +397,7 @@ function refresh() {
   const RouteConfig = getRoute(path);
   // console.log("go to", RouteConfig);
   display(
-    <root style={{ height: "100vh", width: "100vw" }}>
+    <root >
       <RouteConfig />
     </root>
   );
