@@ -12,8 +12,9 @@
     "/pages/main.css",
     "/pages/signup/signup.css",
     "/pages/user/user.css",
+    "/pages/utils/Award/Award.css",
     "/pages/utils/Navbar/Navbar.css",
-    "/pages/utils/tmp/tmp.css"
+    "/pages/utils/tmp2/tmp.css"
   ],
   "base": "/home",
   "type": "dev"

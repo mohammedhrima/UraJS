@@ -82,9 +82,11 @@ function setProps(vdom) {
     const { tag, props } = vdom;
     const style = {};
     Object.keys(props || {}).forEach((key) => {
-        if (key == "class")
-            console.warn("Invalid property 'class' did you mean 'className' ?");
-        else if (key.startsWith("on")) {
+        if (key === "class") {
+            console.warn("Invalid property 'class' did you mean 'className' ?", vdom);
+            key = "className";
+        }
+        if (key.startsWith("on")) {
             const eventType = key.slice(2).toLowerCase();
             if (eventType === "hover") {
                 vdom.dom.addEventListener("mouseover", props[key]);
