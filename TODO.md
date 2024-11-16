@@ -1,28 +1,45 @@
-+ TODO:
-    + add build step:
-        + with and without docker
-        + generate nginx if it's docker
-    + verify refresh function (forward/backward)
-    + importing svg to image does not work, fix it
-    + move ura dir in root dir
++ Framework:
     + understand promises
+    + Documentation:
+        [ ] SPA
+        [ ] Routing (Default/Nested routes)
+        [ ] config.json
+        [ ] HTTP
+        [ ] if / loop tags
+        [ ] Typescript/Javascript support
+        [ ] scss / css support (metion global css for global variables)
+        [ ] use react tutorials: https://react.dev/learn/tutorial-tic-tac-toe
 
-+ use react tutorials:
-    + https://react.dev/learn/tutorial-tic-tac-toe
++ Trancedence:
+    [*] Landing Page
+    [ ] sign in:
+        [ ] use intra
+        [ ] Google auth
+    [ ] Sign up:
+        [ ] uplaod images
+        [ ] choose avatar
+        [ ] user choose nickname
+        [ ] use intra
+        [ ] Google auth
+    [ ] user page
+    [ ] game page
+    [ ] matches page
+    [ ] user setting page
+    [ ] messages Page
+    [ ] search bar
+    [ ] add friends
 
-+ build some nextjs full stack applications to get inspiration
-+ use session in trancedance to save user JWT https://www.youtube.com/watch?v=mL8EuL7jSbg&t=38s
++ Resources
+    + animation: https://wpdean.com/css-hover-effects/
 
-
-+ Documentation:
-    + SPA
-    + routes:
-        + routes.json
-        + nested routes
-        + default route
-    + config.json
-    + HTTP
-    + if / loop tags
-    + typexcript/javascript support
-    + scss / css support:
-        + global.scss (used for global variables)
++ Planning:
+    + 16 Nov: solve problems with javascript
+    + 17 Nov: solve problems with javascript
+    + 18 Nov: solve problems with javascript
+        + morning: pass BCG X test
+        + evening: build nextJS project
+    + 19 Nov: complete user page / user setting page
+    + 20 Nov: complete game page
+    + 21 Nov: compete matches page
+    + 22 Nov: auth with google and intra42
+    + 23 Nav: 
