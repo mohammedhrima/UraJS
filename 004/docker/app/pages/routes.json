@@ -1,0 +1,25 @@
+{
+  "routes": {
+    "/brahim": "/pages/brahim/brahim.js",
+    "/brahim/chihaja": "/pages/brahim/chihaja/chihaja.js",
+    "/home": "/pages/home/home.js",
+    "/login": "/pages/login/login.js",
+    "/signup": "/pages/signup/signup.js",
+    "/user": "/pages/user/user.js"
+  },
+  "styles": [
+    "/pages/brahim/brahim.css",
+    "/pages/brahim/chihaja/chihaja.css",
+    "/pages/global.css",
+    "/pages/home/home.css",
+    "/pages/login/login.css",
+    "/pages/main.css",
+    "/pages/signup/signup.css",
+    "/pages/user/user.css",
+    "/pages/utils/Award/Award.css",
+    "/pages/utils/Navbar/Navbar.css",
+    "/pages/utils/tmp2/tmp.css"
+  ],
+  "base": "/home",
+  "type": "build"
+}

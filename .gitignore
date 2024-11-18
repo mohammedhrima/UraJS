@@ -5,3 +5,4 @@
 **/project/out
 **/*.db
 **/.DS_Store
+**/out
