@@ -25,10 +25,8 @@ function capitalize(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-try {
-  fs.mkdirSync(folderPath, { recursive: true });
-
-  const jsxContent = `import Ura from 'ura';
+function genrateJS(routeName) {
+  return `import Ura from 'ura';
 
 function ${capitalize(path.basename(routeName))}() {
   const [render, State] = Ura.init();
@@ -46,6 +44,88 @@ function ${capitalize(path.basename(routeName))}() {
   
 export default ${capitalize(path.basename(routeName))}
 `;
+}
+
+function generateStyle(routeName) {
+  const componentName = path.basename(routeName).toLowerCase();
+  const isScss = GET("STYLE_EXTENTION") === "scss";
+  if (isScss) {
+    return `.${componentName} {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+  background: #282c34;
+  color: #ffffff;
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #ffffff;
+  }
+
+  button {
+    height: 120px;
+    width: 120px;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #3178c6;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #ffffff;
+      color: #3178c6;
+    }
+  }
+}`;
+  }
+  return `.${componentName} {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+  background: #282c34;
+  color: #ffffff;
+}
+
+.${componentName} h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.${componentName} button {
+  height: 120px;
+  width: 120px;
+  font-size: 20px;
+  font-weight: bold;
+  background-color: #3178c6;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.${componentName} button:hover {
+  background-color: #ffffff;
+  color: #3178c6;
+}`;
+}
+
+try {
+  fs.mkdirSync(folderPath, { recursive: true });
+
+  const jsxContent = genrateJS(routeName);
   fs.writeFileSync(jsxFilePath, jsxContent);
   if (GET("STYLE_EXTENTION")) {
     // Write a basic CSS file
@@ -53,7 +133,7 @@ export default ${capitalize(path.basename(routeName))}
       folderPath,
       `${path.basename(routeName)}.${GET("STYLE_EXTENTION")}`
     );
-    const cssContent = `.${path.basename(routeName).toLowerCase()}\n{\n}`;
+    const cssContent = generateStyle(routeName);
     fs.writeFileSync(cssFilePath, cssContent);
   }
 

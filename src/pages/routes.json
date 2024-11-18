@@ -1,18 +1,13 @@
 {
   "routes": {
-    "/home": "./home/home.js",
-    "/login": "./login/login.js",
-    "/signup": "./signup/signup.js",
-    "/user": "./user/user.js"
+    "/home": "/pages/home/home.js",
+    "/user": "/pages/user/user.js"
   },
   "styles": [
-    "./global.css",
-    "./home/home.css",
-    "./login/login.css",
-    "./main.css",
-    "./signup/signup.css",
-    "./user/user.css",
-    "./utils/Navbar/Navbar.css"
+    "/pages/global.css",
+    "/pages/home/home.css",
+    "/pages/main.css",
+    "/pages/user/user.css"
   ],
   "base": "/home",
   "type": "dev"

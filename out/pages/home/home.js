@@ -1,21 +1,12 @@
 import Ura from "ura";
-import Navbar from "../utils/Navbar/Navbar.js";
 function Home() {
     const [render, State] = Ura.init();
-    const [getter, setter] = State(0);
     return render(() => (Ura.element("div", { className: "home" },
-        Ura.element("div", { id: "top" },
-            Ura.element(Navbar, null)),
-        Ura.element("div", { id: "center" },
-            Ura.element("h1", null,
-                "Join Your ",
-                Ura.element("b", null, "Friends")),
-            Ura.element("h1", null, "and"),
-            Ura.element("h1", null,
-                Ura.element("o", null, "Beat"),
-                " them")),
-        Ura.element("div", { id: "bottom" },
-            Ura.element("button", null,
-                Ura.element("h3", null, "Enter the Arena"))))));
+        Ura.element("header", { className: "home-header" },
+            Ura.element("h1", null, "Welcome to UraJS"),
+            Ura.element("p", null,
+                " Get started by editing ",
+                Ura.element("code", null, "src/pages/Home.jsx")),
+            Ura.element("a", { className: "home-link", href: "https://github.com/mohammedhrima/UraJS", target: "_blank", rel: "noopener noreferrer" }, "Learn UraJS")))));
 }
 export default Home;
