@@ -209,6 +209,7 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
       execute(CREATE, next);
       prev.dom.replaceWith(next.dom);
       prev.dom = next.dom;
+      // prev.children?.map(destroy)
       prev.children = next.children;
       // I commented it because it caused me an error
       // in the slider
@@ -324,6 +325,7 @@ function init() {
 
     const getter = () => states[stateIndex];
     const setter = (newValue) => {
+      // console.log("call setter", deepEqual(states[stateIndex], newValue));
       if (!deepEqual(states[stateIndex], newValue)) {
         states[stateIndex] = newValue;
         updateState();
@@ -334,8 +336,10 @@ function init() {
 
   const updateState = () => {
     const newVDOM = <View />;
-    // console.log("old", vdom);
-    // console.log("new", newVDOM);
+    console.log("old", vdom);
+    console.log("new", newVDOM);
+    // console.log("update");
+    
 
 
     if (vdom) reconciliate(vdom, newVDOM);

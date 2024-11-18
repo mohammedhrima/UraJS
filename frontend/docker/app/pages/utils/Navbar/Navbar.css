@@ -1,0 +1,69 @@
+:root {
+  --red0: #fcf6f3;
+  --red1: #febc9a;
+  --red2: #fe7934;
+  --red3: #fe5701;
+  --red4: #cb4601;
+  --blue0: #fafcfe;
+  --blue1: #a3d0f5;
+  --blue2: #46a0ec;
+  --blue3: #1888e7;
+  --blue4: #136db9;
+  --black0: #999999;
+  --black1: #666666;
+  --black2: #4d4d4d;
+  --black3: #333333;
+  --black4: #1a1a1a;
+}
+
+.navbar {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 2%;
+  position: fixed;
+  top: 0;
+}
+.navbar img {
+  height: 100%;
+}
+.navbar #logo {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.navbar fr {
+  display: flex;
+  gap: 10%;
+  padding: 10px 0;
+}
+.navbar fr button {
+  flex: 1;
+  width: 80px;
+  border-radius: 8px;
+}
+.navbar fr #login-btn {
+  color: var(--blue3);
+  background-color: var(--blue0);
+  border: 1px solid var(--blue3);
+}
+.navbar fr #login-btn:hover {
+  color: var(--blue0);
+  background-color: var(--blue3);
+  border: 1px solid var(--blue3);
+}
+.navbar fr #signup-btn {
+  color: var(--blue0);
+  background-color: var(--blue3);
+  border: 1px solid var(--blue0);
+  border: 1px solid var(--blue3);
+}
+.navbar fr #signup-btn:hover {
+  color: var(--blue3);
+  background-color: var(--blue0);
+  border: 1px solid var(--blue0);
+}
+.navbar fr #signup-btn:hover {
+  border: 1px solid var(--blue3);
+}

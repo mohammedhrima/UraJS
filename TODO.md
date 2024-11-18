@@ -28,6 +28,7 @@
     [ ] messages Page
     [ ] search bar
     [ ] add friends
+    [ ] 2 players in same keyboard
 
 + Resources
     + animation: https://wpdean.com/css-hover-effects/
