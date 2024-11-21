@@ -11,11 +11,9 @@ function Home() {
     <div className="home">
       <button onclick={handler}>clique me</button>
       <br /> <br />
-      <h1>
-        value is [{getter()}]
-      </h1>
+      <h1>value is [{getter()}]</h1>
       <if cond={getter() % 2 === 1}>is odd</if>
-      <if cond={getter() % 2 === 0}>is even</if>
+      <else>is even</else>
     </div>
   ));
 }

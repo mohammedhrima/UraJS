@@ -1,18 +1,15 @@
 import * as UTILS from "./utils.js";
 import { VDOM, Props, Tag } from "./types.js";
-const { IF, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
+const { IF, ELSE, LOOP, CREATE, REPLACE, REMOVE } = UTILS;
 const { ELEMENT, FRAGMENT, TEXT } = UTILS;
 const { deepEqual, loadCSS, svgElements } = UTILS;
 
+let ifTag = null;
 // JSX
 function check(children: any): any {
   //@ts-ignore
   return children.map((child) => {
-    if (
-      child === null ||
-      typeof child === "string" ||
-      typeof child === "number"
-    ) {
+    if (child === null || typeof child === "string" || typeof child === "number") {
       return {
         type: TEXT,
         value: child,
@@ -53,8 +50,21 @@ function element(tag: Tag, props: Props = {}, ...children: any) {
       props: props,
       children: check(props.cond && children.length ? children : []),
     };
+    ifTag = res;
     return res;
-  } else if (tag === "loop") {
+  }
+  else if (tag === "else") {
+    // console.log("handle else");
+    // console.log("this is if tag", ifTag);
+    let res = {
+      type: ELSE,
+      tag: "else",
+      props: ifTag?.props,
+      children: check(ifTag && !ifTag.props.cond && children.length ? children : []),
+    };
+    return res;
+  }
+  else if (tag === "loop") {
     let loopChildren = (props.on || []).flatMap((elem, id) =>
       (children || []).map((child) => {
         const evaluatedChild =
@@ -151,6 +161,12 @@ function createDOM(vdom): VDOM {
     }
     case IF: {
       vdom.dom = document.createElement("if");
+      // keep it commented it causes problem when condition change
+      // vdom.dom = document.createDocumentFragment();
+      break;
+    }
+    case ELSE: {
+      vdom.dom = document.createElement("else");
       // keep it commented it causes problem when condition change
       // vdom.dom = document.createDocumentFragment();
       break;
@@ -341,8 +357,8 @@ function init() {
 
   const updateState = () => {
     const newVDOM = <View />;
-    console.log("old", vdom);
-    console.log("new", newVDOM);
+    // console.log("old", vdom);
+    // console.log("new", newVDOM);
     // console.log("update");
 
 

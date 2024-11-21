@@ -15,6 +15,6 @@ function Home() {
             getter(),
             "]"),
         Ura.element("if", { cond: getter() % 2 === 1 }, "is odd"),
-        Ura.element("if", { cond: getter() % 2 === 0 }, "is even"))));
+        Ura.element("else", null, "is even"))));
 }
 export default Home;
