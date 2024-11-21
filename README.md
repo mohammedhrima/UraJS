@@ -7,7 +7,9 @@ Inspired by the simplicity of **React**, the directory-based routing of **Next.j
 With built-in support for **live reloading**, **state-driven UI updates**, and a focus on performance, UraJS empowers developers to create fast, maintainable, and user-friendly applications.
 
 ## Summary
-- [section one](#usage)
+- [Get Started](#get-started)
+- [Usage](#usage)
+
 
 ## Get Started
 
@@ -146,7 +148,7 @@ The `config.json` file allows you to customize various settings for your project
 4. **Set the Default Route:**
     - The `"base"` property specifies the default route that the app will load when it starts. For example, setting `"base": "/home"` means the /home route will be the default `/`.
 
-### Example: Generated Component Code
+### Example Generated Component Code
 + When you run npm run gen Component, the generated JSX code looks like this:
 ```js
     import Ura from 'ura';
