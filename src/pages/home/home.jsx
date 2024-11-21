@@ -24,7 +24,8 @@ function Home() {
           Learn UraJS
         </a>
         <button onClick={handle} className="toggle-theme">
-          Switch to {getTheme() === "light" ? "Dark" : "Light"} Mode
+          <span>Switch to {getTheme() === "light" ? "Dark" : "Light"} Mode</span>
+          <img src="/assets/logo.png" alt="logo" />
         </button>
       </header>
     </div>

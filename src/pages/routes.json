@@ -1,12 +1,10 @@
 {
   "routes": {
-    "/home": "/pages/home/home.js",
-    "/home/user": "/pages/home/user/user.js"
+    "/home": "/pages/home/home.js"
   },
   "styles": [
     "/pages/global.css",
     "/pages/home/home.css",
-    "/pages/home/user/user.css",
     "/pages/main.css"
   ],
   "base": "/home",

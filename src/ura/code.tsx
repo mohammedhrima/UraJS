@@ -403,7 +403,7 @@ function normalizePath(path) {
   return path;
 }
 
-function refresh() {
+function refresh(params = {}) {
   let path = window.location.pathname || "/";
   // console.log("call refresh", path);
   path = normalizePath(path);
@@ -411,7 +411,10 @@ function refresh() {
   // console.log("go to", RouteConfig);
   display(
     <root >
-      <RouteConfig />
+      {
+        //@ts-ignore
+        <RouteConfig props={params.props} />
+      }
     </root>
   );
 }
@@ -419,10 +422,10 @@ function refresh() {
 function navigate(route, params = {}) {
   route = route.split("?")[0];
   route = normalizePath(route);
-  // console.log("navigate to", route);
+  console.log("navigate to", route, "with", params);
 
   window.history.pushState({}, "", `${route}`);
-  refresh();
+  refresh({ props: params });
 }
 
 // loadfiles
