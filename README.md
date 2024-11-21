@@ -6,6 +6,9 @@ Inspired by the simplicity of **React**, the directory-based routing of **Next.j
 
 With built-in support for **live reloading**, **state-driven UI updates**, and a focus on performance, UraJS empowers developers to create fast, maintainable, and user-friendly applications.
 
+## Summary
+- [section one](#usage)
+
 ## Get Started
 
 To get started with **UraJS**, follow these simple steps:
