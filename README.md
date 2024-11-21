@@ -9,7 +9,7 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 ## Summary
 - [Get Started](#get-started)
 - [Usage](#usage)
-- [First component](#example-generated-component-code)
+- [First component](#generating-routes)
 - [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
 - [Custom Tags (if/else/loop)](#custom-tags)
 - [Build and Run using Docker](#build-and-run-using-docker)
