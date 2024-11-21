@@ -414,7 +414,8 @@ The GET function is used to retrieve all users from the server:
 
 ## Custom Tags
 ### `<loop>`:
-    + `<loop>` tag in UraJS allows you to iterate over an array and render content dynamically for each item. It takes in a property on, which is the array you want to iterate over, and a function that describes how to render each element.
+
++ `<loop>` tag in UraJS allows you to iterate over an array and render content dynamically for each item. It takes in a property on, which is the array you want to iterate over, and a function that describes how to render each element.
     
     **Example:**
     ```
