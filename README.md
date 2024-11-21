@@ -9,7 +9,10 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 ## Summary
 - [Get Started](#get-started)
 - [Usage](#usage)
-
+- [First component](#example-generated-component-code)
+- [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
+- [Custom Tags (if/else/loop)](#custom-tags)
+- [Build and Run using Docker](#build-and-run-using-docker)
 
 ## Get Started
 
@@ -198,7 +201,7 @@ where:
         + `onchange` for input changes.
         + `onkeyup` for key presses.
 For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
-### Example: Creating a Custom Navbar Component for the Homepage
+### Example Creating a Custom Navbar Component for the Homepage
 + In case you want to create a custom component, like a `Navbar`, and include it in your page, you can do so by following these steps:
 
 1. **Generate a Custom Navbar Component**
