@@ -149,7 +149,7 @@ function createDOM(vdom): VDOM {
       break;
     }
     case FRAGMENT: {
-      console.log("createDOM: found fragment", vdom);
+      // console.log("createDOM: found fragment", vdom);
       if (vdom.dom) console.error("fragment already has dom"); // TODO: to be removed
       vdom.dom = document.createElement("container");
       // vdom.dom = document.createDocumentFragment()
@@ -159,20 +159,11 @@ function createDOM(vdom): VDOM {
       vdom.dom = document.createTextNode(vdom.value);
       break;
     }
-    case IF: {
-      vdom.dom = document.createElement("if");
-      // keep it commented it causes problem when condition change
-      // vdom.dom = document.createDocumentFragment();
-      break;
-    }
-    case ELSE: {
-      vdom.dom = document.createElement("else");
-      // keep it commented it causes problem when condition change
-      // vdom.dom = document.createDocumentFragment();
-      break;
-    }
+    case IF:
+    case ELSE:
     case LOOP: {
-      vdom.dom = document.createElement("loop");
+      vdom.dom = document.createElement(vdom.tag);
+      // keep it commented it causes problem when condition change
       // vdom.dom = document.createDocumentFragment();
       break;
     }
@@ -483,10 +474,10 @@ function handleCSSUpdate(filename) {
   document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
     //@ts-ignore
     const linkUri = new URL(link.href).pathname;
-    console.log("old", linkUri);
+    // console.log("old", linkUri);
 
     if (linkUri === path) {
-      console.log("found");
+      // console.log("found");
       found = true;
       const newLink = link.cloneNode();
       //@ts-ignore
