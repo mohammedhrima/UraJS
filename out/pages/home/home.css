@@ -1,0 +1,30 @@
+.home {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.home-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+.home-header h1 {
+  margin-bottom: 10px;
+}
+
+.home-link {
+  color: #61dafb;
+  text-decoration: none;
+  margin-top: 20px;
+}
+
+code {
+  background: #1e1e1e;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+}

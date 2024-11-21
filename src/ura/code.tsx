@@ -43,9 +43,7 @@ function element(tag: Tag, props: Props = {}, ...children: any) {
         children: [],
       };
     }
-    if (functag.type === FRAGMENT)
-      functag = element("fr", functag.props, ...check(children || []));
-
+    if (functag.type === FRAGMENT) functag = element("fr", functag.props, ...check(children || []));
     return functag;
   }
   if (tag === "if") {
@@ -91,8 +89,7 @@ function setProps(vdom) {
   const { tag, props } = vdom;
   const style = {};
   Object.keys(props || {}).forEach((key) => {
-    if (key === "class")
-    {
+    if (key === "class") {
       console.warn("Invalid property 'class' did you mean 'className' ?", vdom);
       key = "className";
     }
@@ -153,13 +150,14 @@ function createDOM(vdom): VDOM {
       break;
     }
     case IF: {
-      // vdom.dom = document.createElement("if");
-      vdom.dom = document.createDocumentFragment();
+      vdom.dom = document.createElement("if");
+      // keep it commented it causes problem when condition change
+      // vdom.dom = document.createDocumentFragment();
       break;
     }
     case LOOP: {
-      // vdom.dom = document.createElement("loop");
-      vdom.dom = document.createDocumentFragment();
+      vdom.dom = document.createElement("loop");
+      // vdom.dom = document.createDocumentFragment();
       break;
     }
     default:
@@ -180,7 +178,7 @@ function removeProps(vdom: VDOM) {
       });
     } else {
       if (vdom.dom[key] !== undefined) delete vdom.dom[key];
-      vdom.dom.removeAttribute(key);
+      else vdom.dom.removeAttribute(key);
     }
   });
   vdom.props = {};
@@ -247,7 +245,14 @@ function reconciliateProps(oldProps: Props = {}, newProps: Props = {}, vdom) {
         });
       } else {
         if (vdom.dom[key] !== undefined) delete vdom.dom[key];
-        else vdom.dom.removeAttribute(key);
+        else {
+          try {
+            vdom.dom.removeAttribute(key);
+          } catch (error) {
+            console.error("found error while removing", vdom);
+          }
+          // vdom.dom.removeAttribute(key);
+        }
       }
     }
   });
@@ -339,7 +344,7 @@ function init() {
     console.log("old", vdom);
     console.log("new", newVDOM);
     // console.log("update");
-    
+
 
 
     if (vdom) reconciliate(vdom, newVDOM);
@@ -493,7 +498,7 @@ async function sync() {
 
   ws.onmessage = async (socket_event) => {
     const event = JSON.parse(socket_event.data);
-    
+
     if (event.action === "update") {
       if (event.type === "css") {
         handleCSSUpdate(event.filename);
