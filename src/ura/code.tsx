@@ -357,12 +357,6 @@ function init() {
 
   const updateState = () => {
     const newVDOM = <View />;
-    // console.log("old", vdom);
-    // console.log("new", newVDOM);
-    // console.log("update");
-
-
-
     if (vdom) reconciliate(vdom, newVDOM);
     else vdom = newVDOM;
   };

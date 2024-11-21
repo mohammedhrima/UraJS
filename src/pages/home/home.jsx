@@ -9,12 +9,15 @@ function Home() {
 
   return render(() => (
     <div className="home">
-      <button onclick={handler}>clique me</button>
-      <br /> <br />
-      <h1>value is [{getter()}]</h1>
-      <if cond={getter() % 2 === 1}>is odd</if>
-      <else>is even</else>
-    </div>
+    <header className="home-header">
+      <h1>Welcome to UraJS</h1>
+      <p> Get started by editing <code>src/pages/Home.jsx</code></p>
+      <a className="home-link" href="https://github.com/mohammedhrima/UraJS"
+        target="_blank" rel="noopener noreferrer">
+        Learn UraJS
+      </a>
+    </header>
+  </div>
   ));
 }
 
