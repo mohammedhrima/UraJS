@@ -75,9 +75,21 @@ To generate routes automatically, you can use the following commands:
     ```
 
 + This will create 
-`pages/routename/nestedroute.jsx` mapped to the /routename/nestedroute route.
-`pages/routename/nestedroute.scss` for styling the nested route.
-After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL, e.g., `http://localhost:17000/routename` or `http://localhost:17000/routename/nestedroute`.
+`pages/routename/routename.jsx` mapped to the /routename route.
+`pages/routename/routename.scss` for styling the route.
+After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/routename`
+
+- To generate a **nested route and its SCSS file**, run:
+    
+    ```bash
+      npm run gen /routename/nestedroute
+    ```
+
++ This will create 
+`pages/routename/nestedroute/nestedroute.jsx` mapped to the /routename/nestedroute route.
+`pages/routename/nestedroute/nestedroute.scss` for styling the nested route.
+After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/routename/nestedroute`.
+
 
 Make sure the file structure matches the route you want to create, as UraJS automatically generates routes based on the folder hierarchy within the `pages` directory. Each route will have a matching SCSS file that is automatically linked to the JSX component.
 
