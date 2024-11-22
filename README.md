@@ -370,7 +370,7 @@ This component receives the name and email parameters from the navigation and di
 
 ## Tailwinds
 To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to `tailwinds` in `config.json` file.
-`json
+```json
   {
     "DEFAULT_ROUTE": "/home",
     "EXTENSION": "jsx",
@@ -380,7 +380,7 @@ To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to
     "DIR_ROUTING": true,
     "TYPE": "dev"
   }
-`
+```
 + Example Component with Tailwind Styling
 ```js
   import Ura from "ura"
