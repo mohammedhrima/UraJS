@@ -223,7 +223,7 @@ For a complete list of event names, check W3Schools JavaScript Events  (https://
 ```
 2. **Navbar JSX Code:**
 This will create a file at `pages/home/utils/Navbar.jsx`. The `Navbar` component will use UraJS's `navigate` function to handle route navigation. Here’s an example:
-`pages/home/home.jsx`
+`pages/home/Navbar/Navbar.jsx`
 ```js
     import Ura from 'ura';
     
@@ -263,7 +263,6 @@ In the example above, we use the `Ura.navigate` function to handle navigation be
 
 3. **Important Notes:**
 
-    + The navigate function can accept both absolute and relative paths. Make sure the paths you provide match the routes you've set up in your project.
     + This is especially useful for custom navigation components like sidebars or navbars, where you can control the flow of the app programmatically.
 
 
@@ -274,7 +273,7 @@ Once the `Navbar` component is created, you can include it in your `home` page c
 1. Home Page Code
 In the `pages/home/home.jsx` file, import and render the Navbar component as follows:
 ```js
-    import Navbar from './utils/Navbar.jsx';
+    import Navbar from './utils/Navbar/Navbar.jsx';
     
     function Home() {
       const [render, State] = Ura.init();
