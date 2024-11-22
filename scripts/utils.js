@@ -5,6 +5,10 @@ import fs from "fs";
 import net from "net";
 import chokidar from "chokidar";
 import * as sass from "sass";
+import { writeFile } from 'fs/promises';
+import postcss from 'postcss';
+import tailwindcss from 'tailwindcss';
+
 
 function getMimeType(ext) {
   const mimeTypes = {
@@ -113,31 +117,45 @@ const compileTypeScript = (srcFilePath, outFilePath) => {
       if (diagnostic.file && diagnostic.start !== undefined) {
         const { line, character } =
           diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-        const message = ts.flattenDiagnosticMessageText(
-          diagnostic.messageText,
-          "\n"
-        );
-        console.error(
-          `${diagnostic.file.fileName} (${line + 1},${
-            character + 1
-          }): ${message}`
-        );
+        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
+        console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
       } else
-        console.error(
-          ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")
-        );
+        console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
     });
   } else {
     // Write compiled JavaScript to output file
     const outputText = ts.transpileModule(
       fs.readFileSync(srcFilePath, "utf-8"),
-      {
-        compilerOptions: parsedConfig.options,
-      }
+      { compilerOptions: parsedConfig.options }
     ).outputText;
     fs.writeFileSync(outFilePath, outputText, "utf-8");
   }
 };
+
+// TAILWINDS
+const inputCSS = `
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+`;
+
+const tailwindConfig = {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+
+async function generateCSSfromTailwinds() {
+  try {
+    const result = await postcss([tailwindcss(tailwindConfig)]).process(inputCSS, { from: undefined });
+    await writeFile(path.join(GET("SOURCE"), './pages/tailwinds.css'), result.css);
+    console.log(`update tailwinds styling`);
+  } catch (err) {
+    console.error('Error generating CSS:', err);
+  }
+}
 
 // HANDLE FILES
 function Delete(srcPath) {
@@ -190,13 +208,31 @@ function Delete(srcPath) {
 let CONFIG = null;
 
 function open_config() {
-  let data = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "../config.json"), "utf-8")
-  );
-  data["SOURCE"] = path.join(__dirname, "../src");
-  data["OUTPUT"] = path.join(__dirname, "../out");
-  data["ROOT"] = path.join(__dirname, "../");
-  return data;
+  try {
+    // Read and parse the config.json file
+    const configPath = path.join(__dirname, "../config.json");
+    const data = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+    // Add calculated paths to the config object
+    data["SOURCE"] = path.join(__dirname, "../src");
+    data["OUTPUT"] = path.join(__dirname, "../out");
+    data["ROOT"] = path.join(__dirname, "../");
+
+    // If STYLE_EXTENSION is "tailwinds", ensure the file exists
+    if (data["STYLE_EXTENTION"] === "tailwinds") {
+      const tailwindPath = path.join(data["SOURCE"], "tailwinds.css");
+      if (!fs.existsSync(tailwindPath)) {
+        fs.writeFileSync(tailwindPath, "/* Initial Tailwind CSS file */");
+        console.log(`Created: ${tailwindPath}`);
+        generateCSSfromTailwinds();
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in open_config:", error.message);
+    throw error;
+  }
 }
 
 const GET = (name) => {
@@ -289,10 +325,8 @@ function generateRoutes(dirPath, parentRoute, addingRoute) {
         else addingRoute = false;
       }
       generateRoutes(path.join(dirPath, sub.name), currentRoute, addingRoute);
-    } else if (sub.isFile() && /\.(css|scss)$/.test(sub.name)) {
-      const cssFile = `/pages${parentRoute}/${path
-        .basename(sub.name)
-        .replace(/\.(scss|css)$/i, ".css")}`;
+    } else if ( sub.isFile() && /\.(css|scss)$/.test(sub.name)) {
+      const cssFile = `/pages${parentRoute}/${path.basename(sub.name).replace(/\.(scss|css)$/i, ".css")}`;
       // console.log("parent", parentRoute);
       // console.log("append", path.basename(sub.name).replace(/\.(scss|css)$/i, ".css"));
       // console.log(cssFile);
@@ -301,54 +335,15 @@ function generateRoutes(dirPath, parentRoute, addingRoute) {
   });
 }
 
-function generateRoutes1(dirPath, parentRoute = "") {
-  const dirContents = fs.readdirSync(dirPath, { withFileTypes: true });
-
-  dirContents.forEach((dir) => {
-    if (dir.isDirectory()) {
-      const currentRoute = `${parentRoute}/${dir.name}`;
-
-      const fileExtensions = [".js", ".jsx", ".ts", ".tsx"];
-      let filePath = null;
-      let cssfile = null;
-
-      for (const ext of fileExtensions) {
-        const potentialPath = path.join(dirPath, dir.name, `${dir.name}${ext}`);
-        if (fs.existsSync(potentialPath)) {
-          if (
-            [".css", ".scss"].some((ext) =>
-              fs.existsSync(path.join(dirPath, dir.name, `${dir.name}${ext}`))
-            )
-          )
-            cssfile = `.${parentRoute}/${dir.name}/${dir.name}.css`;
-          filePath = potentialPath;
-          break;
-        }
-      }
-
-      if (filePath !== null) {
-        routes.push({
-          path: currentRoute,
-          from: `.${parentRoute}/${dir.name}/${dir.name}.js`,
-          ...(cssfile && { styles: [cssfile] }),
-          ...(GET("DEFAULT_ROUTE") === currentRoute && { base: true }),
-        });
-        routes.push(
-          ...generateRoutes1(path.join(dirPath, dir.name), currentRoute)
-        );
-      } else {
-      }
-    }
-  });
-
-  return routes;
-}
-
 // Write the updated Routes array to Routes.js
 function updateRoutes() {
   routes = {};
   styles = [];
   generateRoutes(pagesDir, "", true);
+  if (GET("STYLE_EXTENTION") === "tailwindcss") {
+    generateCSSfromTailwinds()
+    styles.push("/pages/tailwinds.css")
+  }
   fs.writeFileSync(
     routesFile,
     JSON.stringify(

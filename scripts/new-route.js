@@ -127,7 +127,7 @@ try {
 
   const jsxContent = genrateJS(routeName);
   fs.writeFileSync(jsxFilePath, jsxContent);
-  if (GET("STYLE_EXTENTION")) {
+  if (["css", "scss"].includes(GET("STYLE_EXTENTION"))) {
     // Write a basic CSS file
     const cssFilePath = path.join(
       folderPath,

@@ -10,7 +10,12 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 - [Get Started](#get-started)
 - [Usage](#usage)
 - [First component](#generating-routes)
+- [Configuration](#configuration)
+- [Using Custom Routing (optional)](#using-custom-routing-(optional))
+- [Example Generated Component Code](#example-generated-component-code)
 - [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
+- [Tailwinds support](#Tailwinds)
+- [HTTP Requests](#http-requests)
 - [Custom Tags (if/else/loop)](#custom-tags)
 - [Build and Run using Docker](#build-and-run-using-docker)
 
@@ -58,6 +63,7 @@ To get started with **UraJS**, follow these simple steps:
     ├── index.html                  # The main HTML file where the app is loaded.
     └── package.json                # Project metadata, dependencies, and scripts (e.g., npm start).
 ```
+
 ## Usage
 
 Once the development server is running, you can begin creating your app. **UraJS** uses a file-based routing system, meaning that the structure of your project’s files will directly map to your routes. Simply add a new file in the `pages` directory to create a new route.
@@ -66,7 +72,7 @@ For example:
 - `pages/about/about.jsx` maps to the `/about` route.
 - `pages/home/home.jsx` maps to the `/home` route.
 
-### Generating Routes
+## Generating Routes
 To generate routes automatically, you can use the following commands:
 - To generate a **basic route and its SCSS file**, run:
     
@@ -98,7 +104,7 @@ The `src/global.scss` file is used for global variables for a fast user experien
 By default, UraJS will compile SCSS into CSS for the styling of your routes. However, if you prefer to use plain CSS, you can configure it in the `config.json` file.
 
 
-### Configuration in `config.json`
+## Configuration in `config.json`
 The `config.json` file allows you to customize various settings for your project, including file extensions, server configurations, and routing preferences. Here is an example configuration:
 
 ```json
@@ -123,7 +129,7 @@ The `config.json` file allows you to customize various settings for your project
     + `TYPE`: Don't touch it
 
 
-### Using Custom Routing (optional)
+## Using Custom Routing (optional)
 + To use custom routing with UraJS, users can create and manage their routes manually by using the `route.json` file. Here's how they can do it:
 
 + By default, UraJS uses a file-based routing system, but if you prefer to handle routes manually, you can disable the default directory routing by setting "DIR_ROUTING": false in the config.json file. This will allow you to manage your routes independently using the `route.json` file.
@@ -163,7 +169,7 @@ The `config.json` file allows you to customize various settings for your project
 4. **Set the Default Route:**
     - The `"base"` property specifies the default route that the app will load when it starts. For example, setting `"base": "/home"` means the /home route will be the default `/`.
 
-### Example Generated Component Code
+## Example Generated Component Code
 + When you run npm run gen Component, the generated JSX code looks like this:
 ```js
     import Ura from 'ura';
@@ -213,7 +219,8 @@ where:
         + `onchange` for input changes.
         + `onkeyup` for key presses.
 For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
-### Example Creating a Custom Navbar Component for the Homepage
+
+## Example Creating a Custom Navbar Component for the Homepage
 + In case you want to create a custom component, like a `Navbar`, and include it in your page, you can do so by following these steps:
 
 1. **Generate a Custom Navbar Component**
@@ -292,7 +299,7 @@ In the `pages/home/home.jsx` file, import and render the Navbar component as fol
 
     When you navigate to the /home route, the Navbar will be displayed at the top, allowing users to easily navigate to different sections of your application, such as the Home and About pages.
 
-## Directory Structure Clarification
+### Directory Structure Clarification
 
 As a reminder, UraJS uses a directory-based routing system. For a directory to be considered a valid route, it must contain a component file (.js, .jsx, .ts, .tsx) with the same name as the directory. For example, the home directory must contain a home.jsx (or equivalent) file. Subdirectories will also be considered valid subroutes if they follow the same structure.
 
@@ -359,6 +366,34 @@ This component receives the name and email parameters from the navigation and di
     + Displays the user’s name and email on the page.
 
 + When the button in UserPage is clicked, the page navigates to UserDetails and shows the user's name and email.
+
+## Tailwinds
+To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to `tailwinds` in `config.json` file.
+`json
+  {
+    "DEFAULT_ROUTE": "/home",
+    "EXTENSION": "jsx",
+    "STYLE_EXTENTION": "tailwinds",
+    "PORT": 17000,
+    "SERVER_TIMING": 15,
+    "DIR_ROUTING": true,
+    "TYPE": "dev"
+  }
+`
++ Example Component with Tailwind Styling
+```js
+  import Ura from "ura"
+
+  function Button() {
+    const [render, State] = Ura.init();
+
+    return render(() => (
+      <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300">
+        Click Me
+      </button>
+    ));
+  }
+```
 
 ## HTTP Requests in UraJS
 ```js
