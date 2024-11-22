@@ -1,5 +1,4 @@
 import Ura from "ura";
-import Navbar from "./utils/Navbar/Navbar.js";
 
 function Home() {
   const [render, State] = Ura.init();
@@ -11,7 +10,6 @@ function Home() {
 
   return render(() => (
     <div className={`home ${getTheme()}`}>
-      <Navbar />
       <header className="home-header">
         <h1>Welcome to UraJS</h1>
         <p>
