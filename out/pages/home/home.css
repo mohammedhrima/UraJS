@@ -1,0 +1,101 @@
+:root {
+  --background-color: #282c34;
+  --text-color: white;
+  --link-color: #61dafb;
+  --code-bg-color: #1e1e1e;
+  --button-bg-color: #007acc;
+  --button-hover-bg: #005f99;
+  --border-radius: 8px;
+  --transition-speed: 0.3s;
+}
+
+.light {
+  --background-color: white;
+  --text-color: #282c34;
+  --link-color: #007acc;
+  --code-bg-color: #f4f4f4;
+  --button-bg-color: #61dafb;
+  --button-hover-bg: #4fa3d1;
+}
+
+.dark {
+  --background-color: #282c34;
+  --text-color: white;
+  --link-color: #61dafb;
+  --code-bg-color: #1e1e1e;
+  --button-bg-color: #007acc;
+  --button-hover-bg: #005f99;
+}
+
+.home {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed) ease;
+}
+.home .home-header {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.home .home-header h1 {
+  margin-bottom: 15px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: color var(--transition-speed);
+}
+.home .home-header p {
+  margin: 20px 0;
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+.home .home-header .home-link {
+  color: var(--link-color);
+  text-decoration: none;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: color var(--transition-speed);
+}
+.home .home-header .home-link:hover {
+  color: var(--link-color);
+}
+.home .home-header code {
+  background: var(--code-bg-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+}
+.home .toggle-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+  padding: 15px 30px;
+  background-color: var(--button-bg-color);
+  color: var(--background-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+.home .toggle-theme span {
+  margin-right: 22px;
+}
+.home .toggle-theme img {
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
+}
+.home .toggle-theme:hover {
+  background-color: var(--button-hover-bg);
+  transform: scale(1.05);
+}

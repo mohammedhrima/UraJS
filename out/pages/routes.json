@@ -1,0 +1,12 @@
+{
+  "routes": {
+    "/home": "/pages/home/home.js"
+  },
+  "styles": [
+    "/pages/global.css",
+    "/pages/home/home.css",
+    "/pages/main.css"
+  ],
+  "base": "/home",
+  "type": "dev"
+}
