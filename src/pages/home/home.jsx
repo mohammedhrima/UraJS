@@ -1,4 +1,5 @@
 import Ura from "ura";
+import Navbar from "./utils/Navbar/Navbar.js";
 
 function Home() {
   const [render, State] = Ura.init();
@@ -7,9 +8,10 @@ function Home() {
   const handle = () => {
     setTheme(getTheme() === "light" ? "dark" : "light");
   };
-  
+
   return render(() => (
     <div className={`home ${getTheme()}`}>
+      <Navbar />
       <header className="home-header">
         <h1>Welcome to UraJS</h1>
         <p>
@@ -24,7 +26,9 @@ function Home() {
           Learn UraJS
         </a>
         <button onClick={handle} className="toggle-theme">
-          <span>Switch to {getTheme() === "light" ? "Dark" : "Light"} Mode</span>
+          <span>
+            Switch to {getTheme() === "light" ? "Dark" : "Light"} Mode
+          </span>
           <img src="/assets/logo.png" alt="logo" />
         </button>
       </header>

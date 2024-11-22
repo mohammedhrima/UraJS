@@ -88,7 +88,7 @@ CHECK_PORT(GET("PORT"), (isInUse, availablePort, error) => {
   INIT();
   SET("TYPE", "build");
   UPDATE_ROUTES();
-  COPY(GET("SOURCE"));  
+  COPY(GET("SOURCE"));
 
   let port = availablePort;
   console.log("final port", port);
@@ -105,11 +105,14 @@ CHECK_PORT(GET("PORT"), (isInUse, availablePort, error) => {
   });
 
   async function createFile(filePath, data) {
-    try {
-      await fs.writeFileSync(filePath, data);
-      console.log("File created and data written successfully.");
-    } catch (err) {
-      console.error("Error:", err);
+    if (!fs.existsSync(filePath)) 
+      {
+      try {
+        await fs.writeFileSync(filePath, data);
+        console.log("File created and data written successfully.");
+      } catch (err) {
+        console.error("Error:", err);
+      }
     }
   }
 
@@ -125,12 +128,10 @@ CHECK_PORT(GET("PORT"), (isInUse, availablePort, error) => {
     }
   }
 
+
   createFile(path.join(GET("ROOT"), "./docker/nginx/nginx.conf"), nginx(port));
   createFile(path.join(GET("ROOT"), "./docker/Dockerfile"), dockerfile(port));
-  createFile(
-    path.join(GET("ROOT"), "./docker/docker-compose.yml"),
-    dockerCompose(port)
-  );
+  createFile(path.join(GET("ROOT"), "./docker/docker-compose.yml"), dockerCompose(port));
   createFile(path.join(GET("ROOT"), "./docker/Makefile"), makefile(port));
 
   fs.copyFileSync(

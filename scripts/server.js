@@ -27,8 +27,11 @@ const timing = GET("SERVER_TIMING");
 const dir_routing = GET("DIR_ROUTING");
 
 if (dir_routing) UPDATE_ROUTES();
-if(GET("STYLE_EXTENTION") !== "tailwind") fs.unlinkSync(path.join(GET("SOURCE"), "./pages/tailwind.css"));
-
+if (GET("STYLE_EXTENTION") !== "tailwind") {
+  let filePath = path.join(GET("SOURCE"), "./pages/tailwind.css");
+  if (fs.existsSync(filePath))
+    fs.unlinkSync(filePath);
+}
 function convertToJs(filePath) {
   const ext = path.extname(filePath);
   if (ext === ".jsx" || ext === ".tsx" || ext === ".ts") {
@@ -50,16 +53,11 @@ const createServer = (port) => {
         let filePath = convertToJs(path.join(outDir, reqPath));
         if (reqPath === "/") filePath = path.join(rootDir, "index.html");
         fs.stat(filePath, (err, stats) => {
-          console.log(
-            "\x1b[36m%s\x1b[0m",
-            "serve",
-            path.relative(srcDir, filePath)
-          );
+          console.log("\x1b[36m%s\x1b[0m", "serve", path.relative(srcDir, filePath));
           if (err) {
-            // console.error(filePath, "Not found");
-            // if (filePath.endsWith("pages/main.js"))
-            //   filePath = path.join(rootDir, "./src/pages/main.js");
-            // else
+
+            console.log("\x1b[31m\x1b[1m%s\x1b[0m\n\x1b[33m%s\x1b[0m", path.relative(srcDir, filePath),
+              "Not found!\nIf it's a js|jsx|ts|tsx file, make sure to import it like this 'file/path.(js|jsx|ts|tsx)'");
             filePath = path.join(rootDir, "./index.html");
             res.writeHead(200, {
               "Content-Type": TYPE(path.extname(filePath)),

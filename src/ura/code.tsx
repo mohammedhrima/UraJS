@@ -373,12 +373,13 @@ function Error(props: Props | null) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          textAlign: "center",
           height: "100%",
         },
       },
       "Error: [",
       props.message,
-      "] Not Found"
+      "] Not Found, check browser console"
     );
   });
 }
