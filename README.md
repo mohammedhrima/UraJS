@@ -14,7 +14,7 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 - [Using Custom Routing (not recommended)](#using-custom-routing)
 - [Example Generated Component Code](#example-generated-component-code)
 - [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
-- [Tailwinds support](#tailwinds)
+- [Tailwind support](#tailwind)
 - [HTTP Requests](#http-requests)
 - [Custom Tags (if/else/loop)](#custom-tags)
 - [Build and Run using Docker](#build-and-run-using-docker)
@@ -368,13 +368,13 @@ This component receives the name and email parameters from the navigation and di
 
 + When the button in UserPage is clicked, the page navigates to UserDetails and shows the user's name and email.
 
-## Tailwinds
-To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to `tailwinds` in `config.json` file.
+## Tailwind
+To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to `tailwind` in `config.json` file.
 ```json
   {
     "DEFAULT_ROUTE": "/home",
     "EXTENSION": "jsx",
-    "STYLE_EXTENTION": "tailwinds",
+    "STYLE_EXTENTION": "tailwind",
     "PORT": 17000,
     "SERVER_TIMING": 15,
     "DIR_ROUTING": true,

@@ -150,8 +150,8 @@ const tailwindConfig = {
 async function generateCSSfromTailwinds() {
   try {
     const result = await postcss([tailwindcss(tailwindConfig)]).process(inputCSS, { from: undefined });
-    await writeFile(path.join(GET("SOURCE"), './pages/tailwinds.css'), result.css);
-    console.log(`update tailwinds styling`);
+    await writeFile(path.join(GET("SOURCE"), './pages/tailwind.css'), result.css);
+    console.log(`update tailwind styling`);
   } catch (err) {
     console.error('Error generating CSS:', err);
   }
@@ -218,9 +218,9 @@ function open_config() {
     data["OUTPUT"] = path.join(__dirname, "../out");
     data["ROOT"] = path.join(__dirname, "../");
 
-    // If STYLE_EXTENSION is "tailwinds", ensure the file exists
-    if (data["STYLE_EXTENTION"] === "tailwinds") {
-      const tailwindPath = path.join(data["SOURCE"], "tailwinds.css");
+    // If STYLE_EXTENSION is "tailwind", ensure the file exists
+    if (data["STYLE_EXTENTION"] === "tailwind") {
+      const tailwindPath = path.join(data["SOURCE"], "tailwind.css");
       if (!fs.existsSync(tailwindPath)) {
         fs.writeFileSync(tailwindPath, "/* Initial Tailwind CSS file */");
         console.log(`Created: ${tailwindPath}`);
@@ -342,7 +342,7 @@ function updateRoutes() {
   generateRoutes(pagesDir, "", true);
   if (GET("STYLE_EXTENTION") === "tailwindcss") {
     generateCSSfromTailwinds()
-    styles.push("/pages/tailwinds.css")
+    styles.push("/pages/tailwind.css")
   }
   fs.writeFileSync(
     routesFile,

@@ -27,7 +27,7 @@ const timing = GET("SERVER_TIMING");
 const dir_routing = GET("DIR_ROUTING");
 
 if (dir_routing) UPDATE_ROUTES();
-if(GET("STYLE_EXTENTION") !== "tailwindcss") fs.unlinkSync(path.join(GET("SOURCE"), "./pages/tailwinds.css"));
+if(GET("STYLE_EXTENTION") !== "tailwind") fs.unlinkSync(path.join(GET("SOURCE"), "./pages/tailwind.css"));
 
 function convertToJs(filePath) {
   const ext = path.extname(filePath);
