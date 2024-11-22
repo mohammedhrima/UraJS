@@ -56,7 +56,8 @@ To get started with **UraJS**, follow these simple steps:
     │   │   ├── (Other pages)       # Other route components, following the same structure.
     │   │   ├── global.(scss|css)   # Global styling variables and shared styles.
     │   │   ├── main.js             # Main entry point for the framework (initializes the app).
-    │   │   └── main.(scss|css)     # Default styling for the entire application.
+    │   │   ├── main.(scss|css)     # Default styling for the entire application.
+    │   │   └── routes.json         # Contains all routes 
     │   └── ura/                    # Framework source code (core logic of UraJS).
     ├── config.json                 # Configuration file for framework settings (e.g., default route, port, styling options).
     ├── tsconfig.json               # TypeScript configuration file for compiling the code (customizable).
@@ -122,7 +123,7 @@ The `config.json` file allows you to customize various settings for your project
 + Configuration Options:
     + `DEFAULT_ROUTE`: Specifies the default route for your app (e.g., /home).
     + `EXTENSION`: Defines the file extension for your components. You can set it to js, jsx, ts, or tsx.
-    + `STYLE_EXTENSION`: Defines the file extension for stylesheets. You can set it to scss (default) or css.
+    + `STYLE_EXTENSION`: Defines the file extension for stylesheets. You can set it to scss (default) or css or tailwind.
     + `PORT`: Defines the port for the development server (default: 17000).
     + `SERVER_TIMING`: Defines the timing to compile and serve files. Adjust this if you want to customize how often files are recompiled.
     + `DIR_ROUTING`: If set to true, UraJS will use the default directory-based routing system. Set it to false if you prefer to use your own routing system.
@@ -131,13 +132,13 @@ The `config.json` file allows you to customize various settings for your project
 
 ## Using Custom Routing 
 + it's optional (not recommended)
-+ To use custom routing with UraJS, users can create and manage their routes manually by using the `route.json` file. Here's how they can do it:
++ To use custom routing with UraJS, users can create and manage their routes manually by using the `routes.json` file. Here's how they can do it:
 
-+ By default, UraJS uses a file-based routing system, but if you prefer to handle routes manually, you can disable the default directory routing by setting "DIR_ROUTING": false in the config.json file. This will allow you to manage your routes independently using the `route.json` file.
++ By default, UraJS uses a file-based routing system, but if you prefer to handle routes manually, you can disable the default directory routing by setting "DIR_ROUTING": false in the config.json file. This will allow you to manage your routes independently using the `routes.json` file.
 
-+ After disabling directory routing, you can define routes and styles in `route.json` as follows:
++ After disabling directory routing, you can define routes and styles in `routes.json` as follows:
 
-`/src/route.json`:
+`/src/routes.json`:
 ```json
     {
       "routes": {
@@ -154,7 +155,7 @@ The `config.json` file allows you to customize various settings for your project
       "type": "dev"
     }
 ```
-+ How to Use route.json:
++ How to Use routes.json:
 1. **Disabling Directory Routing:**
     - In config.json, set `"DIR_ROUTING": false` to disable automatic file-based routing.
     - This will prevent UraJS from automatically creating routes based on the file and directory structure in the pages directory.
@@ -281,6 +282,7 @@ Once the `Navbar` component is created, you can include it in your `home` page c
 1. Home Page Code
 In the `pages/home/home.jsx` file, import and render the Navbar component as follows:
 ```js
+    import Ura from 'ura';
     import Navbar from './utils/Navbar/Navbar.jsx';
     
     function Home() {
@@ -309,7 +311,7 @@ As a reminder, UraJS uses a directory-based routing system. For a directory to b
     pages
       └── home
           ├── home.jsx  // Main Home Page Component
-          ├── home.scss // Main Home Page Component
+          ├── home.scss // Main Home Scss
           └── utils
               └── Navbar
                   ├── Navbar.jsx  // Navbar Component
