@@ -11,10 +11,10 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 - [Usage](#usage)
 - [First component](#generating-routes)
 - [Configuration](#configuration)
-- [Using Custom Routing (optional)](#using-custom-routing-(optional))
+- [Using Custom Routing (not recommended)](#using-custom-routing)
 - [Example Generated Component Code](#example-generated-component-code)
 - [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
-- [Tailwinds support](#Tailwinds)
+- [Tailwinds support](#tailwinds)
 - [HTTP Requests](#http-requests)
 - [Custom Tags (if/else/loop)](#custom-tags)
 - [Build and Run using Docker](#build-and-run-using-docker)
@@ -104,7 +104,7 @@ The `src/global.scss` file is used for global variables for a fast user experien
 By default, UraJS will compile SCSS into CSS for the styling of your routes. However, if you prefer to use plain CSS, you can configure it in the `config.json` file.
 
 
-## Configuration in `config.json`
+## Configuration
 The `config.json` file allows you to customize various settings for your project, including file extensions, server configurations, and routing preferences. Here is an example configuration:
 
 ```json
@@ -129,7 +129,8 @@ The `config.json` file allows you to customize various settings for your project
     + `TYPE`: Don't touch it
 
 
-## Using Custom Routing (optional)
+## Using Custom Routing 
++ it's optional (not recommended)
 + To use custom routing with UraJS, users can create and manage their routes manually by using the `route.json` file. Here's how they can do it:
 
 + By default, UraJS uses a file-based routing system, but if you prefer to handle routes manually, you can disable the default directory routing by setting "DIR_ROUTING": false in the config.json file. This will allow you to manage your routes independently using the `route.json` file.
@@ -395,7 +396,7 @@ To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to
   }
 ```
 
-## HTTP Requests in UraJS
+## HTTP Requests
 ```js
    import Ura from "ura";
        
