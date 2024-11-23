@@ -1,5 +1,10 @@
 # UraJS
 
+<p align="center">
+  <img src="./src/assets/logo.png" alt="Logo" width="200">
+</p>
+
+
 **UraJS** is a lightweight, modern single-page application (SPA) framework designed to make building interactive and dynamic web applications intuitive and efficient. It combines the power of **JSX**, **virtual DOM reconciliation**, and a **custom state management system** to provide a seamless development experience without the bloat.
 
 Inspired by the simplicity of **React**, the directory-based routing of **Next.js**, and the flexibility of **Vue**, UraJS introduces its own take on SPA development. Its directory-based routing system automatically generates routes from the file structure, streamlining navigation setup for developers.

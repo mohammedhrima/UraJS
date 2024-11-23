@@ -8,5 +8,5 @@
     "/pages/main.css"
   ],
   "base": "/home",
-  "type": "build"
+  "type": "dev"
 }
