@@ -7,7 +7,7 @@ function Home() {
   const handle = () => {
     setTheme(getTheme() === "light" ? "dark" : "light");
   };
-
+  
   return render(() => (
     <div className={`home ${getTheme()}`}>
       <header className="home-header">

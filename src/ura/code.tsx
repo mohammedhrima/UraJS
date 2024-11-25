@@ -472,7 +472,7 @@ function setEventListeners() {
 
 function handleCSSUpdate(filename) {
   const path = normalizePath("/" + filename);
-  console.log(path);
+  // console.log(path);
   let found = false;
 
   document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
@@ -524,6 +524,7 @@ async function sync() {
         }
       }
     } else if (event.action === "reload") {
+      console.log("recieve relaod");
       window.location.reload();
     }
   };

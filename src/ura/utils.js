@@ -9,7 +9,6 @@ export const LOOP = "loop";
 export const CREATE = 1;
 export const REPLACE = 2;
 export const REMOVE = 3;
-
 // CSS
 export function loadCSS(filename) {
   const link = document.createElement("link");
@@ -17,15 +16,18 @@ export function loadCSS(filename) {
   link.href = filename;
   document.head.appendChild(link);
 }
-
 // UTILS
 export function deepEqual(a, b) {
-  if (a === b) return true;
-  if (typeof a !== typeof b) return false;
+  if (a === b)
+    return true;
+  if (typeof a !== typeof b)
+    return false;
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
+    if (a.length !== b.length)
+      return false;
     for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i])) return false;
+      if (!deepEqual(a[i], b[i]))
+        return false;
     }
     return true;
   }
@@ -34,15 +36,16 @@ export function deepEqual(a, b) {
   if (typeof a === "object" && typeof b === "object") {
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
-    if (keysA.length !== keysB.length) return false;
+    if (keysA.length !== keysB.length)
+      return false;
     for (let key of keysA) {
-      if (!keysB.includes(key) || !deepEqual(a[key], b[key])) return false;
+      if (!keysB.includes(key) || !deepEqual(a[key], b[key]))
+        return false;
     }
     return true;
   }
   return false;
 }
-
 // VALID TAGS
 export const validTags = {
   children: [],
@@ -668,7 +671,6 @@ export const validTags = {
   br: [],
   script: [],
 };
-
 export const svgElements = new Set([
   "svg", // The root SVG container
   "path", // Defines a shape with a series of points and commands

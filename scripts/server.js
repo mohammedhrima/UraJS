@@ -1,159 +1,139 @@
-import fs from "fs";
-import path from "path";
+import { join, relative, extname as extension, } from "path";
+import { statSync, rmSync, existsSync, readdirSync, stat, createReadStream } from "fs";
+import net from "net"
 import http from "http";
+import chokidar from "chokidar"
+import { parse_config_file, source, output, root, handleDelete, updateRoutes, handleCopy, GET, SET, logServerMsg, MimeType } from "./utils.js";
+import { logerror, loginfo, logmsg } from "./debug.js";
 import { WebSocketServer, WebSocket } from "ws";
-import UTILS from "./utils.js";
-const {
-  GET,
-  SET,
-  INIT,
-  CHECK_PORT,
-  WATCH,
-  DELETE,
-  COPY,
-  UPDATE_ROUTES,
-  TYPE,
-  LOG,
-} = UTILS;
 
-INIT();
-SET("TYPE", "dev");
-let server;
-let wss;
-const outDir = GET("OUTPUT");
-const rootDir = GET("ROOT");
-const srcDir = GET("SOURCE");
-const timing = GET("SERVER_TIMING");
-const dir_routing = GET("DIR_ROUTING");
-
-if (dir_routing) UPDATE_ROUTES();
-if (GET("STYLE_EXTENTION") !== "tailwind") {
-  let filePath = path.join(GET("SOURCE"), "./pages/tailwind.css");
-  if (fs.existsSync(filePath))
-    fs.unlinkSync(filePath);
-}
-function convertToJs(filePath) {
-  const ext = path.extname(filePath);
-  if (ext === ".jsx" || ext === ".tsx" || ext === ".ts") {
-    return filePath.replace(ext, ".js");
-  }
-  return filePath;
-}
-
-const createServer = (port) => {
-  CHECK_PORT(port, (isInUse, availablePort, error) => {
-    if (error) {
-      console.error(`Error occurred: ${error.message}`);
-      process.exit(1);
-    } else {
-      // console.log(`Starting server on port ${availablePort}...`);
-
-      server = http.createServer((req, res) => {
-        let reqPath = req.url.split("?")[0];
-        let filePath = convertToJs(path.join(outDir, reqPath));
-        if (reqPath === "/") filePath = path.join(rootDir, "index.html");
-        fs.stat(filePath, (err, stats) => {
-          console.log("\x1b[36m%s\x1b[0m", "serve", path.relative(srcDir, filePath));
-          if (err) {
-
-            console.log("\x1b[31m\x1b[1m%s\x1b[0m\n\x1b[33m%s\x1b[0m", path.relative(srcDir, filePath),
-              "Not found!\nIf it's a js|jsx|ts|tsx file, make sure to import it like this 'file/path.(js|jsx|ts|tsx)'");
-            filePath = path.join(rootDir, "./index.html");
-            res.writeHead(200, {
-              "Content-Type": TYPE(path.extname(filePath)),
-            });
-            fs.createReadStream(filePath).pipe(res);
-            // res.writeHead(404, { "Content-Type": "text/plain" });
-            // res.end(`${filePath} Not Found`);
-          } else if (stats.isFile()) {
-            res.writeHead(200, {
-              "Content-Type": TYPE(path.extname(filePath)),
-            });
-            fs.createReadStream(filePath).pipe(res);
-          } else {
-            res.writeHead(404, { "Content-Type": "text/plain" });
-            res.end("Not Found");
-          }
-        });
-      });
-
-      server.listen(availablePort, () => {
-        LOG(availablePort);
-      });
-
-      // Create WebSocket server after HTTP server is ready
-      wss = new WebSocketServer({ server });
-      wss.on("connection", () => {
-        // console.log("Client connected");
-      });
-
-      let notifyTimeout;
-      function notifyClients(message) {
-        if (notifyTimeout) clearTimeout(notifyTimeout);
-        notifyTimeout = setTimeout(() => {
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              if (message) {
-                client.send(JSON.stringify(message));
-              } else {
-                console.warn("send reload");
-                client.send(JSON.stringify({ action: "reload" }));
-                LOG(availablePort);
-              }
-            }
-          });
-        }, timing || 1); // debouncing
-      }
-
-      WATCH(
-        srcDir,
-        ["add", "change", "unlink", "unlinkDir"],
-        {},
-        (_path, event) => {
-          if (event === "unlink" || event === "unlinkDir" || !event) {
-            // console.log(_path, "was deleted");
-            DELETE(_path);
-            if (dir_routing) UPDATE_ROUTES();
-            notifyClients();
-          } else if (event) {
-            COPY(_path);
-            if (/\.scss$|\.css$/.test(_path)) {
-              _path = _path.replace(/\.scss$/, ".css");
-              notifyClients({
-                action: "update",
-                filename: path.relative(srcDir, _path),
-                type: "css",
-              });
-            }
-            // else if (/\.(js|jsx|tsx|ts)$/.test(_path)) {
-            //   console.log("notify client about js");
-            //   notifyClients({
-            //     action: "update",
-            //     filename: "/routes.json",
-            //     type: "json",
-            //   });
-            // }
-            else notifyClients();
-          }
-
-          // notifyClients();
-        }
-      );
-
-      WATCH(path.join(rootDir, "./index.html"), ["change"], {}, (param) => {
-        console.log("index.html file changed");
-        notifyClients();
-      });
-    }
-  });
-};
-
-WATCH(path.join(rootDir, "./config.json"), ["change"], {}, (param) => {
-  console.error(
-    "\x1b[31m%s\x1b[0m",
-    "config.json file changed, restarting the server"
-  );
-  process.exit(1);
+// CLEAR out Directory
+if (existsSync(output)) readdirSync(output).forEach(sub => {
+  let _path = join(output, sub);
+  if (statSync(_path).isDirectory()) rmSync(_path, { recursive: true, force: true })
+  else rmSync(_path)
 });
 
-createServer(GET("PORT"));
+parse_config_file();
+if (GET("STYLE_EXTENTION") !== "tailwind" && existsSync(join(source, "./pages/tailwind.css")))
+  rmSync(join(source, "./pages/tailwind.css"))
+SET("TYPE", "dev");
+updateRoutes()
+
+async function getAvailablePort(port) {
+  const isAvailable = (port) =>
+    new Promise((resolve) => {
+      const server = net.createServer({ reuseAddress: true });
+      server.once("error", () => resolve(false));
+      server.once("listening", () => server.close(() => resolve(true)));
+      server.listen(port);
+    });
+
+  while (!(await isAvailable(port))) {
+    console.log(`Port ${port} is in use, trying port ${++port}...`);
+  }
+  return port;
+}
+
+async function createServer() {
+  let port = await getAvailablePort(GET("PORT"));
+
+  let server = http.createServer((req, res) => {
+    let uri = req.url.split("?")[0];
+
+    if (uri === "/") uri = join(root, "index.html");
+    else if (uri.startsWith("/node_modules/")) {
+      loginfo("requesting from node_modules", uri);
+      uri = join(root, uri)
+    }
+    else
+      uri = join(output, uri);
+
+    if ([".jsx", ".tsx", ".ts"].includes(extension(uri))) {
+      uri = uri.replace(extension(uri), ".js");
+    }
+
+    stat(uri, (err, stats) => {
+      logmsg("serve", relative(output, uri));
+      if (err) {
+        logerror(
+          uri,
+          "Not found!\n",
+          "If it's a js|jsx|ts|tsx file\n",
+          "make sure to import it like this 'file/path.(js|jsx|ts|tsx)'"
+        );
+        uri = join(root, "index.html");
+        res.writeHead(200, { "Content-Type": MimeType(extension(uri)) });
+        createReadStream(uri).pipe(res);
+      } else if (stats.isFile()) {
+        res.writeHead(200, { "Content-Type": MimeType(extension(uri)) });
+        createReadStream(uri).pipe(res);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found");
+      }
+    });
+  });
+
+  server.listen(port, () => {
+    logServerMsg(port);
+  });
+
+  const wss = new WebSocketServer({ server });
+  wss.on("connection", (socket) => { /* sockets.add(socket) */ });
+
+  let timeout = null;
+  function notifyClient(message) {
+    // console.log("emit event");
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(message));
+      });
+    }, GET("SERVER_TIMING") || 1);
+  }
+
+  function watch_path(watchPath, events, callback) {
+    const watch = chokidar.watch(watchPath, {});
+    events.forEach((event) => watch.on(event, callback));
+    watch.on("error", (error) => console.error(`watch_path error: ${error}`));
+  }
+
+  watch_path(source, ["add", "change"], (pathname, event) => {
+    if (event) {
+      let message = null;
+      handleCopy(pathname);
+      if (pathname !== join(source, "/pages/tailwind.css") && [".scss", ".css"].includes(extension(pathname))) message = { action: "update", filename: relative(source, pathname), type: "css" }
+      else message = { action: "reload" };
+      // console.log("> ", event);
+      if (([".js", ".jsx", ".ts", ".tsx"].includes(extension(pathname)))) {
+        updateRoutes();
+        message = { action: "reload" };
+      }
+      notifyClient(message)
+    }
+  })
+  watch_path(source, ["unlink", "unlinkDir"], (pathname, event) => {
+    // if (event) {
+    handleDelete(pathname);
+    updateRoutes();
+    notifyClient();
+    // }
+  })
+
+
+  const arr = ["index.html", "config.json"].forEach(elem => {
+    watch_path(join(root, elem), ["change"], async () => {
+      if (elem === "config.json") {
+        logerror("config.json did changed restart the server");
+        process.exit(0);
+      }
+      else
+        loginfo(elem, "changed");
+      notifyClient({ action: "reload" });
+    })
+  })
+  return server;
+}
+
+createServer();

@@ -1,7 +1,7 @@
 {
   "DEFAULT_ROUTE": "/home",
-  "EXTENSION": "jsx",
-  "STYLE_EXTENTION": "scss",
+  "EXTENSION": "tsx",
+  "STYLE_EXTENTION": "tailwind",
   "PORT": 17000,
   "SERVER_TIMING": 15,
   "DIR_ROUTING": true,

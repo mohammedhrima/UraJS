@@ -1,7 +1,8 @@
-import fs from "fs";
-import path from "path";
-import UTILS from "./utils.js";
-const { SET, GET, CHECK_PORT, UPDATE_ROUTES, COPY, INIT } = UTILS;
+import { root, SET, GET, parse_config_file } from "./utils.js";
+import { mkdirSync, writeFileSync, existsSync, readdirSync, copyFileSync } from "fs";
+import { join ,relative} from "path";
+import net from "net";
+import { logerror, loginfo } from "./debug.js";
 
 const nginx = (port) => `# nginx/nginx.conf
 events {
@@ -84,18 +85,53 @@ clean: down # clear
 re: clean all
 `;
 
-CHECK_PORT(GET("PORT"), (isInUse, availablePort, error) => {
-  INIT();
-  SET("TYPE", "build");
-  UPDATE_ROUTES();
-  COPY(GET("SOURCE"));
 
-  let port = availablePort;
-  console.log("final port", port);
-  // process.exit(1);
+function getAvailablePort(port) {
+  const isAvailable = (port) =>
+    new Promise((resolve) => {
+      const server = net.createServer({ reuseAddress: true });
+      server.once("error", () => resolve(false));
+      server.once("listening", () => server.close(() => resolve(true)));
+      server.listen(port);
+    });
+
+  while (!(isAvailable(port))) {
+    console.log(`Port ${port} is in use, trying port ${++port}...`);
+  }
+  return port;
+}
+
+function createFile(filePath, data) {
+  if (!existsSync(filePath)) {
+    try {
+      writeFileSync(filePath, data);
+      console.log(relative(root, filePath), "created and data written successfully.");
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  }
+}
+
+function copyDir(src, dest) {
+  loginfo("copy", src);
+  mkdirSync(dest, { recursive: true });
+  readdirSync(src, { withFileTypes: true }).forEach(entry => {
+    const srcPath = join(src, entry.name);
+    const destPath = join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(srcPath, destPath);
+    else copyFileSync(srcPath, destPath);
+  });
+}
+
+try {
+  parse_config_file();
+  SET("TYPE", "build");
+
+  let port = getAvailablePort(GET("PORT"));
+  console.log("available port", port);
 
   ["./docker/app", "./docker/nginx"].map((subDir) => {
-    fs.mkdirSync(path.join(GET("ROOT"), subDir), { recursive: true }, (err) => {
+    mkdirSync(join(root, subDir), { recursive: true }, (err) => {
       if (err) {
         console.error("Error:", err);
       } else {
@@ -104,46 +140,14 @@ CHECK_PORT(GET("PORT"), (isInUse, availablePort, error) => {
     });
   });
 
-  async function createFile(filePath, data) {
-    if (!fs.existsSync(filePath)) 
-      {
-      try {
-        await fs.writeFileSync(filePath, data);
-        console.log("File created and data written successfully.");
-      } catch (err) {
-        console.error("Error:", err);
-      }
-    }
-  }
+  createFile(join(root, "./docker/nginx/nginx.conf"), nginx(port));
+  createFile(join(root, "./docker/Dockerfile"), dockerfile(port));
+  createFile(join(root, "./docker/docker-compose.yml"), dockerCompose(port));
+  createFile(join(root, "./docker/Makefile"), makefile(port));
+  copyFileSync(join(root, "./index.html"), join(root, "./docker/app/index.html"));
+  copyDir(join(root, "./out"), join(root, "./docker/app"))
 
-  async function copyDir(src, dest) {
-    await fs.mkdirSync(dest, { recursive: true });
-    const entries = await fs.readdirSync(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-      if (entry.isDirectory()) await copyDir(srcPath, destPath);
-      else await fs.copyFileSync(srcPath, destPath);
-    }
-  }
-
-
-  createFile(path.join(GET("ROOT"), "./docker/nginx/nginx.conf"), nginx(port));
-  createFile(path.join(GET("ROOT"), "./docker/Dockerfile"), dockerfile(port));
-  createFile(path.join(GET("ROOT"), "./docker/docker-compose.yml"), dockerCompose(port));
-  createFile(path.join(GET("ROOT"), "./docker/Makefile"), makefile(port));
-
-  fs.copyFileSync(
-    path.join(GET("ROOT"), "./index.html"),
-    path.join(GET("ROOT"), "./docker/app/index.html")
-  );
-
-  copyDir(
-    path.join(GET("ROOT"), "./out"),
-    path.join(GET("ROOT"), "./docker/app")
-  )
-    .then(() => console.log("All files copied successfully."))
-    .catch((err) => console.error("Error during copy:", err));
-  SET("type", "dev");
-});
+  SET("TYPE", "dev");
+} catch (error) {
+  logerror("Error", error)
+}

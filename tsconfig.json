@@ -1,20 +1,23 @@
-{
-    "compilerOptions": {
-      "module": "ESNext",
-      "target": "ES2020",
-      "rootDir": "src",
-      "outDir": "out",
-      "jsx": "react",
-      "jsxFactory": "Ura.element",
-      "jsxFragmentFactory": "Ura.fragment",
-      "moduleResolution": "node",
-      "baseUrl": ".",
-      "skipLibCheck": false,
-      "allowJs": true,
-      "resolveJsonModule": true,
-      "esModuleInterop": true
-    },
-    "include": ["src/**/*"],
-    "exclude": ["src/progress/*"]
-  }
-  
+
+{ 
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2020",
+    "rootDir": "src", // Set rootDir to the project root
+    "outDir": "out", // Set outDir to 'out' directory
+    "baseUrl": ".", // Set baseUrl to project root
+
+    "jsx": "react",
+    "jsxFactory": "Ura.element",
+    "jsxFragmentFactory": "Ura.fragment",
+    "moduleResolution": "node",
+    "skipLibCheck": false,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/module/*": ["src/module/*"]
+    }
+  },
+  "exclude": ["node_modules", "scripts", ".git", ".gitignore"] // Exclude 'node_modules' and 'scripts'
+}

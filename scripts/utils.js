@@ -1,17 +1,224 @@
-import path from "path";
+import { dirname, join, relative, extname as extension, basename, } from "path";
+import { writeFileSync, statSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync, unlinkSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import ts from "typescript";
-import fs from "fs";
-import net from "net";
-import chokidar from "chokidar";
 import * as sass from "sass";
-import { writeFile } from 'fs/promises';
 import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
+import { logerror, loginfo, logmsg } from "./debug.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+export const source = join(__dirname, "../src");
+export const output = join(__dirname, "../out");
+export const root = join(__dirname, "../");
 
-function getMimeType(ext) {
-  const mimeTypes = {
+const tsConfigPath = join(__dirname, "../tsconfig.json");
+const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
+const parsedConfig = ts.parseJsonConfigFileContent(tsConfig, ts.sys, dirname(tsConfigPath));
+
+export function handleTypeScript(srcFile) {
+  loginfo("transpile:", relative(source, srcFile))
+  const program = ts.createProgram([srcFile], parsedConfig.options);
+  const emitResult = program.emit();
+  const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+  if (allDiagnostics.length > 0) {
+    allDiagnostics.forEach((diagnostic) => {
+      if (diagnostic.file && diagnostic.start !== undefined) {
+        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
+        logerror(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+      } else
+        logerror(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+    });
+  }
+  handleTailwind();
+};
+
+export function handleSass(pathname) {
+  loginfo("transpile:", relative(source, pathname))
+  try {
+    if (statSync(pathname).isDirectory()) {
+      readdirSync(pathname).forEach(elem => handleSass(join(pathname, elem)))
+    }
+    else {
+      const result = sass.compile(pathname);
+      let sassfile = pathname.replace(source, output);
+      sassfile = join(dirname(sassfile), basename(sassfile, ".scss") + ".css");
+      if (!existsSync(dirname(sassfile))) mkdirSync(dirname(sassfile), { recursive: true })
+      writeFileSync(sassfile, result.css);
+    }
+  } catch (error) {
+    logerror("Error Sass:", pathname, error)
+  }
+}
+
+function handleSubSassfiles(parent) {
+  readdirSync(parent).forEach(sub => {
+    sub = join(parent, sub)
+    if (statSync(sub).isDirectory())
+      handleSubSassfiles(sub);
+    else if (statSync(sub).isFile() && /\.(scss)$/i.test(sub))
+      handleSass(sub);
+  })
+}
+
+export function handleCopy(pathname) {
+  try {
+    const dest = pathname.replace(source, output);
+    if (!existsSync(dirname(dest))) mkdirSync(dirname(dest), { recursive: true });
+
+    if (statSync(pathname).isDirectory()) {
+      readdirSync(pathname).forEach((elem) => handleCopy(join(pathname, elem)));
+    }
+    else if ([".js", ".jsx", ".ts", ".tsx"].includes(extension(pathname))) {
+      handleTypeScript(pathname);
+    } else if (extension(pathname) === ".scss") {
+      if (pathname == join(source, "pages/global.scss")) {
+        logmsg("global.scss get modified, retranspile children scss files")
+        handleSubSassfiles(join(source, "/pages"))
+      }
+      else
+        handleSass(pathname);
+    }
+    else {
+      loginfo("Copy", relative(source, pathname));
+      copyFileSync(pathname, dest);
+    }
+  } catch (error) {
+    logerror("Error copying:", pathname, error);
+
+  }
+}
+
+export function handleDelete(srcname) {
+  const outname = srcname.replace(source, output)
+    .replace(/\.(ts|tsx|jsx|js)$/i, ".js")
+    .replace(/\.(scss|css)$/i, ".css");
+  try {
+    if (statSync(outname).isDirectory()) {
+      rmSync(outname, { recursive: true, force: true });
+      logmsg("Deleted directory:", relative(output, outname));
+      return;
+    }
+    let extensions = null;
+    if (/\.(ts|tsx|jsx|js)$/i.test(srcname)) extensions = [".ts", ".tsx", ".jsx", ".js"];
+    else if (/\.(scss|css)$/i.test(srcname)) extensions = [".scss", ".css"];
+
+    if (extensions) {
+      const basePath = srcname.replace(/\.(ts|tsx|jsx|js|scss|css)$/i, "");
+      if (extensions.some((ext) => existsSync(basePath + ext))) {
+        logmsg("Skipping deletion, source exists:", basePath);
+        return;
+      }
+    }
+    unlinkSync(outname);
+    loginfo("Deleted file:", relative(output, outname));
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      logerror("File or directory does not exist:", relative(output, outname));
+    } else {
+      logerror("Error deleting:", relative(output, outname), error);
+    }
+  }
+}
+
+export function handleTailwind() {
+  if (GET("STYLE_EXTENTION") !== "tailwind") return;
+  const inputCSS = `
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+`;
+  const tailwindConfig = {
+    content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+    theme: { extend: {} },
+    plugins: [],
+  }
+  try {
+    const tailwindPath = join(source, './pages/tailwind.css');
+    const processor = postcss([tailwindcss(tailwindConfig)]);
+    processor.process(inputCSS, { from: undefined }).then((result) => {
+      writeFileSync(tailwindPath, result.css, 'utf-8');
+    })
+      .catch((err) => {
+        throw new Error(`Error generating CSS: ${err.message}`);
+      });
+  } catch (err) {
+    console.error(err.message);
+  }
+
+}
+
+export function logServerMsg(port) {
+  console.clear();
+  console.log(`
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+\x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+\x1b[1m\x1b[32m    open http://localhost:${port}               \x1b[0m
+\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
+    `);
+}
+
+let data = null;
+export function parse_config_file() {
+  try { data = JSON.parse(readFileSync(join(__dirname, "../config.json"))) }
+  catch (error) { logerror("Error: opening config.json", error); process.exit(1); }
+}
+
+export const GET = (name) => {
+  if (data == null) parse_config_file();
+  return data[name];
+}
+export const SET = (name, value) => data[name] = value;
+
+let routes = [];
+let styles = [];
+function generateRoutes(dir, parent, adding) {
+  readdirSync(dir, { withFileTypes: true }).forEach(sub => {
+    let tmp = adding;
+    if (sub.isDirectory()) {
+      const currRoute = `${parent}/${sub.name}`;
+      if (adding) {
+        let file = null;
+        [".js", ".jsx", ".ts", ".tsx"].forEach((ext) => {
+          const curr = join(dir, sub.name, `${sub.name}${ext}`);
+          if (existsSync(curr)) {
+            file = curr;
+            return;
+          }
+        })
+        if (file !== null)
+          routes[currRoute] = `/pages${parent}/${sub.name}/${sub.name}.js`;
+        else
+          adding = false;
+      }
+      generateRoutes(join(dir, sub.name), currRoute, adding);
+    }
+    else if (sub.isFile() && /\.(css|scss)$/.test(sub.name))
+      styles.push(`/pages${parent}/${basename(sub.name).replace(/\.(scss)$/i, ".css")}`)
+    adding = tmp;
+  })
+}
+
+export function updateRoutes() {
+  if (!data["DIR_ROUTING"]) return;
+  routes = {};
+  styles = [];
+  generateRoutes(join(source, "/pages"), "", true);
+  let output = {
+    routes,
+    styles,
+    base: GET("DEFAULT_ROUTE"),
+    type: GET("TYPE") === "dev" ? "dev" : "build"
+  }
+  writeFileSync(join(source, "/pages/routes.json"), JSON.stringify(output, null, 2), "utf8");
+  loginfo("Routes updated");
+}
+
+export function MimeType(ext) {
+  return {
     ".html": "text/html",
     ".htm": "text/html",
     ".css": "text/css",
@@ -91,330 +298,6 @@ function getMimeType(ext) {
     ".kmz": "application/vnd.google-earth.kmz",
     ".vcf": "text/vcard",
     ".ics": "text/calendar",
-  };
-  return mimeTypes[ext] || "application/octet-stream";
-}
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// TRANSPILE
-const tsConfigPath = path.join(__dirname, "../tsconfig.json");
-const tsConfig = ts.readConfigFile(tsConfigPath, ts.sys.readFile).config;
-const parsedConfig = ts.parseJsonConfigFileContent(
-  tsConfig,
-  ts.sys,
-  path.dirname(tsConfigPath)
-);
-
-const compileTypeScript = (srcFilePath, outFilePath) => {
-  const program = ts.createProgram([srcFilePath], parsedConfig.options);
-  const emitResult = program.emit();
-  const allDiagnostics = ts
-    .getPreEmitDiagnostics(program)
-    .concat(emitResult.diagnostics);
-  if (allDiagnostics.length > 0) {
-    allDiagnostics.forEach((diagnostic) => {
-      if (diagnostic.file && diagnostic.start !== undefined) {
-        const { line, character } =
-          diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
-        console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
-      } else
-        console.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
-    });
-  } else {
-    // Write compiled JavaScript to output file
-    const outputText = ts.transpileModule(
-      fs.readFileSync(srcFilePath, "utf-8"),
-      { compilerOptions: parsedConfig.options }
-    ).outputText;
-    fs.writeFileSync(outFilePath, outputText, "utf-8");
-  }
-};
-
-// TAILWINDS
-const inputCSS = `
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-`;
-
-const tailwindConfig = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+  }[ext] || "application/octet-stream";
 }
 
-async function generateCSSfromTailwinds() {
-  try {
-    const result = await postcss([tailwindcss(tailwindConfig)]).process(inputCSS, { from: undefined });
-    await writeFile(path.join(GET("SOURCE"), './pages/tailwind.css'), result.css);
-    console.log(`update tailwind styling`);
-  } catch (err) {
-    console.error('Error generating CSS:', err);
-  }
-}
-
-// HANDLE FILES
-function Delete(srcPath) {
-  let outPath = srcPath.replace("src", "out");
-
-  try {
-    // Check if the output path is a directory
-    if (fs.statSync(outPath).isDirectory()) {
-      fs.rmSync(outPath, { recursive: true, force: true });
-      console.log("Deleted directory:", outPath);
-      return;
-    }
-
-    let extensions = null;
-    let srcExists = false;
-
-    // Check if the file is a source file that could have multiple extensions
-    if (/\.(ts|tsx|jsx|js)$/i.test(srcPath)) {
-      extensions = [".ts", ".tsx", ".jsx", ".js"];
-    } else if (/\.(scss|css)$/i.test(srcPath)) {
-      extensions = [".scss", ".css"];
-    }
-
-    // If extensions were set (meaning the file could have multiple extensions), check for their existence
-    if (extensions !== null && extensions.length) {
-      // Remove the extension from the path
-      let basePath = srcPath.replace(/\.(ts|tsx|jsx|js|scss|css)$/i, "");
-
-      // Check if any of the extensions exist in the source path
-      srcExists = extensions.some((ext) => fs.existsSync(basePath + ext));
-
-      // If alternative source file exists, skip the delete
-      if (srcExists) {
-        console.log("Skipping delete as alternative exists in src:", basePath);
-        return;
-      }
-    }
-
-    // If it's a file, delete it
-    console.log("Deleted file:", outPath);
-    fs.unlinkSync(outPath);
-  } catch (error) {
-    // If the file or directory doesn't exist (ENOENT), ignore it
-    if (error.code !== "ENOENT") {
-      console.error("Error deleting:", outPath, error);
-    }
-  }
-}
-
-let CONFIG = null;
-
-function open_config() {
-  try {
-    // Read and parse the config.json file
-    const configPath = path.join(__dirname, "../config.json");
-    const data = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-
-    // Add calculated paths to the config object
-    data["SOURCE"] = path.join(__dirname, "../src");
-    data["OUTPUT"] = path.join(__dirname, "../out");
-    data["ROOT"] = path.join(__dirname, "../");
-
-    // If STYLE_EXTENSION is "tailwind", ensure the file exists
-    if (data["STYLE_EXTENTION"] === "tailwind") {
-      const tailwindPath = path.join(data["SOURCE"], "tailwind.css");
-      if (!fs.existsSync(tailwindPath)) {
-        fs.writeFileSync(tailwindPath, "/* Initial Tailwind CSS file */");
-        console.log(`Created: ${tailwindPath}`);
-        generateCSSfromTailwinds();
-      }
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error in open_config:", error.message);
-    throw error;
-  }
-}
-
-const GET = (name) => {
-  if (CONFIG == null) CONFIG = open_config();
-  return CONFIG[name];
-};
-
-function transpileSass(src, dest) {
-  try {
-    const result = sass.compile(src);
-    if (!fs.existsSync(path.dirname(dest))) {
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-    }
-    fs.writeFileSync(dest, result.css);
-  } catch (error) {
-    console.error("Error compiling Sass:", error);
-  }
-}
-
-function transpileSassDirectory(srcDir, destDir) {
-  fs.readdirSync(srcDir).forEach((file) => {
-    const fullPath = path.join(srcDir, file);
-    const destPath = path.join(destDir, file.replace(/\.scss$/, ".css"));
-
-    if (fs.statSync(fullPath).isDirectory()) {
-      transpileSassDirectory(fullPath, path.join(destDir, file));
-    } else if (/\.(scss)$/i.test(file)) {
-      transpileSass(fullPath, destPath);
-    }
-  });
-}
-
-function Copy(src) {
-  try {
-    const dest = src.replace("src", "out");
-    // Check if src is a directory
-    if (fs.lstatSync(src).isDirectory()) {
-      const entries = fs.readdirSync(src); // Get all items in the directory
-      entries.forEach((entry) => {
-        const fullPath = path.join(src, entry); // Construct the full path for each item
-        Copy(fullPath); // Recursively call Copy on each item
-      });
-    } else if (!/\.(ts|tsx|jsx|js|scss)$/i.test(src)) {
-      console.log("Copy", path.relative(GET("SOURCE"), src));
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(src, dest);
-    } else if (/\.(ts|tsx|jsx|js)$/i.test(src)) {
-      const Jsfile = dest.replace(/\.(ts|tsx|jsx|js)$/i, ".js");
-      console.log("Transpile", path.relative(GET("SOURCE"), src));
-      compileTypeScript(src, Jsfile);
-    } else if (/\.(scss)$/i.test(src)) {
-      console.log("Transpile Sass", path.relative(GET("SOURCE"), src));
-      const outputFileName = path.basename(src, ".scss") + ".css";
-      if (outputFileName === "global.css") {
-        transpileSassDirectory(GET("SOURCE"), GET("OUTPUT"));
-      } else {
-        const destDir = path.dirname(dest);
-        transpileSass(src, path.join(destDir, outputFileName));
-      }
-    }
-  } catch (error) {
-    console.error("An error occurred while copying file:", src, error);
-  }
-}
-
-// ROUTING
-const pagesDir = path.join(GET("SOURCE"), "pages");
-const routesFile = path.join(pagesDir, "routes.json");
-let routes = {};
-let styles = [];
-
-function generateRoutes(dirPath, parentRoute, addingRoute) {
-  const Contents = fs.readdirSync(dirPath, { withFileTypes: true });
-  Contents.forEach((sub) => {
-    if (sub.isDirectory()) {
-      const currentRoute = `${parentRoute}/${sub.name}`;
-      if (addingRoute) {
-        const Extensions = [".js", ".jsx", ".ts", ".tsx"];
-
-        let filePath = null;
-        for (const ext of Extensions) {
-          const curr = path.join(dirPath, sub.name, `${sub.name}${ext}`);
-          if (fs.existsSync(curr)) {
-            filePath = curr;
-            break;
-          }
-        }
-        if (filePath !== null)
-          routes[currentRoute] = `/pages${parentRoute}/${sub.name}/${sub.name}.js`;
-        else addingRoute = false;
-      }
-      generateRoutes(path.join(dirPath, sub.name), currentRoute, addingRoute);
-    } else if ( sub.isFile() && /\.(css|scss)$/.test(sub.name)) {
-      const cssFile = `/pages${parentRoute}/${path.basename(sub.name).replace(/\.(scss|css)$/i, ".css")}`;
-      // console.log("parent", parentRoute);
-      // console.log("append", path.basename(sub.name).replace(/\.(scss|css)$/i, ".css"));
-      // console.log(cssFile);
-      styles.push(cssFile);
-    }
-  });
-}
-
-// Write the updated Routes array to Routes.js
-function updateRoutes() {
-  routes = {};
-  styles = [];
-  generateRoutes(pagesDir, "", true);
-  if (GET("STYLE_EXTENTION") === "tailwindcss") {
-    generateCSSfromTailwinds()
-    styles.push("/pages/tailwind.css")
-  }
-  fs.writeFileSync(
-    routesFile,
-    JSON.stringify(
-      {
-        routes,
-        styles,
-        base: GET("DEFAULT_ROUTE"),
-        type: GET("TYPE") === "dev" ? "dev" : "build",
-      },
-      null,
-      2
-    ),
-    "utf8"
-  );
-  console.log("Routes file updated successfully!");
-  // process.exit(1);
-}
-
-// CHECK PORT
-function checkPortInUse(port, callback) {
-  const server = net.createServer();
-  server.once("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-      console.log(`Port ${port} is in use, trying port ${port + 1}...`);
-      return checkPortInUse(port + 1, callback);
-    } else {
-      callback(false, port, err);
-    }
-  });
-  server.once("listening", () => {
-    server.close();
-    callback(false, port);
-  });
-  server.listen(port);
-}
-
-// WATCH FILE ONCHANGE
-function Watcher(watchPath, events, param, callback) {
-  const watch = chokidar.watch(watchPath, param || {});
-  events.forEach((event) => {
-    // console.log(watchPath, "changed");
-    watch.on(event, callback);
-  });
-  watch.on("error", (error) => console.error(`Watcher error: ${error}`));
-  // console.log(`Started watching: ${path.relative("../", watchPath)}`);
-}
-
-function logServerMsg(port) {
-  console.clear();
-  console.log(`
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-\x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-\x1b[1m\x1b[32m    open http://localhost:${port}               \x1b[0m
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-    `);
-}
-
-const UTILS = {
-  GET: (name) => CONFIG[name],
-  SET: (name, value) => {
-    CONFIG[name] = value;
-  },
-  INIT: () => (CONFIG = open_config()),
-  TYPE: getMimeType,
-  DELETE: Delete,
-  COPY: Copy,
-  UPDATE_ROUTES: updateRoutes,
-  CHECK_PORT: checkPortInUse,
-  WATCH: Watcher,
-  LOG: logServerMsg,
-};
-
-export default UTILS;

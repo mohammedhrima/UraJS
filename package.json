@@ -7,19 +7,19 @@
     "start": "rm -rf ./out/* && node ./scripts/server.js",
     "gen": "node ./scripts/new-route.js",
     "clear": "rm -rf ./out/*",
-    "build": "node ./scripts/build.js"
+    "build": "node ./scripts/build.js",
+    "install-pages": "npm install --prefix ./pages"
   },
   "author": "Hrima Mohammed",
   "license": "MIT",
-  "dependencies": {
-    "chokidar": "^4.0.1",
-    "typescript": "^5.6.3",
-    "ws": "^8.18.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "autoprefixer": "^10.4.20",
+    "chokidar": "^4.0.1",
     "postcss": "^8.4.49",
     "sass": "^1.80.6",
-    "tailwindcss": "^3.4.15"
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "ws": "^8.18.0"
   }
 }
