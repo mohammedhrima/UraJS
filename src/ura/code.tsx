@@ -434,7 +434,7 @@ async function loadRoutes() {
   try {
     const response = await fetch("/pages/routes.json");
     const data = await response.json();
-    console.log("data", data);
+    // console.log("data", data);
     
     return data;
   } catch (error) {
@@ -519,14 +519,14 @@ async function sync() {
           loadCSSFiles(styles);
           setEventListeners();
           Ura.refresh();
-          console.log("data2 :", data);
+          // console.log("data2 :", data);
           console.log(Ura.Routes);
         } catch (error) {
           console.error("Error during JSON update:", error);
         }
       }
     } else if (event.action === "reload") {
-      console.log("recieve relaod");
+      console.log("receive relaod");
       window.location.reload();
     }
   };
