@@ -32,8 +32,8 @@ function element(tag: Tag, props: Props = {}, ...children: any) {
     let functag = null;
     try {
       functag = tag(props || {}, children);
+      if(!functag) throw `function must return render(()=>(JSX)): ${tag}`
     } catch (error) {
-      // console.error("Error: while rendering", tag);
       console.error(error);
       return {
         type: FRAGMENT,
@@ -434,6 +434,8 @@ async function loadRoutes() {
   try {
     const response = await fetch("/pages/routes.json");
     const data = await response.json();
+    console.log("data", data);
+    
     return data;
   } catch (error) {
     console.error("Error loading routes.json:", error);
@@ -517,7 +519,7 @@ async function sync() {
           loadCSSFiles(styles);
           setEventListeners();
           Ura.refresh();
-          console.log(data);
+          console.log("data2 :", data);
           console.log(Ura.Routes);
         } catch (error) {
           console.error("Error during JSON update:", error);
@@ -552,6 +554,8 @@ async function activate() {
     Ura.refresh();
     console.log(data);
     console.log(Ura.Routes);
+    if(!type) console.error("type error");
+    
     if (type === "dev") sync();
   } catch (error) {
     console.error("Error loading resources:", error);
