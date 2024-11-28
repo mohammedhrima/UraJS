@@ -70,7 +70,9 @@ To get started with **UraJS**, follow these simple steps:
 
 ## Usage
 
-Once the development server is running, you can begin creating your app. **UraJS** uses a file-based routing system, meaning that the structure of your project’s files will directly map to your routes. Simply add a new file in the `pages` directory to create a new route.
+Once the development server is running, you’re ready to start building your app. **UraJS** features a file-based routing system, where your project’s directory structure maps directly to application routes. To create a new route, simply add a directory within the `pages` folder. Inside this directory, include a `.jsx`, `.js`, `.ts`, or `.tsx` file with the same name as the directory. This file will automatically become the component for that route.
+
+This approach keeps your routing intuitive and ensures your project remains organized as it grows.
 
 For example:
 - `pages/about/about.jsx` maps to the `/about` route.
