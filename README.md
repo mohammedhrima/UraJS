@@ -405,57 +405,72 @@ To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to
 
 ## HTTP Requests
 ```js
-   import Ura from "ura";
-       
-   function Form() {
-     const [render, State] = Ura.init();
-     const [getUsers, setUsers] = State(0);
-     const POST = async (e) => {
-       e.preventDefault();
-       const name = document.getElementById("user_name").value;
-       const email = document.getElementById("user_email").value;
-       Ura.send(
-         "POST", 
-         "http://localhost:3000/create_user",
-         {/*additional header */ },
-         { name, email }
-       )
-       .then((res) => { if (res.status != 201) console.error("Error creating user"); })
-       .catch((error) => { console.error("Error:", error); });
-     };
-   
-     const GET = async (e) => {
-       e.preventDefault();
-       Ura.send(
-         "GET", 
-         "http://localhost:3000/users"
-       )
-       .then((res) => { if (res.status === 200) setUsers(res.data); else console.error("Error updating users"); })
-       .catch((error) => { console.error("Error:", error); });
-     };
-   
-     return render(() => (
-       <div className="form">
-         <h1>Form</h1>
-         <form action="userForm" onsubmit={POST}>
-           <input type="text" id="user_name" />
-           <input type="text" id="user_email" />
-           <button type="submit">Create User</button>
-         </form>
-   
-         <h1>Get All Users</h1>
-         <button onclick={GET}>Get users</button>
-         <loop on={getUsers()}>{(elem) => <h1>{elem.name}</h1>}</loop>
-       </div>
-     ));
-   }
-   
-   export default Form;
+import Ura from "ura";
+
+function Form() {
+  const [render, State] = Ura.init();
+  const [getUsers, setUsers] = State(0);
+
+  const POST = async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("user_name").value;
+    const email = document.getElementById("user_email").value;
+
+    try {
+      const response = await Ura.send("POST","http://localhost:3000/create_user",
+        { "Content-Type": "application/json"},
+        { name, email }
+      );
+      if (response.error) console.error("Error:", response.message);
+      else if (response.status !== 201) console.error("Error:", response.data);
+      else console.log("User created successfully:", response.data);
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    }
+  };
+
+  const GET = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await Ura.send("GET","http://localhost:3000/users",
+        { "Content-Type": "application/json"});
+
+      if (response.error) console.error("Error:", response.message);
+      else if (response.status !== 200) console.error("Error fetching users:", response.data);
+      else {
+        console.log("Users fetched successfully:", response.data)
+        setUsers(response.data)
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    }
+  };
+
+  return render(() => (
+    <div className="form">
+      <h1>Form</h1>
+      <form action="userForm" onsubmit={POST}>
+        <input type="text" id="user_name" placeholder="Name" />
+        <input type="email" id="user_email" placeholder="Email" />
+        <button type="submit">Create User</button>
+      </form>
+
+      <h1>Get All Users</h1>
+      <button onclick={GET}>Get Users</button>
+
+      <loop on={getUsers()}>{(elem) => <h1>{elem.name}</h1>}</loop>
+    </div>
+  ));
+}
+
+export default Form;
 ```
-UraJS provides a simple and efficient way to send HTTP requests using the Ura.send() method. This allows you to make any valid requests to your server or any other API endpoint.
-Here’s how it works:
+UraJS simplifies HTTP request handling with the Ura.send() method. This utility allows you to seamlessly interact with your server or any API endpoint. Below is a detailed explanation of how to use Ura.send() for common request types::
+
 ### POST Request (Sending Data)
-The POST function is triggered when the user submits the form. It prevents the default form submission behavior (e.preventDefault()), extracts the data from the form fields, and sends it to the server:
+The POST function is used to send data to the server. For example, when a form is submitted, the POST function gathers input data, prevents the default browser behavior, and sends the data to a specified endpoint.
 
 **Explanation**:
 + Ura.send(): Sends an HTTP request.
@@ -463,16 +478,23 @@ The POST function is triggered when the user submits the form. It prevents the d
     + URL: The endpoint to which the data is sent.
     + Headers: Optional headers (such as authentication).
     + Body: Data you want to send in the request (e.g., name and email).
-    + `.then()`: Handles a successful response. If the server responds with a status code other than 201 (created), it logs an error.
-    + `.catch()`: Catches any errors (e.g., network issues) and logs them.
++ Response Handling
+    + response.error: Logs any errors during the request process (e.g., network errors).
+    + response.status: Checks for specific HTTP status codes to ensure the request succeeded (201 indicates a resource was created).
+    + Success: Logs the response data for a successful request.
 
 ### GET Request (Fetching Data)
-The GET function is used to retrieve all users from the server:
+The GET function is used to retrieve data from the server, such as fetching a list of users.
+
 **Explanation**:
-+ Ura.send("GET", ...): Sends a GET request to fetch data.
-    + URL: The endpoint to fetch the data from.
-    + `.then()`: Handles the response. If the response status is 200 (success), it updates the state with the fetched data (setUsers(res.data)).
-    + `.catch()`: Catches errors and logs them.
++ Ura.send(): Sends an HTTP request.
+    + Method: GET (to get data).
+    + URL: The endpoint to which the data is sent.
+    + Headers: Optional headers (such as authentication).
++ Response Handling
+    + response.error: Logs any errors during the request process (e.g., network errors).
+    + response.status: Checks the HTTP status code to confirm successful data retrieval (200 indicates success).
+    + Success: Updates the state with the fetched data (e.g., `setUsers(response.data)`).
 
 ## Custom Tags
 ### `<loop>`:
