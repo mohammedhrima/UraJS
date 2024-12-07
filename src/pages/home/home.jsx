@@ -13,7 +13,7 @@ function Home() {
       <header className="home-header">
         <h1>Welcome to UraJS</h1>
         <p>
-          Get started by editing <code>src/pages/Home.[js|ts|jsx|tsx]</code>
+          Get started by editing <code>src/pages/home/home.[js|ts|jsx|tsx]</code>
         </p>
         <a
           className="home-link"
