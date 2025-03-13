@@ -4,13 +4,13 @@ import List from '../../components/list.jsx';
 
 // Home route
 const [render, State] = Ura.init();
-const [getValue, setValue] = State(0);
 
 const Home = render((props) => {
+  const [getValue, setValue] = State(0);
   return (
     <root>
       <div className="home">
-        <Navbar />
+        {/* <Navbar /> */}
         <section className="hero">
           <h1>Welcome to UraJS</h1>
           <p>A lightweight, modern framework for building web applications.</p>
@@ -30,9 +30,10 @@ const Home = render((props) => {
           </div>
         </section>
       </div>
-      <List/>
+      {/* <List/> */}
     </root>
   )
 });
 
 export default Home;
+import "./file.js"

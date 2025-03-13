@@ -445,13 +445,17 @@ export function create(vdom: VDOM) {
 export function init() {
   let index = 1;
   let vdom = null;
-  let states = {};
+  let states = {
+
+  };
+
   let View = () => <empty></empty>;
 
   const State = (initValue) => {
     const stateIndex = index++;
     states[stateIndex] = initValue;
-
+    // console.log("new state in index", stateIndex, "has value ", initValue);
+    
     const getter = () => states[stateIndex];
     const setter = (newValue) => {
       if (!deepEqual(states[stateIndex], newValue)) {
@@ -473,6 +477,7 @@ export function init() {
     };
     return [getter, setter];
   };
+
   const WeakState = (initValue) => {
     const stateIndex = index++;
     states[stateIndex] = initValue;
@@ -483,6 +488,7 @@ export function init() {
     };
     return [getter, setter];
   }
+
   const updateState = () => {
     const newVDOM = View();
     if (vdom !== null) reconciliate(vdom, newVDOM);
@@ -490,14 +496,48 @@ export function init() {
   };
 
   const render = (call) => {
+    let curr = index;
     return () => {
+      let tmp = index;
+      index = curr
       View = call;
       updateState();
+      curr = tmp;
       return vdom;
     }
   };
   return [render, State, ForcedState, WeakState];
 }
+
+export const Foo = (function () {
+  let componentStates = new WeakMap();
+
+  function useState(initVal) {
+    const component = currentComponent;
+    if (!componentStates.has(component)) {
+      componentStates.set(component, []);
+    }
+    const states = componentStates.get(component);
+
+    const currentIndex = states.length;
+    states[currentIndex] = states[currentIndex] ?? initVal;
+
+    return [() => states[currentIndex], (newVal) => (states[currentIndex] = newVal)];
+  }
+
+  let currentComponent = null;
+
+  function render(Component) {
+    const instance = {}; // Unique instance for state tracking
+    currentComponent = instance;
+    const C = Component();
+    C.view();
+    currentComponent = null; // Reset after rendering
+    return C;
+  }
+
+  return { useState, render };
+})();
 
 // ROUTING
 function ErrorPage(props: Props | null) {
@@ -771,6 +811,7 @@ const Ura = {
   sync,
   loadCSS,
   init,
+  Foo,
   Routes,
   reconciliate,
   deepEqual,

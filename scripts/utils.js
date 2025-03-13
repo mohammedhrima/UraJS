@@ -264,16 +264,16 @@ let styleTimeout = null;
 let first = true;
 const pagesDir = join(source, 'pages');
 function updateDebounced() {
-  if(first)
-  {
+  if (first) {
     generateRoutes(pagesDir, '', true);
     updateStyles();
     first = false;
   }
-  else
-  {
+  else {
     if (styleTimeout) clearTimeout(styleTimeout);
     styleTimeout = setTimeout(() => {
+      routes = {};
+      styles = {};
       generateRoutes(pagesDir, '', true);
       updateStyles();
     }, 5);
