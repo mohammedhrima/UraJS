@@ -1,0 +1,73 @@
+:root {
+  --background-color: #c9d8ea; /* Light background*/
+  --text-color: #0a1725; /* Dark text*/
+  --navbar-bg: #ffffff; /* White navbar*/
+  --navbar-border: #88a2be; /* Subtle border*/
+  --primary-color: #26578d; /* Primary color (blue)*/
+  --feature-bg: #ffffff; /* White feature cards*/
+  --hero-bg: linear-gradient(135deg, #26578d 0%, #3f98fb 100%); /* Gradient hero*/
+  --button-hover-bg: #1a406b; /* Darker blue for button hover*/
+  --shadow-color: rgba(10, 23, 37, 0.1); /* Subtle shadow*/
+}
+
+[data-theme="dark"] {
+  --background-color: #040910; /* Dark background*/
+  --text-color: #c9d8ea; /* Light text*/
+  --navbar-bg: #0a1725; /* Dark navbar*/
+  --navbar-border: #26578d; /* Blue border*/
+  --primary-color: #3f98fb; /* Bright blue for primary*/
+  --feature-bg: #0a1725; /* Dark feature cards*/
+  --hero-bg: linear-gradient(135deg, #0a1725 0%, #040910 100%); /* Dark gradient hero*/
+  --button-hover-bg: #88a2be; /* Lighter blue for button hover*/
+  --shadow-color: rgba(201, 216, 234, 0.1); /* Subtle shadow for dark mode*/
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: var(--navbar-bg);
+  border-bottom: 1px solid var(--navbar-border);
+  box-shadow: 0 2px 4px var(--shadow-color);
+
+  .navbar-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .navbar-links {
+    align-items: center;
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+
+    a {
+      text-decoration: none;
+      color: var(--text-color);
+      font-size: 1rem;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  .mode-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+}
