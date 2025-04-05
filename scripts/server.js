@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { join, extname as extension } from "path";
+import { join, extname as extension, relative } from "path";
 import net from "net";
 import express from "express";
-import { output as outdir, source, config, updateRoutes, handleCopy, handleDelete, checkConfig, } from "./utils.js";
+import { output as outdir, source, config, updateRoutes, handleCopy, handleDelete } from "./utils.js";
 import { statSync, rmSync, existsSync, readdirSync, promises } from "fs";
 import http from "http";
 import chokidar from "chokidar";
@@ -12,17 +12,20 @@ import { logerror, loginfo, logmsg, logwarn } from "./debug.js";
 function get_file(uri) {
   let filePath = join(outdir, uri);
   if (existsSync(filePath)) return filePath;
+
   let ext = extension(uri);
   if ([".jsx", ".tsx", ".ts"].includes(ext)) {
-    uri = uri.replace(ext, ".js");
-    return get_file(uri);
+    let newUri = uri.replace(ext, ".js");
+    let newFilePath = join(outdir, newUri);
+    if (existsSync(newFilePath)) return newFilePath;
   }
-  logerror(uri, "Not found")
+
+  logerror(filePath, "Not found");
   return join(outdir, "index.html");
 }
 
 function create_request(action, pathname) {
-  return JSON.stringify({ action: action, pathname: pathname, ext: extension(pathname) });
+  return JSON.stringify({ action: action, pathname: relative(source, pathname), ext: extension(pathname) });
 }
 
 const debounceTimers = new Map();
@@ -64,7 +67,8 @@ function watch_path(watchPath, events, callback) {
               if (err.code === 'ENOENT') {
                 // loginfo("File already deleted, skipping:", pathname);
               } else {
-                throw err;
+                // throw err;
+                logerror("watch_path: ", err)
               }
             }
           } else {
@@ -100,16 +104,16 @@ function open_websocket(app) {
     currSocket = socket;
   });
 
-  watch_path(source, ["add", "addDir", "change", "unlink", "unlinkDir"], (pathname, event) => {
+  watch_path(source, ["add", "addDir", "change", "unlink", "unlinkDir"], async (pathname, event) => {
     try {
       switch (event) {
         case "add": case "addDir": case "change": {
-          handleCopy(pathname);
+          await handleCopy(pathname);
           currSocket?.send(create_request("update", pathname));
           break;
         }
         case "unlink": case "unlinkDir": {
-          handleDelete(pathname)
+          await handleDelete(pathname)
           updateRoutes();
           currSocket?.send(create_request("reload"));
           break;
@@ -119,7 +123,7 @@ function open_websocket(app) {
           break;
       }
     } catch (error) {
-      logerror(error);
+      logerror("watch:path:callback", error);
     }
   });
   return server;
@@ -138,7 +142,7 @@ function createServer(port) {
   const server = open_websocket(app);
 
   server.listen(port, () => {
-    console.clear();
+    // console.clear();
     console.log(`
 \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
 \x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
@@ -170,7 +174,8 @@ async function startServer(startPort = 17000) {
 }
 
 (async () => {
-  await checkConfig();
+  const holder = await import("../ura.config.js")
+  await holder.default()
 
   if (existsSync(outdir))
     readdirSync(outdir).forEach((sub) => {
@@ -186,9 +191,4 @@ async function startServer(startPort = 17000) {
   updateRoutes();
   handleCopy(source);
   await startServer(17000);
-  try {
-  } catch (err) {
-    logerror("Server startup error:", err);
-    process.exit(1);
-  }
 })();

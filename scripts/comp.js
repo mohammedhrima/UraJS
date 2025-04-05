@@ -1,17 +1,23 @@
 #!/usr/bin/env node
-import { join } from "path";
-import { config, source, createFile } from "./utils.js";
-import { generateComponent, generateStyle } from "./gen.js";
+import { basename, join } from "path";
+import { config, source, createFile, updateRoutes } from "./utils.js";
+import { generateJSX, generateStyle } from "./gen.js";
 
 if (process.argv.length < 3) {
   console.error("Usage: uracomp <comp1> <comp2> ...");
   process.exit(1);
 }
 
-process.argv.slice(2).forEach((name) => {
-  const ext = config.typescript === "enable" ? "tsx" : "jsx";
-  const styleExt = config.scss === "enable" ? "scss" : "css";
+async function createComponentFiles(name) {
+  const holder = await import("../ura.config.js")
+  await holder.default()
 
-  createFile(join(source, "./components/", `${name}.${ext}`), generateComponent(name));
-  createFile(join(source, "./components/", `${name}.${styleExt}`), generateStyle(name));
-});
+  const ext = config.typescript === "enable" ? "tsx" : "jsx";
+  let styleExt = config.scss === "enable" ? "scss" : config.css === "enable" ? "css" : null;
+
+  createFile(join(source, "./components/", basename(`${name}.${ext}`)), generateJSX(name));
+  if (styleExt) createFile(join(source, "./components/", basename(`${name}.${styleExt}`)), generateStyle(name));
+  updateRoutes();
+}
+
+process.argv.slice(2).forEach(createComponentFiles);

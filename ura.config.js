@@ -1,13 +1,14 @@
 import { checkConfig, setConfig } from "./scripts/utils.js";
 
-(async()=>{
-  await setConfig({
+export default (async () => {
+  setConfig({
     typescript: "enable",
     dirRouting: "enable",
     defaultRoute: "home",
-    tailwinds: "enable",
-    scss: "enable",
+    tailwinds: "disable",
+    scss: "disable",
+    css: "enable",
     port: 17000,
   })
   await checkConfig();
-})()
+})

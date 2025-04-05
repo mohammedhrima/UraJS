@@ -1,105 +1,193 @@
 // scripts/generator.js
-import { capitalize, config, source } from "./utils.js";
-import { join, basename } from "path";
 
+import { logmsg } from "./debug.js";
+import { capitalize, config } from "./utils.js";
 
-export const generateComponent = (name, type = 'component') => {
+export const generateJSX = (name, type = "component") => {
+  logmsg("Generate", name, type)
+  name = name.replace("/", "_");
   const isTS = config.typescript === "enable";
-  const componentName = capitalize(name);
-  const isRoute = type === 'route';
+  const JSXname = capitalize(name);
+  const isRoute = type === "route";
 
-  return `${isTS ? '//@ts-ignore\n' : ''}import Ura${isTS ? ", { VDOM, Props }" : ""} from 'ura';
+  const content = `${isTS ? '//@ts-ignore\n' : ''}import Ura${isTS ? ", { VDOM, Props }" : ""} from 'ura';
 
-function ${componentName}(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
+function ${JSXname}(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
+  ${type === "route" ? `document.title = "${name} Page"` : ""}
   const [render, State] = Ura.init();
   const [count, setCount] = State${isTS ? "<number>" : ""}(0);
   
   return render(() => (
     ${isRoute ? '<root>' : ''}
-    <div className="${name.toLowerCase()}">
-      ${isRoute ? 
-        `<h1>Hello from ${componentName} route!</h1>
-            <button onclick={() => setCount(count() + 1)}> Click me [{count()}]
-        </button>` : 
-        `<h2>Counter</h2>
-         <p>Current Count: [{count()}]</p>
-         <div className="button-group">
-           <button onClick={() => setCount(count() + 1)}>Increment</button>
-           <button onClick={() => setCount(count() - 1)}>Decrement</button>
-           <button onClick={() => setCount(0)}>Reset</button>
-         </div>`}
-    </div>
+      <div className="${name.toLowerCase()}">
+        ${!isRoute ?
+      `<h1>Hello from ${JSXname} component!</h1>
+        <button onclick={() => setCount(count() + 1)}> Click me [{count()}]</button>` :
+      `<header className="navbar">
+            <div className="logo">UraJS</div>
+              <nav>
+                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">github</a>
+              </nav>
+          </header>
+          <main className="body">
+            <h1>Hello from ${JSXname} route!</h1>
+            <button onclick={() => setCount(count() + 1)}>
+              Click me [{count()}]
+            </button>
+          </main>
+
+          <footer className="footer">
+            <p>Built with 💙 using UraJS</p>
+          </footer>
+      `}
+      </div>
     ${isRoute ? '</root>' : ''}
   ));
 }
 
-export default ${componentName}`;
+export default ${JSXname}`;
+  // console.log(content);
+  return content
 };
 
 export const generateStyle = (name, type = 'component') => {
-  const baseStyle = type === 'route' ? `
+  name = name.replace("/", "_");
+  if (type === 'route')
+    return `
+:root {
+  --bg: #0f172a;
+  --nav: #1e293b;
+  --accent: #26578d;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #334155;
+}
+
 .${name} {
+  color: var(--text);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  height: 100vh;
+  /* Navbar */
+  .navbar {
+    background-color: var(--nav);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    nav a {
+      margin-left: 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: color 0.3s ease;
+      &:hover {
+        color: #3c82c9;
+      }
+    }
+  }
+
+  /* Main content */
+  .body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    h1 {
+      font-size: 2.75rem;
+      margin-bottom: 2rem;
+      color: #f1f5f9;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+      &:hover {
+        background: #3c82c9;
+        transform: translateY(-2px);
+      }
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  /* Footer */
+  .footer {
+    background-color: var(--nav);
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+}`
+return `
+:root {
+  --bg: #0f172a;
+  --nav: #1e293b;
+  --accent: #26578d;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #334155;
+}
+
+.${name} {
+  background-color: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  height: 100%;
-  width: 100%;
-  background: var(--page-bg, #282c34);
-  color: var(--text-color, #ffffff);
+  align-items: center;
+  height: 100vh;
+  padding: 2rem;
+
   h1 {
     font-size: 2.5rem;
-    margin-bottom: 15px;
-  }` : `
-.${name} {
-  text-align: center;
-  padding: 20px;
-  background: var(--feature-bg);
-  border-radius: 10px;
-  box-shadow: 0 4px 6px var(--shadow-color);
-  max-width: 300px;
-  margin: 20px auto;
-  h2 {
-    font-size: 1.75rem;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-  }`;
-
-  const buttonStyle = type === 'route' ? `
-  button {
-    height: 120px;
-    width: 120px;
-    font-size: 20px;
-    border-radius: 50%;
-  }` : `
-  .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+    color: var(--text);
+    margin-bottom: 2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
   }
-  button {
-    height: 40px;
-    flex: 1;
-  }`;
 
-  const commonButtonStyle = `
-    font-weight: bold;
-    color: #ffffff;
-    background-color: var(--primary-color);
+  button {
+    padding: 1rem 2rem;
+    background: var(--accent);
+    color: white;
     border: none;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s ease;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+
     &:hover {
-      background-color: var(--button-hover-bg);
-      transform: scale(1.05);
+      background: #3c82c9;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
     }
+
     &:active {
-      transform: scale(0.95);
-    }`;
-
-  const fullStyle = `${baseStyle}${buttonStyle}${commonButtonStyle}
+      transform: scale(0.98);
+    }
   }
-}`;
+}
 
-  return fullStyle;
+`
 };

@@ -1,4 +1,4 @@
-import { dirname, join, relative, extname as extension, basename, } from "path";
+import { dirname, join, relative, resolve, extname as extension, basename, } from "path";
 import { writeFileSync, statSync, existsSync, readFileSync, readdirSync, mkdirSync } from "fs";
 import { promises as fs } from "fs";
 import enquirer from 'enquirer';
@@ -8,7 +8,7 @@ import * as sass from "sass";
 import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
 import { logerror, loginfo, logmsg, logwarn } from "./debug.js";
-import { generateComponent, generateStyle } from "./gen.js";
+import { generateJSX, generateStyle } from "./gen.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -92,6 +92,36 @@ async function handleSubSassfiles(parent) {
   }
 }
 
+export async function fixImportExtensions(filePath) {
+  const fullPath = resolve(filePath);
+  let content;
+
+  try {
+    content = await fs.readFile(fullPath, "utf-8");
+  } catch (err) {
+    console.error(`Error: Failed to read ${filePath}`, err);
+    return;
+  }
+
+  const fixed = content.replace(
+    /((?:import|export)[^'"]+['"])([^'"]+\.(ts|tsx|jsx))(['"])/g,
+    (_, start, pathWithoutExt, ext, end) => {
+      const newPath = pathWithoutExt.replace(/\.(ts|tsx|jsx)$/, ".js");
+      return `${start}${newPath}${end}`;
+    }
+  );
+
+  // Only write if a change was made
+  if (fixed !== content) {
+    try {
+      await fs.writeFile(fullPath, fixed, "utf-8");
+      logwarn(`Fixed imports in: ${relative(source, filePath)}`);
+    } catch (err) {
+      logerror(`Error: Failed to write ${filePath}`, err);
+    }
+  }
+}
+
 export async function handleCopy(pathname) {
   try {
     const stat = await fs.stat(pathname);
@@ -107,7 +137,10 @@ export async function handleCopy(pathname) {
     await fs.mkdir(dirname(dest), { recursive: true });
 
     const transpileExtensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
-    if (transpileExtensions.has(extension(pathname))) handleTypeScript(pathname);
+    if (transpileExtensions.has(extension(pathname))) {
+      await fixImportExtensions(pathname);
+      handleTypeScript(pathname);
+    }
     else if (ext === ".scss") {
       if (pathname === join(source, "pages/global.scss")) {
         loginfo("global.scss modified, recompiling all scss...");
@@ -139,12 +172,13 @@ export async function handleDelete(srcname) {
         logerror("File or directory does not exist:", relative(output, outname));
         return;
       }
-      throw err;
+      // throw err;
+      logerror("handle delete", err)
     }
 
     if (stats.isDirectory()) {
+      loginfo("Delete directory:", relative(output, outname));
       await fs.rm(outname, { recursive: true, force: true });
-      loginfo("Deleted directory:", relative(output, outname));
       return;
     }
 
@@ -170,8 +204,8 @@ export async function handleDelete(srcname) {
       }
     }
 
+    loginfo("Delete file:", relative(output, outname));
     await fs.unlink(outname);
-    loginfo("Deleted file:", relative(output, outname));
   } catch (error) {
     logerror("deleting:", relative(output, outname), error);
   }
@@ -196,14 +230,14 @@ export function handleTailwind() {
       writeFileSync(tailwindPath, result.css, 'utf-8');
     })
       .catch((err) => {
-        throw new Error(`Error generating CSS: ${err.message}`);
+        throw new Error(`handleTailwinds generating CSS: ${err.message}`);
       });
   } catch (err) {
+    logerror("handleTailswind", err)
     throw err
   }
 
 }
-
 
 export const capitalize = (name) => name.charAt(0).toUpperCase() + name.slice(1);
 export const createFile = (filePath, content) => {
@@ -217,54 +251,31 @@ export const createFile = (filePath, content) => {
 };
 
 
-/* will be used only if dirRouting is enabled */
-/*
-config.dirRouting
-config.default
-config.ext
-config.taildwinds
-config.style
-config.typescript
-config.port
-
-const name = await new Input({
-    name: 'name',
-    message: 'What is your name?'
-}).run();
-
-const framework = await new Select({
-    name: 'framework',
-    message: 'Pick a framework',
-    choices: ['React', 'Vue', 'Svelte']
-}).run();
-*/
-
-
 export async function updateConfigFile() {
   const configPath = join(__dirname, '../ura.config.js');
   const configContent = `import { checkConfig, setConfig } from "./scripts/utils.js";
 
-(async()=>{
+export default (async () => {
   setConfig({
     ${Object.entries(config).map(([key, value]) => `${key}: ${JSON.stringify(value)},`)
       .join('\n    ')}
   })
-})()
-await checkConfig();`;
+  await checkConfig();
+})
+`;
 
   writeFileSync(configPath, configContent);
-  console.log('Configuration file updated successfully');
+  logmsg('update ura.config.js file');
 }
 
-let _config = {}; // Private variable
 
 export const config = {}; // Export empty object first
+let _config = {}; // Private variable
 
-export function setConfig(obj = {}) {
-  Object.assign(_config, obj);
-  Object.assign(config, _config); // Sync with exported config
+export async function setConfig(obj = {}) {
+  Object.assign(_config, { ...obj, ...config });
+  Object.assign(config, { ...config, ..._config }); // Sync with exported config
 }
-setConfig({});
 
 let routes = {};
 let styles = [];
@@ -275,19 +286,16 @@ export async function checkConfig() {
   const promptToggle = async (message, key) => {
     const answer = await new Select({
       message,
-      choices: [
-        { title: 'Yes', value: 'enable' },
-        { title: 'No', value: 'disable' }
-      ],
+      choices: [{ title: 'Yes', value: 'enable' }, { title: 'No', value: 'disable' }],
     }).run();
-    did_update = true;
     setConfig({ [key]: answer === "Yes" ? "enable" : "disable" });
+    did_update = true;
   };
 
   const getAvailableRoutes = () => {
     return readdirSync(join(source, "/pages"))
       .filter(sub => statSync(join(source, "/pages", sub)).isDirectory())
-      .map(sub => join("/", sub));
+      .map(sub => join(sub));
   };
 
   if (!config.typescript) await promptToggle('Enable TypeScript?', 'typescript');
@@ -295,26 +303,23 @@ export async function checkConfig() {
   if (config.dirRouting === "enable" && !config.defaultRoute) {
     const routes = getAvailableRoutes();
     const route = routes.length > 0
-      ? await new Select({
-        message: 'Choose default route',
-        choices: routes
-      }).run()
+      ? await new Select({ message: 'Choose default route', choices: routes }).run()
       : await new Input({
-        name: 'default_route',
-        message: 'Enter default route name:',
-        initial: 'home',
+        name: 'default_route', message: 'Enter default route name:', initial: 'home',
         validate: value => /^[a-zA-Z_-]+$/.test(value.trim()) || 'Invalid name'
       }).run();
 
-    setConfig({ defaultRoute: cleanPath(route) });
+    setConfig({ defaultRoute: route });
     did_update = true;
   }
   if (!config.tailwinds) await promptToggle('Enable Tailwind CSS?', 'tailwinds');
   if (!config.scss) await promptToggle('Enable SCSS?', 'scss');
+  if (config.scss == "disable" && !config.css) await promptToggle('Enable CSS?', 'css');
+  else if (!config.css) setConfig({ css: "disable" });
+
   if (!config.port) {
     const port = await new Input({
-      message: 'Enter port number:',
-      initial: '17000',
+      message: 'Enter port number:', initial: '17000',
       validate: value => {
         const p = parseInt(value);
         return (p > 0 && p < 65536) || 'Invalid port (1-65535)';
@@ -324,17 +329,29 @@ export async function checkConfig() {
     did_update = true;
   }
 
-  console.log(config);
   if (did_update) updateConfigFile();
-  if (config.dirRouting === "enable" && !existsSync(join(source, config.defaultRoute))) {
+  if (config.dirRouting === "enable" && !existsSync(join(source, "/pages", config.defaultRoute))) {
+    logwarn("create route", config.defaultRoute, "because it's default")
     const name = config.defaultRoute;
     const ext = config.typescript === "enable" ? "tsx" : "jsx";
     const styleExt = config.scss === "enable" ? "scss" : "css";
-
-    createFile(join(source, `./pages/${name}/`, `${name}.${ext}`), generateComponent(name, 'route'));
+    createFile(join(source, `./pages/${name}/`, `${name}.${ext}`), generateJSX(name, 'route'));
     createFile(join(source, `./pages/${name}/`, `${name}.${styleExt}`), generateStyle(name, 'route'));
-    updateRoutes();
   }
+  const colors = {
+    reset: '\x1b[0m',
+    cyan: '\x1b[36m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    bold: '\x1b[1m'
+  };
+  console.log('\n📋 Current Configuration:');
+  console.log(`${colors.bold}${colors.cyan}┌───────────────────────────────┐${colors.reset}`);
+  Object.entries(config).forEach(([key, value]) => {
+    const paddedKey = key.padEnd(15, ' ');
+    console.log(`${colors.cyan}│ ${colors.reset}${colors.green}${paddedKey}${colors.reset}: ${colors.yellow}${JSON.stringify(value).padEnd(12, ' ')}${colors.reset} ${colors.cyan}│${colors.reset}`);
+  });
+  console.log(`${colors.bold}${colors.cyan}└───────────────────────────────┘${colors.reset}\n`);
 }
 
 
@@ -400,49 +417,92 @@ routes = {};
 styles = [];
 
 export function updateRoutes() {
-  if (config.dirRouting != "enable") {
-    logwarn("dir routing is disabled")
-    return;
-  }
-  routes = {};
-  styles = {};
-  generateRoutes(pagesDir, '', true);
-  updateStyles();
-  console.log(routes);
+  try {
+    if (config.dirRouting !== "enable") {
+      logwarn("dir routing is disabled");
+      console.log(config);
+      return;
+    }
+    routes = {};
+    styles = {};
+    generateRoutes(pagesDir, '', true);
+    updateStyles();
+    const maxRouteLength = Math.max(...Object.keys(routes).map(r => r.length));
+    const maxComponentLength = Math.max(...Object.values(routes).map(c => c.length));
+    const totalWidth = Math.max(40, maxRouteLength + maxComponentLength + 7); // Minimum width 40
 
+    // Top border
+    const topBorder = '╔' + '═'.repeat(totalWidth - 2) + '╗';
+    const headerText = '🚀 APPLICATION ROUTES';
+    const headerPadding = Math.floor((totalWidth - 2 - headerText.length) / 2);
+    const headerLine = '║' + ' '.repeat(headerPadding) + headerText +
+      ' '.repeat(totalWidth - 2 - headerText.length - headerPadding) + '\x1b[36m║';
 
-  const output = `/*
- * Routing Schema
- * Each route is an object with the following structure:
- * {
- *   "/pathname": Component,      
- *    // key is The URL path for the route
- *    // '*' is for default route, will be redirected to if navigate
- *    // Component: the component that will be displayed
- * }
- *
- * Example:
- * {
- *    "/home": Home,
- *    "/user": User,
- *    "/user/setting": Setting
- * }
- */
+    // Middle border
+    const middleBorder = '╠' + '═'.repeat(totalWidth - 2) + '╣';
 
+    console.log('\n\x1b[1m\x1b[36m' + topBorder);
+    console.log(headerLine);
+    console.log(middleBorder + '\x1b[0m');
+
+    // Route lines
+    Object.entries(routes).forEach(([route, component]) => {
+      const routePart = `\x1b[33m${route}\x1b[0m`;
+      const arrow = ' → ';
+      const componentPart = `\x1b[32m${component}\x1b[0m`;
+
+      const padding = ' '.repeat(totalWidth - 4 - route.length - arrow.length - component.length);
+      console.log(`\x1b[36m║ ${routePart}${arrow}${componentPart}${padding} \x1b[36m║\x1b[0m`);
+    });
+
+    // Bottom border
+    const bottomBorder = '╚' + '═'.repeat(totalWidth - 2) + '╝';
+    console.log('\x1b[1m\x1b[36m' + bottomBorder + '\x1b[0m\n');
+
+    let default_route = null;
+    if (config.dirRouting == "enable") {
+      let route = routes[cleanPath(join("/", config.defaultRoute))];
+      if (route) {
+        const base = basename(route, ".js");
+        default_route = capitalize(base);
+      }
+    }
+
+    const output = `/*
+   * Routing Schema
+   * Each route is an object with the following structure:
+   * {
+   *   "/pathname": Component,      
+   *    // key is The URL path for the route
+   *    // '*' is for default route, will be redirected to if navigate
+   *    // Component: the component that will be displayed
+   * }
+   *
+   * Example:
+   * {
+   *    "/home": Home,
+   *    "/user": User,
+   *    "/user/setting": Setting
+   * }
+   */
+  
 import Ura from "ura";
-
+  
 ${Object.entries(routes).map(([key, path]) => `import ${capitalize(basename(path, '.js'))} from "${path}";`).join('\n')}
-
+  
 Ura.setRoutes({
-  ${config.dirRouting == "enable" && `"*": ${capitalize(basename(routes[config.defaultRoute], '.js'))}`},
+  ${default_route ? `"*": ${default_route},` : ""}
   ${Object.entries(routes).map(([key, path]) => `"${key}": ${capitalize(basename(path, '.js'))}`).join(',\n  ')}
 });
-
+  
 Ura.setStyles(${JSON.stringify(styles, null, 2)});
-
+  
 Ura.start();`;
 
-  writeFileSync(join(pagesDir, 'main.js'), output, 'utf8');
-  loginfo("Routes and styles updated.");
+    writeFileSync(join(pagesDir, 'main.js'), output, 'utf8');
+    loginfo("Routes and styles updated.");
+  } catch (error) {
+    logerror("updateRoutes", error);
+  }
 }
 

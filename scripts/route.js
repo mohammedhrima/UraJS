@@ -1,19 +1,22 @@
 #!/usr/bin/env node
-import { join } from "path";
-import { config, source, createFile, updateRoutes } from "./utils.js";
-import { generateComponent, generateStyle } from "./gen.js";
+import { basename, join } from "path";
+import { config, source, createFile, updateRoutes, } from "./utils.js";
+import { generateJSX, generateStyle } from "./gen.js";
 
 if (process.argv.length < 3) {
   console.error("Usage: uraroute <route1> <route2> ...");
   process.exit(1);
 }
 
-export function createRouteFiles(name) {
-  const ext = config.typescript === "enable" ? "tsx" : "jsx";
-  const styleExt = config.scss === "enable" ? "scss" : "css";
+export async function createRouteFiles(name) {
+  const holder = await import("../ura.config.js")
+  await holder.default()
 
-  createFile(join(source, `./pages/${name}/`, `${name}.${ext}`), generateComponent(name, 'route'));
-  createFile(join(source, `./pages/${name}/`, `${name}.${styleExt}`), generateStyle(name, 'route'));
+  const ext = config.typescript === "enable" ? "tsx" : "jsx";
+  let styleExt = config.scss === "enable" ? "scss" : config.css === "enable" ? "css" : null;
+
+  createFile(join(source, `./pages/${name}/`, basename(`${name}.${ext}`)), generateJSX(name, 'route'));
+  if (styleExt) createFile(join(source, `./pages/${name}/`, basename(`${name}.${styleExt}`)), generateStyle(name, 'route'));
   updateRoutes();
 }
 
