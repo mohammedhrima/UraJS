@@ -4,6 +4,7 @@ export const FRAGMENT = "fragment";
 export const TEXT = "text";
 export const IF = "if";
 export const ELSE = "else";
+export const EXEC = "exec";
 // export const ELIF = "elif";
 export const LOOP = "loop";
 export const CREATE = 1;
@@ -18,29 +19,35 @@ export function loadCSS(filename) {
 }
 // UTILS
 export function deepEqual(a, b) {
-  if (a === b)
-    return true;
-  if (typeof a !== typeof b)
-    return false;
+  // Handle NaN case
+  if (a !== a && b !== b) return true; // NaN is the only value that is not equal to itself
+  // Handle primitive type comparison
+  if (a === b) return true;
+  // Handle null and undefined
+  if (a == null || b == null) return false;
+  // Check if types are the same
+  if (typeof a !== typeof b) return false;
+  // Handle Arrays
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length)
-      return false;
+    if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
-      if (!deepEqual(a[i], b[i]))
-        return false;
+      if (!deepEqual(a[i], b[i])) return false;
     }
     return true;
   }
-  if (typeof a === "function" && typeof b === "function")
-    return a.toString() === b.toString();
+  // Handle Dates
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+  // Handle RegExp
+  if (a instanceof RegExp && b instanceof RegExp) return a.toString() === b.toString();
+  // Handle functions
+  if (typeof a === "function" && typeof b === "function") return a.toString() === b.toString();
+  // Handle Objects
   if (typeof a === "object" && typeof b === "object") {
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
-    if (keysA.length !== keysB.length)
-      return false;
+    if (keysA.length !== keysB.length) return false;
     for (let key of keysA) {
-      if (!keysB.includes(key) || !deepEqual(a[key], b[key]))
-        return false;
+      if (!keysB.includes(key) || !deepEqual(a[key], b[key])) return false;
     }
     return true;
   }

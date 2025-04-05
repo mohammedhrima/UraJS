@@ -1,7 +1,8 @@
-import { root, SET, GET, parse_config_file } from "./utils.js";
+#!/usr/bin/env node
+
+import { root, config, updateRoutes } from "./utils.js";
 import { mkdirSync, writeFileSync, existsSync, readdirSync, copyFileSync } from "fs";
-import { join ,relative} from "path";
-import net from "net";
+import { join, relative } from "path";
 import { logerror, loginfo } from "./debug.js";
 
 const nginx = (port) => `# nginx/nginx.conf
@@ -61,51 +62,40 @@ services:
 
 `;
 const makefile = (port) => `
-all: # start container
-	docker-compose up -d
+all: up
 
-down: # stop container
+up:
+	@echo "Starting Docker containers..."
+	docker-compose up --build -d
+
+down:
+	@echo "Stopping Docker containers..."
 	docker-compose down
 
-list: # list container
-	docker ps --format "{{.Names}} {{.ID}}"
+clean: down
+	@echo "Removing Docker volumes..."
+	docker volume rm -f $$(docker volume ls -q --filter name=$(PROJECT_NAME)_*)
 
-clean: down # clear
-	@docker system prune -a -f
-	@docker volume prune -f
-	@docker image prune -f
-	@docker network prune -f
-	@dangling_volumes=$$(docker volume ls -q --filter dangling=true); \\
-    if [ $$? -eq 0 ]; then \\
-        for volume in $$dangling_volumes; do \\
-            docker volume rm $$volume; \\
-        done; \\
-    fi
+fclean: down
+	@echo "Cleaning Docker system..."
+	docker system prune -af
+	docker volume prune -f
+	docker network prune -f
+
+logs:
+	@echo "Showing logs..."
+	docker-compose logs -f
 
 re: clean all
+
+.PHONY: all build up down clean fclean logs re
 `;
-
-
-function getAvailablePort(port) {
-  const isAvailable = (port) =>
-    new Promise((resolve) => {
-      const server = net.createServer({ reuseAddress: true });
-      server.once("error", () => resolve(false));
-      server.once("listening", () => server.close(() => resolve(true)));
-      server.listen(port);
-    });
-
-  while (!(isAvailable(port))) {
-    console.log(`Port ${port} is in use, trying port ${++port}...`);
-  }
-  return port;
-}
 
 function createFile(filePath, data) {
   if (!existsSync(filePath)) {
     try {
       writeFileSync(filePath, data);
-      console.log(relative(root, filePath), "created and data written successfully.");
+      loginfo(relative(root, filePath), "created and data written successfully.");
     } catch (err) {
       console.error("Error:", err);
     }
@@ -123,31 +113,31 @@ function copyDir(src, dest) {
   });
 }
 
-try {
-  parse_config_file();
-  SET("TYPE", "build");
-
-  let port = getAvailablePort(GET("PORT"));
-  console.log("available port", port);
-
-  ["./docker/app", "./docker/nginx"].map((subDir) => {
-    mkdirSync(join(root, subDir), { recursive: true }, (err) => {
-      if (err) {
-        console.error("Error:", err);
-      } else {
-        console.log("build directory created successfully or already exists.");
-      }
+(async ()=>{
+  try {
+    const holder = await import("../ura.config.js");
+    holder.default();
+    
+    let port = config.port;
+    loginfo("available port", port);
+  
+    ["./docker/app", "./docker/nginx"].map((subDir) => {
+      mkdirSync(join(root, subDir), { recursive: true }, (err) => {
+        if (err) logerror("Error:", err);
+        else {
+          loginfo("build directory created successfully or already exists.");
+        }
+      });
     });
-  });
-
-  createFile(join(root, "./docker/nginx/nginx.conf"), nginx(port));
-  createFile(join(root, "./docker/Dockerfile"), dockerfile(port));
-  createFile(join(root, "./docker/docker-compose.yml"), dockerCompose(port));
-  createFile(join(root, "./docker/Makefile"), makefile(port));
-  copyFileSync(join(root, "./index.html"), join(root, "./docker/app/index.html"));
-  copyDir(join(root, "./out"), join(root, "./docker/app"))
-
-  SET("TYPE", "dev");
-} catch (error) {
-  logerror("Error", error)
-}
+  
+    updateRoutes();
+    createFile(join(root, "./docker/nginx/nginx.conf"), nginx(port));
+    createFile(join(root, "./docker/Dockerfile"), dockerfile(port));
+    createFile(join(root, "./docker/docker-compose.yml"), dockerCompose(port));
+    createFile(join(root, "./docker/Makefile"), makefile(port));
+  
+    copyDir(join(root, "./out"), join(root, "./docker/app"))
+  } catch (error) {
+    logerror(error)
+  }
+})()

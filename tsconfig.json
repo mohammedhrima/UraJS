@@ -1,23 +1,13 @@
-
-{ 
+{
   "compilerOptions": {
     "module": "ESNext",
     "target": "ES2020",
-    "rootDir": "src", // Set rootDir to the project root
-    "outDir": "out", // Set outDir to 'out' directory
-    "baseUrl": ".", // Set baseUrl to project root
-
     "jsx": "react",
-    "jsxFactory": "Ura.element",
-    "jsxFragmentFactory": "Ura.fragment",
-    "moduleResolution": "node",
+    "rootDir": "src",
+    "jsxFactory": "Ura.e",
+    "jsxFragmentFactory": "Ura.fr",
     "skipLibCheck": false,
-    "allowJs": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "paths": {
-      "@/module/*": ["src/module/*"]
-    }
+    "allowJs": true
   },
-  "exclude": ["node_modules", "scripts", ".git", ".gitignore"] // Exclude 'node_modules' and 'scripts'
+  "exclude": ["node_modules", "scripts", "ura.config.js", "tailwind.config.js"]
 }

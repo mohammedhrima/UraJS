@@ -3,11 +3,11 @@
 </p>
 
 
-**UraJS** is a lightweight, modern single-page application (SPA) framework designed to make building interactive and dynamic web applications intuitive and efficient. It combines the power of **JSX**, **virtual DOM reconciliation**, and a **custom state management system** to provide a seamless development experience without the bloat.
+**UraJS** is a lightweight single-page application (SPA) framework designed to make building interactive and dynamic web applications intuitive and efficient.
 
-Inspired by the simplicity of **React**, the directory-based routing of **Next.js**, and the flexibility of **Vue**, UraJS introduces its own take on SPA development. Its directory-based routing system automatically generates routes from the file structure, streamlining navigation setup for developers.
+Inspired by the simplicity of **React**, the directory-based routing of **Next.js**, UraJS introduces its own take on SPA development. Its directory-based routing system automatically generates routes from the file structure, streamlining navigation setup for developers.
 
-With built-in support for **live reloading**, **state-driven UI updates**, and a focus on performance, UraJS empowers developers to create fast, maintainable, and user-friendly applications.
+With built-in support for **live reloading**, **state-driven UI updates**.
 
 ## Summary
 - [Get Started](#get-started)
@@ -18,9 +18,8 @@ With built-in support for **live reloading**, **state-driven UI updates**, and a
 - [Example Generated Component Code](#example-generated-component-code)
 - [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
 - [Tailwind support](#tailwind)
-- [HTTP Requests](#http-requests)
-- [Custom Tags (if/else/loop)](#custom-tags)
-- [Build and Run using Docker](#build-and-run-using-docker)
+- [Custom tags (if/else/loop)](#custom-tags)
+- [Deploy using Docker](#deploy-using-docker)
 
 ## Get Started
 
@@ -42,142 +41,113 @@ To get started with **UraJS**, follow these simple steps:
    npm start
 ```
 5. **Open your browser** and visit http://localhost:17000 to see the app running.
-6. **folders structure**:
++ you should see something like this
+<p align="center">
+  <img src="./src/assets/home-page.png" alt="Logo" width="800">
+</p>
 
+6. **all commands**:
+```bash
+  npm start #start server
 ```
-    UraJS/
-    ├── out/                        # Contains the transpiled pure vanilla JavaScript files.
-    │   └── (Transpiled files)      # Automatically generated files after compilation from TypeScript/JSX to vanilla JS.
-    ├── scripts/                    # Contains all the scripts used in development (e.g., build, test, custom utilities).
-    ├── src/                        # Main source code for your app and framework.
-    │   ├── assets/                 # Recommended folder to store static files like images, fonts, etc.
-    │   │   └── (Image files)       # Place image assets here for easy management.
-    │   ├── pages/                  # Contains all route components and related files.
-    │   │   ├── home/               # Folder for the home route (e.g., /home).
-    │   │   │   ├── home.jsx        # Home route component.
-    │   │   │   └── home.(scss|css) # Styling for the home route.
-    │   │   ├── (Other pages)       # Other route components, following the same structure.
-    │   │   ├── global.(scss|css)   # Global styling variables and shared styles.
-    │   │   ├── main.js             # Main entry point for the framework (initializes the app).
-    │   │   ├── main.(scss|css)     # Default styling for the entire application.
-    │   │   └── routes.json         # Contains all routes 
-    │   └── ura/                    # Framework source code (core logic of UraJS).
-    ├── config.json                 # Configuration file for framework settings (e.g., default route, port, styling options).
-    ├── tsconfig.json               # TypeScript configuration file for compiling the code (customizable).
-    ├── index.html                  # The main HTML file where the app is loaded.
-    └── package.json                # Project metadata, dependencies, and scripts (e.g., npm start).
+```bash
+  npm run clear #clear outfile
+```
+```bash
+  npm run route #create route
+```
+```bash
+  npm run comp #create component
+```
+```bash
+  npm run build #to build
+```
+```bash
+  npm run config #change configuration
 ```
 
 ## Usage
-
-Once the development server is running, you’re ready to start building your app. **UraJS** features a file-based routing system, where your project’s directory structure maps directly to application routes. To create a new route, simply add a directory within the `pages` folder. Inside this directory, include a `.jsx`, `.js`, `.ts`, or `.tsx` file with the same name as the directory. This file will automatically become the component for that route.
-
-This approach keeps your routing intuitive and ensures your project remains organized as it grows.
-
-For example:
-- `pages/about/about.jsx` maps to the `/about` route.
-- `pages/home/home.jsx` maps to the `/home` route.
-
-## Generating Routes
 To generate routes automatically, you can use the following commands:
-- To generate a **basic route and its SCSS file**, run:
+- To generate a **basic route and its CSS/SCSS file if neede**, run:
     
     ```bash
-      npm run gen /routename
+      npm run route /helloworld
     ```
 
 + This will create 
-`pages/routename/routename.jsx` mapped to the /routename route.
-`pages/routename/routename.scss` for styling the route.
-After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/routename`
+`pages/helloworld/helloworld.[jsx|tsx]` mapped to the /helloworld route.
+`pages/helloworld/helloworld.[css|scss]` for styling the route.
+After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/helloworld`
 
 - To generate a **nested route and its SCSS file**, run:
     
     ```bash
-      npm run gen /routename/nestedroute
+      npm run route /helloworld/again
     ```
 
-+ This will create 
-`pages/routename/nestedroute/nestedroute.jsx` mapped to the /routename/nestedroute route.
-`pages/routename/nestedroute/nestedroute.scss` for styling the nested route.
-After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/routename/nestedroute`.
-
-
-Make sure the file structure matches the route you want to create, as UraJS automatically generates routes based on the folder hierarchy within the `pages` directory. Each route will have a matching SCSS file that is automatically linked to the JSX component.
-
-The `src/global.scss` file is used for global variables for a fast user experience.
-
-By default, UraJS will compile SCSS into CSS for the styling of your routes. However, if you prefer to use plain CSS, you can configure it in the `config.json` file.
-
+## folders structure:
+```
+    UraJS/
+    ├── out/ # Production-ready transpiled JavaScript files
+    │   └── (All framework and app code transpiled to vanilla JS)
+    │
+    ├── scripts/ # scripts used by the framework.
+    │
+    ├── src/
+    │   ├── assets/ # Static assets
+    │   │   └── (image.png, ...)
+    │   │
+    │   ├── components/ # Reusable UI components
+    │   │   ├── Button/ # Example component
+    │   │   │   ├── Button.jsx
+    │   │   │   └── Button.css
+    │   │   └── (Other components...)
+    │   │
+    │   ├── pages/ # Route-based components
+    │   │   ├── home/ # Example route: /home
+    │   │   │   ├── home.jsx # Route component
+    │   │   │   └── home.css # Route-specific styles
+    │   │   │
+    │   │   ├── main.js # Application entry point
+    │   │   ├── main.scss # Global styles/variables
+    │   │   └── tailwind.css # Tailwind imports (if enabled)
+    │   │
+    │   ├── services/ # Business logic/services
+    │   │   ├── api.jsx # API service layer
+    │   │   └── events.js # Event bus/service (in developement)
+    │   │
+    │   └── ura/ # Framework frontend code
+    │
+    ├── tailwind.config.js # Tailwind CSS configuration
+    ├── ura.config.js # Framework configuration
+    ├── tsconfig.json # TypeScript configuration
+    └── package.json # Project dependencies and scripts
+             
+```
 
 ## Configuration
-The `config.json` file allows you to customize various settings for your project, including file extensions, server configurations, and routing preferences. Here is an example configuration:
-
-```json
-    {
-      "DEFAULT_ROUTE": "/home",
-      "EXTENSION": "jsx",
-      "STYLE_EXTENSION": "scss",
-      "PORT": 17000,
-      "SERVER_TIMING": 15,
-      "DIR_ROUTING": true,
-      "TYPE": "dev"
-    }
++ The `ura.config.js` file allows you to customize various settings for your project
++ Default config:
+```js
+    typescript: "disable" 
+    dirRouting: "enable"
+    defaultRoute: "home"
+    tailwind: "disable"
+    scss: "disable"
+    css: "enable"
+    port: 17000
 ```
-
-+ Configuration Options:
-    + `DEFAULT_ROUTE`: Specifies the default route for your app (e.g., /home).
-    + `EXTENSION`: Defines the file extension for your components. You can set it to js, jsx, ts, or tsx.
-    + `STYLE_EXTENSION`: Defines the file extension for stylesheets. You can set it to scss (default) or css or tailwind.
-    + `PORT`: Defines the port for the development server (default: 17000).
-    + `SERVER_TIMING`: Defines the timing to compile and serve files. Adjust this if you want to customize how often files are recompiled.
-    + `DIR_ROUTING`: If set to true, UraJS will use the default directory-based routing system. Set it to false if you prefer to use your own routing system.
-    + `TYPE`: Don't touch it
-
-
-## Using Custom Routing 
-+ it's optional (not recommended)
-+ To use custom routing with UraJS, users can create and manage their routes manually by using the `routes.json` file. Here's how they can do it:
-
-+ By default, UraJS uses a file-based routing system, but if you prefer to handle routes manually, you can disable the default directory routing by setting "DIR_ROUTING": false in the config.json file. This will allow you to manage your routes independently using the `routes.json` file.
-
-+ After disabling directory routing, you can define routes and styles in `routes.json` as follows:
-
-`/src/routes.json`:
-```json
-    {
-      "routes": {
-        "/home": "/pages/home/home.js",
-        "/home/user": "/pages/home/user/user.js"
-      },
-      "styles": [
-        "/pages/global.css",
-        "/pages/home/home.css",
-        "/pages/home/user/user.css",
-        "/pages/main.css"
-      ],
-      "base": "/home",
-      "type": "dev"
-    }
++ to change it: run
+```bash
+  npm run config #change configuration
 ```
-+ How to Use routes.json:
-1. **Disabling Directory Routing:**
-    - In config.json, set `"DIR_ROUTING": false` to disable automatic file-based routing.
-    - This will prevent UraJS from automatically creating routes based on the file and directory structure in the pages directory.
-2. **Define Routes in route.json:**
-    - The routes object in route.json maps URLs to specific files. For example:
-        - `"/home"` maps to `"/pages/home/home.js"`.
-        - `"/home/user"` maps to `"/pages/home/user/user.js"`.
-    - You can define any custom URL paths and their corresponding file locations in the routes object.
-3. **Define Styles in route.json:**
-    - The styles array allows you to specify global and route-specific CSS or SCSS files. For example:
-    -  `"/pages/global.css"` contains global variables.
-    -  `"/pages/home/home.css"` and `"/pages/home/user/user.css"` are route-specific styles linked to their respective routes.
-4. **Set the Default Route:**
-    - The `"base"` property specifies the default route that the app will load when it starts. For example, setting `"base": "/home"` means the /home route will be the default `/`.
++ you will get a validation messages like this
+<p align="center">
+  <img src="./src/assets/config.png" alt="Logo" width="500">
+</p>
 
-## Example Generated Component Code
-+ When you run npm run gen Component, the generated JSX code looks like this:
+## Example Generated JSX
++ Component:
 ```js
     import Ura from 'ura';
     
@@ -197,48 +167,66 @@ The `config.json` file allows you to customize various settings for your project
     
     export default Component;
 ```
-#### Explanation of the Code:
-1. Importing Ura:
-+ `import Ura from 'ura'`: This imports the core framework functionality of UraJS, which is responsible for state management and rendering. It enables the use of Ura.init() and other features.
++ Route:
+```js
+    function Route() {
+      document.title = "Route Page";
+      const [render, State] = Ura.init();
+      const [count, setCount] = State(0);
+      const [darkMode, setDarkMode] = State(true);
 
-2. State Declaration:
-+ `const [getter, setter] = State(0)`: This line declares a piece of state using `Ura.init()`.
-    + `State(0)` initializes the state with a value of `0
-    + `getter` is the function that retrieves the current state value
-    + `setter` is the function used to update the state
-    + **Important**: To declare a state in your component, use the following pattern:
-```js 
-    const [getter, setter] = State(initialValue);
+      return render(() => (
+        <root>
+          <div className={`home ${darkMode() ? 'dark' : 'light'}`}>
+            <header className="navbar">
+              <div className="logo">UraJS</div>
+              <nav>
+                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">GitHub</a>
+                <a onclick={() => setDarkMode(!darkMode())}>
+                  {darkMode() ? 'Light Mode' : 'Dark Mode'}
+                </a>
+              </nav>
+            </header>
+
+            <main className="body">
+              <h1>Welcome to UraJS</h1>
+              <p className="subtitle">Lightweight. Reactive. Yours.</p>
+              <button onclick={() => setCount(count() + 1)}>
+                Click me [{count()}]
+              </button>
+            </main>
+
+            <footer className="footer">
+              <p>Built with 💙 using UraJS</p>
+            </footer>
+          </div>
+        </root>
+      ));
+    }
+   export default Route;
 ```
-
-where:
-- getter() gives you the current state value.
-- setter(newValue) updates the state with a new value.
-
-3. Rendering the Component:
-+ `return render(() => ( ... ))`: The render function is used to render the JSX in the browser. It takes a function that returns the component’s UI (HTML structure).
-4. Event Handling:
-+ `<button onclick={() => setter(getter() + 1)}>`: Here, we use an event handler to update the state when the button is clicked. In this case, the button click event calls the `setter` function to increment the value of `getter()`.
-+ **Important**:
-    + In UraJS, event names should be written in lowercase. This is the standard convention for handling events in JavaScript.
+#### Explanation of the Code:
+1. State: 
+- used to updated the view wherever the value change: `const [getter, setter] = State(initialValue); `
+- componenet can hold multiple states
+- essential for updating the view weh state change
+2. Rendering the Component:
++ `return render(() => ( ... ))`: saves JSX component for future reconciliation.
+3. Event Handling:
++ `<button onclick={() => setter(getter() + 1)}>`: onlick state change
++ In UraJS, event names should be written in lowercase. This is the standard convention for handling events in JavaScript.
     + For example:
         + `onclick` for mouse clicks.
         + `onchange` for input changes.
         + `onkeyup` for key presses.
 For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
-
+4. `<root></root>` reference to the `<div id="root"></div>` in ./src/index.html
 ## Example Creating a Custom Navbar Component for the Homepage
-+ In case you want to create a custom component, like a `Navbar`, and include it in your page, you can do so by following these steps:
-
-1. **Generate a Custom Navbar Component**
-    + To create a custom component for the Navbar within the home page, run:
 ```bash
-    npm run gen home/utils/Navbar
+    npm run comp /Navbar
 ```
-2. **Navbar JSX Code:**
-This will create a file at `pages/home/utils/Navbar.jsx`. The `Navbar` component will use UraJS's `navigate` function to handle route navigation. Here’s an example:
-`pages/home/Navbar/Navbar.jsx`
 ```js
+    // components/Navbar/Navbar.jsx
     import Ura from 'ura';
     
     function Navbar() {
@@ -256,39 +244,18 @@ This will create a file at `pages/home/utils/Navbar.jsx`. The `Navbar` component
     
     export default Navbar;
 ```
-3. **Explanation of the navigate Hook:**
+**Explanation of the navigate Hook:**
 
-In the example above, we use the `Ura.navigate` function to handle navigation between routes. Here’s a breakdown of how it works:
-
-1. What is `Ura.navigate`?
-
-    `Ura.navigate` is a built-in function in UraJS that programmatically changes the current route of the app. When you call this function, it will update the URL and load the corresponding component.
-
-2. Usage in `Navbar` Component
-
-    Inside the `Navbar` component, each `<li>` element has an `onclick` event handler that calls `Ura.navigate`. This allows for routing without a full page reload, ensuring a smooth single-page application (SPA) experience.
-
-    ```js 
-    onclick={() => Ura.navigate("/home")}
-    ```
-
-    
-    When a user clicks on the "Home" or "About" link, the Ura.navigate function will update the URL to the corresponding route (/home or /about), and UraJS will load the appropriate component for that route.
-
-3. **Important Notes:**
-
-    + This is especially useful for custom navigation components like sidebars or navbars, where you can control the flow of the app programmatically.
-
++ `Ura.navigate` is a built-in function in UraJS that programmatically changes the current route of the app. When you call this function, it will update the URL and load the corresponding component.
 
 ### Adding the Navbar to the Home Page
 
 Once the `Navbar` component is created, you can include it in your `home` page component. For instance:
 
-1. Home Page Code
-In the `pages/home/home.jsx` file, import and render the Navbar component as follows:
 ```js
+    // pages/home/home.jsx
     import Ura from 'ura';
-    import Navbar from './utils/Navbar/Navbar.jsx';
+    import Navbar from '../../components/Navbar/Navbar.js';
     
     function Home() {
       const [render, State] = Ura.init();
@@ -303,27 +270,6 @@ In the `pages/home/home.jsx` file, import and render the Navbar component as fol
     
     export default Home;
 ```
-2. Result:
-
-    When you navigate to the /home route, the Navbar will be displayed at the top, allowing users to easily navigate to different sections of your application, such as the Home and About pages.
-
-### Directory Structure Clarification
-
-As a reminder, UraJS uses a directory-based routing system. For a directory to be considered a valid route, it must contain a component file (.js, .jsx, .ts, .tsx) with the same name as the directory. For example, the home directory must contain a home.jsx (or equivalent) file. Subdirectories will also be considered valid subroutes if they follow the same structure.
-
-### Example Structure for Navbar in Home Page:
-```
-    pages
-      └── home
-          ├── home.jsx  // Main Home Page Component
-          ├── home.scss // Main Home Scss
-          └── utils
-              └── Navbar
-                  ├── Navbar.jsx  // Navbar Component
-                  └── Navbar.scss // Navbar Scss
-```
-
-+ With this setup, you now have a Navbar component that users can click to navigate between routes, and you’re utilizing UraJS’s routing capabilities with the Ura.navigate function.
 
 ### Component That Navigates with Parameters
 This component uses Ura.navigate to navigate to a new page (`/userDetails`) and passes the `name` and `email` parameters.
@@ -364,31 +310,9 @@ This component receives the name and email parameters from the navigation and di
     export default UserDetails;
 
 ```
-#### Explanation:
-
-1. `UserPage` Component:
-    + Displays a button that, when clicked, navigates to the `/userDetails` page.
-    + Passes the `name` (`"John Doe"`) and `email` (`"john.doe@example.com"`) as parameters via `Ura.navigate`.
-2. `UserDetails` Component:
-    + Receives `name` and `email` parameters through `props`.
-    + Displays the user’s name and email on the page.
-
-+ When the button in UserPage is clicked, the page navigates to UserDetails and shows the user's name and email.
 
 ## Tailwind
-To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to `tailwind` in `config.json` file.
-```json
-  {
-    "DEFAULT_ROUTE": "/home",
-    "EXTENSION": "jsx",
-    "STYLE_EXTENTION": "tailwind",
-    "PORT": 17000,
-    "SERVER_TIMING": 15,
-    "DIR_ROUTING": true,
-    "TYPE": "dev"
-  }
-```
-+ Example Component with Tailwind Styling
++ make sure to enbale the tailwind in config to see the change
 ```js
   import Ura from "ura"
 
@@ -403,182 +327,168 @@ To enable Tailwind CSS in your project, you need to set the `STYLE_EXTENTION` to
   }
 ```
 
-## HTTP Requests
-```js
-import Ura from "ura";
-
-function Form() {
-  const [render, State] = Ura.init();
-  const [getUsers, setUsers] = State(0);
-
-  const POST = async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("user_name").value;
-    const email = document.getElementById("user_email").value;
-
-    try {
-      const response = await Ura.send("POST","http://localhost:3000/create_user",
-        { "Content-Type": "application/json"},
-        { name, email }
-      );
-      if (response.error) console.error("Error:", response.message);
-      else if (response.status !== 201) console.error("Error:", response.data);
-      else console.log("User created successfully:", response.data);
-      }
-    } catch (error) {
-      console.error("Unexpected error:", error);
-    }
-  };
-
-  const GET = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await Ura.send("GET","http://localhost:3000/users",
-        { "Content-Type": "application/json"});
-
-      if (response.error) console.error("Error:", response.message);
-      else if (response.status !== 200) console.error("Error fetching users:", response.data);
-      else {
-        console.log("Users fetched successfully:", response.data)
-        setUsers(response.data)
-      }
-    } catch (error) {
-      console.error("Unexpected error:", error);
-    }
-  };
-
-  return render(() => (
-    <div className="form">
-      <h1>Form</h1>
-      <form action="userForm" onsubmit={POST}>
-        <input type="text" id="user_name" placeholder="Name" />
-        <input type="email" id="user_email" placeholder="Email" />
-        <button type="submit">Create User</button>
-      </form>
-
-      <h1>Get All Users</h1>
-      <button onclick={GET}>Get Users</button>
-
-      <loop on={getUsers()}>{(elem) => <h1>{elem.name}</h1>}</loop>
-    </div>
-  ));
-}
-
-export default Form;
-```
-UraJS simplifies HTTP request handling with the Ura.send() method. This utility allows you to seamlessly interact with your server or any API endpoint. Below is a detailed explanation of how to use Ura.send() for common request types::
-
-### POST Request (Sending Data)
-The POST function is used to send data to the server. For example, when a form is submitted, the POST function gathers input data, prevents the default browser behavior, and sends the data to a specified endpoint.
-
-**Explanation**:
-+ Ura.send(): Sends an HTTP request.
-    + Method: POST (to create new data).
-    + URL: The endpoint to which the data is sent.
-    + Headers: Optional headers (such as authentication).
-    + Body: Data you want to send in the request (e.g., name and email).
-+ Response Handling
-    + response.error: Logs any errors during the request process (e.g., network errors).
-    + response.status: Checks for specific HTTP status codes to ensure the request succeeded (201 indicates a resource was created).
-    + Success: Logs the response data for a successful request.
-
-### GET Request (Fetching Data)
-The GET function is used to retrieve data from the server, such as fetching a list of users.
-
-**Explanation**:
-+ Ura.send(): Sends an HTTP request.
-    + Method: GET (to get data).
-    + URL: The endpoint to which the data is sent.
-    + Headers: Optional headers (such as authentication).
-+ Response Handling
-    + response.error: Logs any errors during the request process (e.g., network errors).
-    + response.status: Checks the HTTP status code to confirm successful data retrieval (200 indicates success).
-    + Success: Updates the state with the fetched data (e.g., `setUsers(response.data)`).
-
-## Custom Tags
-### `<loop>`:
-
-+ `<loop>` tag in UraJS allows you to iterate over an array and render content dynamically for each item. It takes in a property on, which is the array you want to iterate over, and a function that describes how to render each element.
-    
-    **Example:**
-    ```js
-        <loop on={getUsers()}>
-          {(elem) => <h1>{elem.name}</h1>}
-        </loop>
-    ```
-    + `on={getUsers()}`: This binds the loop to the getUsers() state, which is expected to be an array.
-    + `{(elem) => <h1>{elem.name}</h1>}`: For each element in the getUsers array, it renders the name property inside an `<h1>` tag.
-
-### `<if>` and `<else>`:
-+ The `<if>` tag is used to conditionally render content based on the condition provided in the cond attribute. If the condition evaluates to true, the content inside the <if> tag is rendered. If the condition evaluates to false, the content inside the <else> tag is rendered (if present).
-
-**Example:**
-```js
-    <if cond={getValue() % 2 !== 0}>
-      <h1>odd</h1>
-    </if>
-    <else>
-      <h1>even</h1>
-    </else>
-```
-
-+ `cond={getValue() % 2 !== 0}`: This condition checks if the value returned by getValue() is an odd number (i.e., not divisible by 2).
-+ `<h1>odd</h1>`: If the condition is true, the text "odd" is displayed.
-+ `<h1>even</h1>`: If the condition is false, the text "even" is displayed.
-
-### Example Component: Using `<loop>` and `<if>` Tags
-Here’s a component that uses both the `<loop>` and `<if>` tags. In this example, we’ll display a list of users and show whether each user's ID is odd or even.
-
+## Conditions:
+- `<if>` and `<else>` tag can be treated as any tag you can style theme, add className etc...
 ```js
     import Ura from "ura";
-    
-    function UserList() {
+
+    function UserProfile() {
       const [render, State] = Ura.init();
-      const [getUsers, setUsers] = State([
-        { id: 1, name: "Alice" },
-        { id: 2, name: "Bob" },
-        { id: 3, name: "Charlie" },
-        { id: 4, name: "David" }
-      ]);
-      
+      const [getUser, setUser] = State({
+        name: "Alex Johnson",
+        role: "premium", // Try changing to "free" or "admin"
+        lastLogin: new Date(),
+        posts: 42
+      });
+
       return render(() => (
-        <div className="user-list">
-          <h1>User List</h1>
+        <div className="profile-container">
+          <h1>Welcome back, {getUser().name}!</h1>
           
-          {/* Loop through users and display their names */}
-          <loop on={getUsers()}>
-            {(elem) => (
-              <div key={elem.id}>
-                <h2>{elem.name}</h2>
+          {/* Approach 1: Custom <if>/<else> tags */}
+          <if cond={getUser().role === "admin"} className="bg-red-100"> {/*you can style theme*/}
+            <div class="admin-banner">
+              ⚙️ ADMIN DASHBOARD ACCESS
+            </div>
+          </if>
+          <else cond={getUser().role === "premium"}>
+            <p class="premium-badge">🌟 Premium Member</p>
+          </else>
+          <else>
+            <p>Free account - <a href="/upgrade">Upgrade to Premium</a></p>
+          </else>
+
+          {/* Approach 2: ura-if/else attributes */}
+          <div ura-if={getUser().posts > 0}>
+            <h2>Your Activity</h2>
+            <p>You've created {getUser().posts} posts</p>
+            <div ura-if={getUser().posts > 30}>
+              <p>🔥 You're a top contributor!</p>
+            </div>
+            <div else>
+              <p>Keep posting to unlock badges!</p>
+            </div>
+          </div>
+          <div else>
+            <h2>Get Started</h2>
+            <p>You haven't posted yet. <button>Create your first post</button></p>
+          </div>
+
+          {/* Approach 3: Ternary operator */}
+          <div class="login-status">
+            {new Date().getTime() - getUser().lastLogin.getTime() < 86400000
+              ? <span class="recent-login">✔️ Active today</span>
+              : <span class="inactive-warning">⚠️ Last seen {Math.floor(
+                  (new Date().getTime() - getUser().lastLogin.getTime()) / 86400000
+                )} days ago</span>
+            }
+          </div>
+        </div>
+      ));
+    }
+
+    export default UserProfile;
+```
+## Loops:
+- `<loop>` tag can be treated as any tag you can style it, add className etc...
+```js
+    function ProductList() {
+      const [render, State] = Ura.init();
+      const [products, setProducts] = State([
+        { id: 1, name: "Wireless Headphones", price: 99.99, inStock: true },
+        { id: 2, name: "Smart Watch", price: 199.99, inStock: false },
+        { id: 3, name: "Bluetooth Speaker", price: 59.99, inStock: true }
+      ]);
+
+      return render(() => (
+        <div class="product-grid">
+          <h2>Featured Products</h2>
+          
+          <loop on={products()}>
+            {(product) => (
+              <div class="product-card" key={product.id}>
+                <h3>{product.name}</h3>
+                <p>${product.price.toFixed(2)}</p>
                 
-                {/* Check if the user's ID is odd or even */}
-                <if cond={elem.id % 2 !== 0}>
-                  <h3>Odd ID</h3>
+                <if cond={product.inStock}>
+                  <button>Add to Cart</button>
+                  <p class="stock in-stock">In Stock</p>
                 </if>
                 <else>
-                  <h3>Even ID</h3>
+                  <button disabled>Out of Stock</button>
+                  <p class="stock out-of-stock">Backorder Available</p>
                 </else>
+                
+                <div class="product-actions">
+                  <button>Compare</button>
+                  <button>Save for Later</button>
+                </div>
               </div>
             )}
           </loop>
         </div>
       ));
     }
-    
-    export default UserList;
 ```
-### Explanation of the Code:
-+ State Initialization (`getUsers`):
-    + We initialize the state `getUsers` with a list of user objects. Each user has an `id` and a `name`.
-+ `<loop on={getUsers()}>`: 
-    + We use the `<loop>` tag to iterate over the `getUsers()` array. For each user, we render their name inside an `<h2>` tag.
-+ `<if cond={elem.id % 2 !== 0}>`: 
-    + Inside the loop, we check if the `id` of the current user is odd. If it is, we render `<h3>Odd ID</h3>`.
-+ `<else>`: 
-    + If the `id` is not odd (i.e., it’s even), we render` <h3>Even ID</h3>`.
+```js
+    function NotificationBell() {
+      const [render, State] = Ura.init();
+      const [notifications, setNotifications] = State([
+        "New message from Sarah",
+        "Your order has shipped",
+        "3 new followers"
+      ]);
 
-## Build and Run using Docker
+      return render(() => (
+        <div class="notification-dropdown">
+          <button class="bell-icon">🔔</button>
+          
+          <div class="dropdown-content" ura-loop={notifications()}>
+            {(msg, index) => (
+              <div class="notification-item" key={index}>
+                <p>{msg}</p>
+                <button class="dismiss-btn">×</button>
+              </div>
+            )}
+          </div>
+        </div>
+      ));
+    }
+```
+```js
+    function BlogPost() {
+      const [render, State] = Ura.init();
+      const [tags, setTags] = State(["javascript", "webdev", "urajs", "tutorial"]);
+
+      return render(() => (
+        <article>
+          <h1>Getting Started with UraJS</h1>
+          <p>Lorem ipsum dolor sit amet...</p>
+          
+          <div class="tag-container">
+            {tags().map(tag => (
+              <span class="tag-pill" key={tag}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+          
+          <div class="related-posts">
+            {/* Combined with ternary for conditional rendering */}
+            {tags().length > 0
+              ? tags().slice(0,3).map(tag => (
+                  <a href={`/tags/${tag}`} class="tag-link">
+                    More about {tag}
+                  </a>
+                ))
+              : <p>No tags for this post</p>
+            }
+          </div>
+        </article>
+      ));
+    }
+```
+## Deploy using docker
 
 1. Build the Project
 + To build the project and generate the necessary Docker configuration files, run the following command:
