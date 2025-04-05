@@ -9,6 +9,7 @@ export const generateJSX = (name, type = "component") => {
   const isTS = config.typescript === "enable";
   const JSXname = capitalize(name);
   const isRoute = type === "route";
+  const istailwind = config.tailwind == "enable"
 
   const content = `${isTS ? '//@ts-ignore\n' : ''}import Ura${isTS ? ", { VDOM, Props }" : ""} from 'ura';
 
@@ -19,24 +20,25 @@ function ${JSXname}(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
   
   return render(() => (
     ${isRoute ? '<root>' : ''}
-      <div className="${name.toLowerCase()}">
+      <div className="${!istailwind ? name.toLowerCase() : type === "route" ? "flex flex-col min-h-screen text-text bg-bg" : "bg-bg p-6 flex flex-col justify-center items-center h-screen"}">
         ${!isRoute ?
-      `<h1>Hello from ${JSXname} component!</h1>
-        <button onclick={() => setCount(count() + 1)}> Click me [{count()}]</button>` :
-      `<header className="navbar">
-            <div className="logo">UraJS</div>
+      `<h1 className="${istailwind ? "text-2xl text-text font-semibold mb-6 text-center" : ""}">Hello from ${JSXname} component!</h1>
+        <button className="${istailwind ? "bg-accent text-white py-3 px-6 rounded-lg text-lg shadow-lg hover:bg-blue-500 hover:transform hover:translate-y-[-2px] active:scale-95 transition-transform" : ""}" onclick={() => setCount(count() + 1)}> Click me [{count()}]</button>`
+      :
+      `<header className="${!istailwind ? "navbar" : "bg-nav px-8 py-4 flex justify-between items-center border-b border-border"}">
+            <div className="${!istailwind ? "logo" : "text-[--accent] text-2xl font-bold"}">UraJS</div>
               <nav>
-                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">github</a>
+                <a ${istailwind ? 'className="ml-6 text-text hover:text-[#3c82c9] transition-colors duration-300"' : ""} href="https://github.com/mohammedhrima/UraJS/" target="_blank">github</a>
               </nav>
           </header>
-          <main className="body">
-            <h1>Hello from ${JSXname} route!</h1>
-            <button onclick={() => setCount(count() + 1)}>
+          <main className="${istailwind ? "flex-1 flex flex-col items-center justify-center px-4 py-12 text-center" : "body"}">
+            <h1 ${istailwind ? 'className="text-4xl md:text-5xl mb-8 text-[#f1f5f9]"' : ""} >Hello from ${JSXname} route!</h1>
+            <button ${istailwind ? 'className="px-6 py-3 bg-[--accent] text-white rounded-lg text-base shadow-lg transition-transform transform hover:bg-[#3c82c9] hover:-translate-y-0.5 active:scale-95"' : ""} onclick={() => setCount(count() + 1)}>
               Click me [{count()}]
             </button>
           </main>
 
-          <footer className="footer">
+          <footer className="${istailwind ? "bg-nav text-center p-4 text-sm border-t border-border text-text-muted" : 'footer'}">
             <p>Built with 💙 using UraJS</p>
           </footer>
       `}
@@ -52,6 +54,7 @@ export default ${JSXname}`;
 
 export const generateStyle = (name, type = 'component') => {
   name = name.replace("/", "_");
+  if (config.tailwind === "enable") return "";
   if (type === 'route')
     return `
 :root {
@@ -63,7 +66,7 @@ export const generateStyle = (name, type = 'component') => {
   --border: #334155;
 }
 
-.${name} {
+.${name.toLowerCase()} {
   color: var(--text);
   background-color: var(--bg);
   display: flex;
@@ -137,7 +140,7 @@ export const generateStyle = (name, type = 'component') => {
     color: var(--text-muted);
   }
 }`
-return `
+  return `
 :root {
   --bg: #0f172a;
   --nav: #1e293b;
@@ -147,7 +150,7 @@ return `
   --border: #334155;
 }
 
-.${name} {
+.${name.toLowerCase()} {
   background-color: var(--bg);
   color: var(--text);
   display: flex;

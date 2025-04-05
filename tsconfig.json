@@ -9,5 +9,5 @@
     "skipLibCheck": false,
     "allowJs": true
   },
-  "exclude": ["node_modules", "scripts", "ura.config.js"]
+  "exclude": ["node_modules", "scripts", "ura.config.js", "tailwind.config.js"]
 }

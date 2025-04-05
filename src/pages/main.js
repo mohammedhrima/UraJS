@@ -27,9 +27,7 @@ Ura.setRoutes({
   
 Ura.setStyles([
   "./pages/home/home.css",
-  "./pages/tailwind.css",
-  "./components/list.css",
-  "./components/navbar.css"
+  "./pages/main.css"
 ]);
   
 Ura.start();

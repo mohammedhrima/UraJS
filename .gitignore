@@ -3,3 +3,4 @@ out/
 **/out/
 **/package-lock.json
 **/.DS_Store
+**/docker

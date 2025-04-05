@@ -5,7 +5,7 @@ export default (async () => {
     typescript: "enable",
     dirRouting: "enable",
     defaultRoute: "home",
-    tailwinds: "disable",
+    tailwind: "disable",
     scss: "disable",
     css: "enable",
     port: 17000,

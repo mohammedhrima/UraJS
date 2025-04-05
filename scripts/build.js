@@ -62,28 +62,33 @@ services:
 
 `;
 const makefile = (port) => `
-all: # start container
-	docker-compose up -d
+all: up
 
-down: # stop container
+up:
+	@echo "Starting Docker containers..."
+	docker-compose up --build -d
+
+down:
+	@echo "Stopping Docker containers..."
 	docker-compose down
 
-list: # list container
-	docker ps --format "{{.Names}} {{.ID}}"
+clean: down
+	@echo "Removing Docker volumes..."
+	docker volume rm -f $$(docker volume ls -q --filter name=$(PROJECT_NAME)_*)
 
-clean: down # clear
-	@docker system prune -a -f
-	@docker volume prune -f
-	@docker image prune -f
-	@docker network prune -f
-	@dangling_volumes=$$(docker volume ls -q --filter dangling=true); \\
-    if [ $$? -eq 0 ]; then \\
-        for volume in $$dangling_volumes; do \\
-            docker volume rm $$volume; \\
-        done; \\
-    fi
+fclean: down
+	@echo "Cleaning Docker system..."
+	docker system prune -af
+	docker volume prune -f
+	docker network prune -f
+
+logs:
+	@echo "Showing logs..."
+	docker-compose logs -f
 
 re: clean all
+
+.PHONY: all build up down clean fclean logs re
 `;
 
 function createFile(filePath, data) {
@@ -126,12 +131,10 @@ function copyDir(src, dest) {
     });
   
     updateRoutes();
-    updateStyles();
     createFile(join(root, "./docker/nginx/nginx.conf"), nginx(port));
     createFile(join(root, "./docker/Dockerfile"), dockerfile(port));
     createFile(join(root, "./docker/docker-compose.yml"), dockerCompose(port));
     createFile(join(root, "./docker/Makefile"), makefile(port));
-    copyFileSync(join(root, "./index.html"), join(root, "./docker/app/index.html"));
   
     copyDir(join(root, "./out"), join(root, "./docker/app"))
   } catch (error) {

@@ -69,13 +69,15 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       if (functag.type === FRAGMENT) functag = e("fr", {}, ...check(children || []));
       return functag;
    }
+
    if (tag === "if") {
-      return {
+      ifTag = {
          type: IF,
          tag: "if",
          props: props,
          children: check(props.cond && children.length ? children : []),
       };
+      return ifTag;
    }
    else if (tag === "else") {
       return {
@@ -116,6 +118,46 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          props: props,
          children: check(loopChildren || []),
       };
+   }
+   //@ts-ignore
+   else if (props && props["ura-if"] != undefined) {
+      children = check(props["ura-if"] === true && children.length ? children : []);
+      console.log("cond:", props["ura-if"]);
+      console.log("children:", children);
+
+      ifTag = {
+         tag: tag,
+         type: ELEMENT,
+         props: props,
+         children: check(children || []),
+      };
+      return ifTag;
+   }
+   // @ts-ignore
+   else if (props && props["ura-else"] !== undefined) {
+      return {
+         type: ELSE,
+         tag: "else",
+         props: ifTag?.props || {},
+         children: check(ifTag && !ifTag.props.cond && children.length ? children : []),
+      };
+   }
+   //@ts-ignore
+   else if (props && props["ura-loop"]) {
+      let loopChildren = (props["ura-loop"] || []).flatMap((elem, id) =>
+         (children || []).map((child) => {
+            const evaluatedChild =
+               //@ts-ignore
+               typeof child === "function" ? child(elem, id) : child;
+            // I commented this line it caused me problem 
+            // in slider when copying input that has function onchange
+            // return structuredClone ? structuredClone(evaluatedChild)
+            //   : JSON.parse(JSON.stringify(evaluatedChild));
+            // return JSON.parse(JSON.stringify(evaluatedChild));
+            return deepcopy(evaluatedChild);
+         })
+      );
+      children = loopChildren;
    }
    return {
       tag: tag,
@@ -292,6 +334,14 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 
 // RECONCILIATION
 function reconciliate(prev: VDOM, next: VDOM) {
+   if(
+      (prev.props && prev.props["ura-if"] != undefined) || 
+      (next.props && next.props["ura-if"] != undefined)
+   )
+   {
+      console.log("compare: ", prev);
+      console.log("with: ", next);   
+   }
    if (prev.type != next.type || !deepEqual(prev.props, next.props))
       return execute(REPLACE, prev, next);
 
@@ -473,7 +523,6 @@ export function getQueries() {
    const res = {};
    const urlParams = new URLSearchParams(window.location.search);
    for (const [key, value] of urlParams) {
-      // console.log(key, ":", value);
       res[key] = value;
    }
    return res;
@@ -499,7 +548,7 @@ function refresh(params = null) {
 
 export function navigate(route, params = {}) {
    route = normalizePath(route);
-   console.log("navigate to", route, "with", params);
+   console.log("navigate to ", route, "with", params);
 
    window.history.pushState({}, "", `${route}`);
 
@@ -620,7 +669,7 @@ async function start() {
 }
 
 export function getCookie(name) {
-   const cookies = document.cookie.split("; ").map(cookie => cookie.split("="));
+   const cookies = document.cookie.split(";").map(cookie => cookie.split("="));
    const cookie = cookies.find(([key]) => key === name);
    return cookie ? decodeURIComponent(cookie[1]) : null;
 }

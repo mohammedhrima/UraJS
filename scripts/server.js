@@ -184,8 +184,8 @@ async function startServer(startPort = 17000) {
       else rmSync(_path);
     });
 
-  if (config.tailwinds !== "enable" && existsSync(join(source, "./pages/tailwinds.css"))) {
-    rmSync(join(source, "./pages/tailwinds.css"));
+  if (config.tailwind !== "enable" && existsSync(join(source, "./pages/tailwind.css"))) {
+    rmSync(join(source, "./pages/tailwind.css"));
   }
 
   updateRoutes();

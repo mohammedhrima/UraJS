@@ -103,15 +103,18 @@ export async function fixImportExtensions(filePath) {
     return;
   }
 
-  const fixed = content.replace(
-    /((?:import|export)[^'"]+['"])([^'"]+\.(ts|tsx|jsx))(['"])/g,
-    (_, start, pathWithoutExt, ext, end) => {
-      const newPath = pathWithoutExt.replace(/\.(ts|tsx|jsx)$/, ".js");
-      return `${start}${newPath}${end}`;
+  const lines = content.split("\n");
+  const fixedLines = lines.map(line => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("import") && /['"][^'"]+\.(ts|tsx|jsx)['"]\s*;?$/.test(trimmed)) {
+      return line.replace(/\.(ts|tsx|jsx)(['"])\s*;?$/, ".js$2");
     }
-  );
 
-  // Only write if a change was made
+    return line;
+  });
+
+  const fixed = fixedLines.join("\n");
+
   if (fixed !== content) {
     try {
       await fs.writeFile(fullPath, fixed, "utf-8");
@@ -142,8 +145,8 @@ export async function handleCopy(pathname) {
       handleTypeScript(pathname);
     }
     else if (ext === ".scss") {
-      if (pathname === join(source, "pages/global.scss")) {
-        loginfo("global.scss modified, recompiling all scss...");
+      if (pathname === join(source, "pages/main.scss")) {
+        loginfo("main.scss modified, recompiling all scss...");
         handleSubSassfiles(join(source, "pages"));
       } else {
         handleSass(pathname);
@@ -211,32 +214,57 @@ export async function handleDelete(srcname) {
   }
 }
 
-export function handleTailwind() {
-  if (config.tailwinds !== "enable") return;
+export async function handleTailwind() {
+  if (config.tailwind !== "enable") return;
+  loginfo("handle tailwind change");
+
+  const tailwindConfPath = join(root, "tailwind.config.js");
+
+  // Create tailwind.config.js if it doesn't exist
+  if (!existsSync(tailwindConfPath)) {
+    fs.writeFileSync(
+      tailwindConfPath,
+      `export default {
+  content: ["./src/**/*.{js,ts,jsx,tsx,html}"],
+  theme: {
+    extend: {
+      colors: {
+        bg: '#0f172a',
+        nav: '#1e293b',
+        accent: '#26578d',
+        text: '#e2e8f0',
+        'text-muted': '#94a3b8',
+        border: '#334155',
+      },
+    },
+  },
+  plugins: [],
+};
+`,
+      "utf-8"
+    );
+  }
+
+  // Input CSS with Tailwind directives
   const inputCSS = `
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 `;
-  const tailwindConfig = {
-    content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-    theme: { extend: {} },
-    plugins: [],
-  }
+
+  const configModule = await import(join(root, './tailwind.config.js'));
+  const tailwindConfig = configModule.default;
+
   try {
     const tailwindPath = join(source, './pages/tailwind.css');
     const processor = postcss([tailwindcss(tailwindConfig)]);
-    processor.process(inputCSS, { from: undefined }).then((result) => {
-      writeFileSync(tailwindPath, result.css, 'utf-8');
-    })
-      .catch((err) => {
-        throw new Error(`handleTailwinds generating CSS: ${err.message}`);
-      });
-  } catch (err) {
-    logerror("handleTailswind", err)
-    throw err
-  }
 
+    const result = await processor.process(inputCSS, { from: undefined });
+    writeFileSync(tailwindPath, result.css, 'utf-8');
+  } catch (err) {
+    logerror("handleTailwind", err);
+    throw new Error(`handletailwind generating CSS: ${err.message}`);
+  }
 }
 
 export const capitalize = (name) => name.charAt(0).toUpperCase() + name.slice(1);
@@ -312,7 +340,7 @@ export async function checkConfig() {
     setConfig({ defaultRoute: route });
     did_update = true;
   }
-  if (!config.tailwinds) await promptToggle('Enable Tailwind CSS?', 'tailwinds');
+  if (!config.tailwind) await promptToggle('Enable Tailwind CSS?', 'tailwind');
   if (!config.scss) await promptToggle('Enable SCSS?', 'scss');
   if (config.scss == "disable" && !config.css) await promptToggle('Enable CSS?', 'css');
   else if (!config.css) setConfig({ css: "disable" });
