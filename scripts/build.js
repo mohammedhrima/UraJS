@@ -2,11 +2,9 @@
 
 import { root, config, updateRoutes } from "./utils.js";
 import { mkdirSync, writeFileSync, existsSync, readdirSync, copyFileSync } from "fs";
-import { join ,relative} from "path";
-import net from "net";
+import { join, relative } from "path";
 import { logerror, loginfo } from "./debug.js";
-import updateStyles from "./load-css.js";
-
+import "../ura.config.js";
 
 const nginx = (port) => `# nginx/nginx.conf
 events {
@@ -89,27 +87,11 @@ clean: down # clear
 re: clean all
 `;
 
-
-function getAvailablePort(port) {
-  const isAvailable = (port) =>
-    new Promise((resolve) => {
-      const server = net.createServer({ reuseAddress: true });
-      server.once("error", () => resolve(false));
-      server.once("listening", () => server.close(() => resolve(true)));
-      server.listen(port);
-    });
-
-  while (!(isAvailable(port))) {
-    console.log(`Port ${port} is in use, trying port ${++port}...`);
-  }
-  return port;
-}
-
 function createFile(filePath, data) {
   if (!existsSync(filePath)) {
     try {
       writeFileSync(filePath, data);
-      console.log(relative(root, filePath), "created and data written successfully.");
+      loginfo(relative(root, filePath), "created and data written successfully.");
     } catch (err) {
       console.error("Error:", err);
     }
@@ -131,15 +113,14 @@ try {
   // parse_config_file();
   // SET("TYPE", "build");
 
-  let port = getAvailablePort(config.port);
-  console.log("available port", port);
+  let port = config.port;
+  loginfo("available port", port);
 
   ["./docker/app", "./docker/nginx"].map((subDir) => {
     mkdirSync(join(root, subDir), { recursive: true }, (err) => {
-      if (err) {
-        console.error("Error:", err);
-      } else {
-        console.log("build directory created successfully or already exists.");
+      if (err) logerror("Error:", err);
+      else {
+        loginfo("build directory created successfully or already exists.");
       }
     });
   });
@@ -156,5 +137,5 @@ try {
 
   // SET("TYPE", "dev");
 } catch (error) {
-  logerror("Error", error)
+  logerror(error)
 }

@@ -9,7 +9,7 @@
  * }
  *
  * Example:
- * const Routes = {
+ * {
  *    "/home": Home,
  *    "/user": User,
  *    "/user/setting": Setting
@@ -18,11 +18,8 @@
 
 import Ura from "ura";
 
-import home from "./home/home.js";
 
 Ura.setRoutes({
-  "*": home,
-  "/home": home
 });
 
 Ura.setStyles([

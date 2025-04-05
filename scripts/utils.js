@@ -1,11 +1,14 @@
 import { dirname, join, relative, extname as extension, basename, } from "path";
-import { writeFileSync, statSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync, unlinkSync, readdirSync } from "fs";
+import { writeFileSync, statSync, existsSync, readFileSync, readdirSync, mkdirSync } from "fs";
+import { promises as fs } from "fs";
+import enquirer from 'enquirer';
 import { fileURLToPath } from "url";
 import ts from "typescript";
 import * as sass from "sass";
 import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
-import { logerror, loginfo, logmsg } from "./debug.js";
+import { logerror, loginfo, logmsg, logwarn } from "./debug.js";
+import { generateComponent, generateStyle } from "./gen.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,96 +59,126 @@ export function handleTypeScript(srcFile) {
   handleTailwind();
 }
 
-export function handleSass(pathname) {
+export async function handleSass(pathname) {
   loginfo("transpile:", relative(source, pathname))
   try {
-    if (statSync(pathname).isDirectory()) {
-      readdirSync(pathname).forEach(elem => handleSass(join(pathname, elem)))
-    }
-    else {
+    const stat = await fs.stat(pathname);
+    if (stat.isDirectory()) {
+      const files = await fs.readdir(pathname);
+      await Promise.all(files.map(file => handleSassAsync(join(pathname, file))));
+    } else {
       const result = sass.compile(pathname);
       let sassfile = pathname.replace(source, output);
       sassfile = join(dirname(sassfile), basename(sassfile, ".scss") + ".css");
-      if (!existsSync(dirname(sassfile))) mkdirSync(dirname(sassfile), { recursive: true })
-      writeFileSync(sassfile, result.css);
+      await fs.mkdir(dirname(sassfile), { recursive: true });
+      await fs.writeFile(sassfile, result.css);
     }
   } catch (error) {
     logerror("Error Sass:", pathname, error)
   }
 }
 
-function handleSubSassfiles(parent) {
-  readdirSync(parent).forEach(sub => {
-    sub = join(parent, sub)
-    if (statSync(sub).isDirectory())
-      handleSubSassfiles(sub);
-    else if (statSync(sub).isFile() && /\.(scss)$/i.test(sub))
-      handleSass(sub);
-  })
-}
+async function handleSubSassfiles(parent) {
+  const files = await fs.readdir(parent);
 
-export function handleCopy(pathname) {
-  try {
-    const dest = pathname.replace(source, output);
-    if (!existsSync(dirname(dest))) mkdirSync(dirname(dest), { recursive: true });
-
-    if (statSync(pathname).isDirectory()) {
-      readdirSync(pathname).forEach((elem) => handleCopy(join(pathname, elem)));
+  for (const file of files) {
+    const fullPath = join(parent, file);
+    const stat = await fs.stat(fullPath);
+    if (stat.isDirectory()) {
+      await handleSubSassfiles(fullPath);
+    } else if (stat.isFile() && /\.scss$/i.test(fullPath)) {
+      await handleSass(fullPath);
     }
-    else if ([".js", ".jsx", ".ts", ".tsx"].includes(extension(pathname))) {
-      handleTypeScript(pathname);
-    } else if (extension(pathname) === ".scss") {
-      if (pathname == join(source, "pages/global.scss")) {
-        logmsg("global.scss get modified, retranspile children scss files")
-        handleSubSassfiles(join(source, "/pages"))
-      }
-      else
-        handleSass(pathname);
-    }
-    else {
-      loginfo("Copy", relative(source, pathname));
-      copyFileSync(pathname, dest);
-    }
-  } catch (error) {
-    logerror("Error copying:", pathname, error);
-
   }
 }
 
-export function handleDelete(srcname) {
+export async function handleCopy(pathname) {
+  try {
+    const stat = await fs.stat(pathname);
+    const ext = extension(pathname).toLowerCase();
+    const dest = pathname.replace(source, output);
+
+    if (stat.isDirectory()) {
+      const files = await fs.readdir(pathname);
+      await Promise.all(files.map(file => handleCopy(join(pathname, file))));
+      return;
+    }
+
+    await fs.mkdir(dirname(dest), { recursive: true });
+
+    const transpileExtensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
+    if (transpileExtensions.has(extension(pathname))) handleTypeScript(pathname);
+    else if (ext === ".scss") {
+      if (pathname === join(source, "pages/global.scss")) {
+        loginfo("global.scss modified, recompiling all scss...");
+        handleSubSassfiles(join(source, "pages"));
+      } else {
+        handleSass(pathname);
+      }
+    }
+    else {
+      loginfo("copy", relative(source, pathname));
+      await fs.copyFile(pathname, dest);
+    }
+  } catch (error) {
+    logerror("copying:", pathname, error);
+  }
+}
+
+export async function handleDelete(srcname) {
   const outname = srcname.replace(source, output)
     .replace(/\.(ts|tsx|jsx|js)$/i, ".js")
     .replace(/\.(scss|css)$/i, ".css");
+
   try {
-    if (statSync(outname).isDirectory()) {
-      rmSync(outname, { recursive: true, force: true });
-      logmsg("Deleted directory:", relative(output, outname));
+    let stats;
+    try {
+      stats = await fs.stat(outname);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        logerror("File or directory does not exist:", relative(output, outname));
+        return;
+      }
+      throw err;
+    }
+
+    if (stats.isDirectory()) {
+      await fs.rm(outname, { recursive: true, force: true });
+      loginfo("Deleted directory:", relative(output, outname));
       return;
     }
+
     let extensions = null;
     if (/\.(ts|tsx|jsx|js)$/i.test(srcname)) extensions = [".ts", ".tsx", ".jsx", ".js"];
     else if (/\.(scss|css)$/i.test(srcname)) extensions = [".scss", ".css"];
 
     if (extensions) {
       const basePath = srcname.replace(/\.(ts|tsx|jsx|js|scss|css)$/i, "");
-      if (extensions.some((ext) => existsSync(basePath + ext))) {
-        logmsg("Skipping deletion, source exists:", basePath);
+
+      // Check if any source files still exist (async version)
+      const sourceExists = await Promise.any(
+        extensions.map(ext =>
+          fs.access(basePath + ext)
+            .then(() => true)
+            .catch(() => false)
+        )
+      );
+
+      if (sourceExists) {
+        loginfo("Skipping deletion, source exists:", basePath);
         return;
       }
     }
-    unlinkSync(outname);
+
+    await fs.unlink(outname);
     loginfo("Deleted file:", relative(output, outname));
   } catch (error) {
-    if (error.code === "ENOENT") {
-      logerror("File or directory does not exist:", relative(output, outname));
-    } else {
-      logerror("Error deleting:", relative(output, outname), error);
-    }
+    logerror("deleting:", relative(output, outname), error);
   }
 }
 
 export function handleTailwind() {
-  if (config.style !== "tailwind") return;
+  if (config.tailwinds !== "enable") return;
   const inputCSS = `
 @tailwind base;
 @tailwind components;
@@ -166,41 +199,144 @@ export function handleTailwind() {
         throw new Error(`Error generating CSS: ${err.message}`);
       });
   } catch (err) {
-    console.error(err.message);
+    throw err
   }
 
 }
 
-export function logServerMsg(port) {
-  console.clear();
-  console.log(`
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-\x1b[1m\x1b[32m    UraJS Development Server is Running!        \x1b[0m
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-\x1b[1m\x1b[32m    open http://localhost:${port}               \x1b[0m
-\x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
-    `);
+
+export const capitalize = (name) => name.charAt(0).toUpperCase() + name.slice(1);
+export const createFile = (filePath, content) => {
+  mkdirSync(dirname(filePath), { recursive: true });
+  if (!existsSync(filePath)) {
+    writeFileSync(filePath, content);
+    loginfo(`Created: ${filePath}`);
+  } else {
+    logwarn(`Skipped (already exists): ${filePath}`);
+  }
+};
+
+
+/* will be used only if dirRouting is enabled */
+/*
+config.dirRouting
+config.default
+config.ext
+config.taildwinds
+config.style
+config.typescript
+config.port
+
+const name = await new Input({
+    name: 'name',
+    message: 'What is your name?'
+}).run();
+
+const framework = await new Select({
+    name: 'framework',
+    message: 'Pick a framework',
+    choices: ['React', 'Vue', 'Svelte']
+}).run();
+*/
+
+
+export async function updateConfigFile() {
+  const configPath = join(__dirname, '../ura.config.js');
+  const configContent = `import { checkConfig, setConfig } from "./scripts/utils.js";
+
+(async()=>{
+  setConfig({
+    ${Object.entries(config).map(([key, value]) => `${key}: ${JSON.stringify(value)},`)
+      .join('\n    ')}
+  })
+})()
+await checkConfig();`;
+
+  writeFileSync(configPath, configContent);
+  console.log('Configuration file updated successfully');
 }
 
-let data = null;
-export function parse_config_file() {
-  try { data = JSON.parse(readFileSync(join(__dirname, "../config.json"))) }
-  catch (error) { logerror("Error: opening config.json", error); process.exit(1); }
-}
+let _config = {}; // Private variable
 
-// export function GET(name) {
-//   if (data == null) parse_config_file();
-//   return data[name];
-// }
-// export function SET(name, value) { data[name] = value; }
+export const config = {}; // Export empty object first
 
-export let config = {};
 export function setConfig(obj = {}) {
-  config = obj;
+  Object.assign(_config, obj);
+  Object.assign(config, _config); // Sync with exported config
 }
+setConfig({});
 
 let routes = {};
 let styles = [];
+
+const { Select, Input, Toggle } = enquirer;
+export async function checkConfig() {
+  let did_update = false;
+  const promptToggle = async (message, key) => {
+    const answer = await new Select({
+      message,
+      choices: [
+        { title: 'Yes', value: 'enable' },
+        { title: 'No', value: 'disable' }
+      ],
+    }).run();
+    did_update = true;
+    setConfig({ [key]: answer === "Yes" ? "enable" : "disable" });
+  };
+
+  const getAvailableRoutes = () => {
+    return readdirSync(join(source, "/pages"))
+      .filter(sub => statSync(join(source, "/pages", sub)).isDirectory())
+      .map(sub => join("/", sub));
+  };
+
+  if (!config.typescript) await promptToggle('Enable TypeScript?', 'typescript');
+  if (!config.dirRouting) await promptToggle('Enable directory routing?', 'dirRouting');
+  if (config.dirRouting === "enable" && !config.defaultRoute) {
+    const routes = getAvailableRoutes();
+    const route = routes.length > 0
+      ? await new Select({
+        message: 'Choose default route',
+        choices: routes
+      }).run()
+      : await new Input({
+        name: 'default_route',
+        message: 'Enter default route name:',
+        initial: 'home',
+        validate: value => /^[a-zA-Z_-]+$/.test(value.trim()) || 'Invalid name'
+      }).run();
+
+    setConfig({ defaultRoute: cleanPath(route) });
+    did_update = true;
+  }
+  if (!config.tailwinds) await promptToggle('Enable Tailwind CSS?', 'tailwinds');
+  if (!config.scss) await promptToggle('Enable SCSS?', 'scss');
+  if (!config.port) {
+    const port = await new Input({
+      message: 'Enter port number:',
+      initial: '17000',
+      validate: value => {
+        const p = parseInt(value);
+        return (p > 0 && p < 65536) || 'Invalid port (1-65535)';
+      }
+    }).run();
+    setConfig({ port: parseInt(port) });
+    did_update = true;
+  }
+
+  console.log(config);
+  if (did_update) updateConfigFile();
+  if (config.dirRouting === "enable" && !existsSync(join(source, config.defaultRoute))) {
+    const name = config.defaultRoute;
+    const ext = config.typescript === "enable" ? "tsx" : "jsx";
+    const styleExt = config.scss === "enable" ? "scss" : "css";
+
+    createFile(join(source, `./pages/${name}/`, `${name}.${ext}`), generateComponent(name, 'route'));
+    createFile(join(source, `./pages/${name}/`, `${name}.${styleExt}`), generateStyle(name, 'route'));
+    updateRoutes();
+  }
+}
+
 
 function cleanPath(path) {
   return path.replace(/\\/g, '/').replace("//", "/");
@@ -221,7 +357,7 @@ export default function updateStyles() {
         if (relativePath.endsWith('.scss')) relativePath = relativePath.replace(/\.scss$/, '.css');
         if (!relativePath.includes("styles.js")) { // Exclude styles.js itself
           styles.push(`./${relativePath}`);
-          console.log(`Added style path: ${relativePath}`);
+          loginfo(`Added style path: ${relativePath}`);
         }
       }
     });
@@ -229,7 +365,6 @@ export default function updateStyles() {
   traverseDirectory(join(source, "./pages"));
   traverseDirectory(join(source, "./components"));
 }
-
 
 function generateRoutes(dir, parent, adding) {
   readdirSync(dir, { withFileTypes: true }).forEach(sub => {
@@ -260,32 +395,21 @@ function generateRoutes(dir, parent, adding) {
   });
 }
 
-let styleTimeout = null;
-let first = true;
 const pagesDir = join(source, 'pages');
-function updateDebounced() {
-  if (first) {
-    generateRoutes(pagesDir, '', true);
-    updateStyles();
-    first = false;
-  }
-  else {
-    if (styleTimeout) clearTimeout(styleTimeout);
-    styleTimeout = setTimeout(() => {
-      routes = {};
-      styles = {};
-      generateRoutes(pagesDir, '', true);
-      updateStyles();
-    }, 5);
-  }
-}
-
 routes = {};
 styles = [];
 
 export function updateRoutes() {
-  if (!config.dirRouting) return;
-  updateDebounced();
+  if (config.dirRouting != "enable") {
+    logwarn("dir routing is disabled")
+    return;
+  }
+  routes = {};
+  styles = {};
+  generateRoutes(pagesDir, '', true);
+  updateStyles();
+  console.log(routes);
+
 
   const output = `/*
  * Routing Schema
@@ -298,7 +422,7 @@ export function updateRoutes() {
  * }
  *
  * Example:
- * const Routes = {
+ * {
  *    "/home": Home,
  *    "/user": User,
  *    "/user/setting": Setting
@@ -307,11 +431,11 @@ export function updateRoutes() {
 
 import Ura from "ura";
 
-${Object.entries(routes).map(([key, path]) => `import ${basename(path, '.js')} from "${path}";`).join('\n')}
+${Object.entries(routes).map(([key, path]) => `import ${capitalize(basename(path, '.js'))} from "${path}";`).join('\n')}
 
 Ura.setRoutes({
-  "*": ${basename(routes[config.default] || Object.values(routes)[0], '.js')},
-  ${Object.entries(routes).map(([key, path]) => `"${key}": ${basename(path, '.js')}`).join(',\n  ')}
+  ${config.dirRouting == "enable" && `"*": ${capitalize(basename(routes[config.defaultRoute], '.js'))}`},
+  ${Object.entries(routes).map(([key, path]) => `"${key}": ${capitalize(basename(path, '.js'))}`).join(',\n  ')}
 });
 
 Ura.setStyles(${JSON.stringify(styles, null, 2)});
@@ -319,91 +443,6 @@ Ura.setStyles(${JSON.stringify(styles, null, 2)});
 Ura.start();`;
 
   writeFileSync(join(pagesDir, 'main.js'), output, 'utf8');
-  console.log("Routes and styles updated.");
-}
-
-
-export function MimeType(ext) {
-  return {
-    ".html": "text/html",
-    ".htm": "text/html",
-    ".css": "text/css",
-    ".csv": "text/csv",
-    ".ics": "text/calendar",
-    ".js": "text/javascript",
-    ".json": "application/json",
-    ".xml": "application/xml",
-    ".txt": "text/plain",
-    ".ts": "video/mp2t",
-    ".jsx": "text/jsx",
-    ".tsx": "text/tsx",
-    ".yaml": "application/x-yaml",
-    ".yml": "application/x-yaml",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".bmp": "image/bmp",
-    ".ico": "image/x-icon",
-    ".svg": "image/svg+xml",
-    ".tiff": "image/tiff",
-    ".tif": "image/tiff",
-    ".webp": "image/webp",
-    ".avif": "image/avif",
-    ".ttf": "font/ttf",
-    ".otf": "font/otf",
-    ".woff": "font/woff",
-    ".woff2": "font/woff2",
-    ".eot": "application/vnd.ms-fontobject",
-    ".mp3": "audio/mpeg",
-    ".ogg": "audio/ogg",
-    ".wav": "audio/wav",
-    ".flac": "audio/flac",
-    ".aac": "audio/aac",
-    ".m4a": "audio/mp4",
-    ".weba": "audio/webm",
-    ".mid": "audio/midi",
-    ".midi": "audio/midi",
-    ".mp4": "video/mp4",
-    ".webm": "video/webm",
-    ".ogv": "video/ogg",
-    ".avi": "video/x-msvideo",
-    ".mov": "video/quicktime",
-    ".mkv": "video/x-matroska",
-    ".flv": "video/x-flv",
-    ".wmv": "video/x-ms-wmv",
-    ".mpg": "video/mpeg",
-    ".mpeg": "video/mpeg",
-    ".m4v": "video/x-m4v",
-    ".zip": "application/zip",
-    ".tar": "application/x-tar",
-    ".gz": "application/gzip",
-    ".bz2": "application/x-bzip2",
-    ".xz": "application/x-xz",
-    ".rar": "application/vnd.rar",
-    ".7z": "application/x-7z-compressed",
-    ".iso": "application/x-iso9660-image",
-    ".dmg": "application/x-apple-diskimage",
-    ".pdf": "application/pdf",
-    ".exe": "application/vnd.microsoft.portable-executable",
-    ".bin": "application/octet-stream",
-    ".msi": "application/x-msdownload",
-    ".dll": "application/x-msdownload",
-    ".deb": "application/x-debian-package",
-    ".rpm": "application/x-rpm",
-    ".bat": "application/x-msdos-program",
-    ".sh": "application/x-sh",
-    ".jar": "application/java-archive",
-    ".rtf": "application/rtf",
-    ".psd": "image/vnd.adobe.photoshop",
-    ".ai": "application/postscript",
-    ".eps": "application/postscript",
-    ".dxf": "image/vnd.dxf",
-    ".dwg": "image/vnd.dwg",
-    ".kml": "application/vnd.google-earth.kml+xml",
-    ".kmz": "application/vnd.google-earth.kmz",
-    ".vcf": "text/vcard",
-    ".ics": "text/calendar",
-  }[ext] || "application/octet-stream";
+  loginfo("Routes and styles updated.");
 }
 

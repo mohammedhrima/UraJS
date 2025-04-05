@@ -8,9 +8,9 @@ export type VDOM = {
   value?: string | number;
   dom?: HTMLElement;
   key?: number;
-  render?: Function;
   children?: any;
-  call?: Function;
-  // funcProps?: Props;
-  // isfunc?: Boolean;
+  call?: Function; // for exec tag
+  funcProps?: Props;
+  isfunc?: Boolean;
+  func?: Function
 };

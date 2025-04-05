@@ -4,25 +4,30 @@
   "description": "frontend framework",
   "type": "module",
   "scripts": {
-    "start": "urastart"
+    "start": "urastart",
+    "route": "uraroute",
+    "comp": "uracomp",
+    "clear": "uraclear",
+    "build": "urabuild"
   },
   "bin": {
+    "urastart": "node ./scripts/server.js",
+    "uraroute": "node ./scripts/route.js",
+    "uracomp": "node ./scripts/comp.js",
     "uraclear": "rm -rf ./out/*",
-    "uraroute": "./scripts/route.js",
-    "uracomp": "./scripts/comp.js",
-    "urastart": "./scripts/server.js",
-    "urabuild": "./scripts/build.js"
+    "urabuild": "node ./scripts/build.js"
   },
   "author": "Hrima Mohammed",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "autoprefixer": "^10.4.20",
     "chokidar": "^4.0.1",
+    "enquirer": "^2.4.1",
+    "express": "^5.1.0",
     "postcss": "^8.4.49",
     "sass": "^1.80.6",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
-    "ws": "^8.18.0"
+    "ws": "^8.18.1"
   }
 }

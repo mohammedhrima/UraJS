@@ -64,32 +64,4 @@ const events = {
   remove,
 }
 
-events.add("friendship_received", async (data) => {
-  if (data.length && !Ura.In("/notifications")) {
-    const res = await api.getUsersById([data[0].user_id]);
-    Ura.create(<Toast message={`new invitation from ${res[0].display_name}`} color="green" />);
-  }
-  Ura.refresh();
-})
-
-events.add("friendship_accepted", async (data) => {
-  if (data.length) {
-    const res = await api.getUsersById([data[0].user_id]);
-    Ura.create(<Toast message={`${res[0].display_name} did accept invitation`} color="green" />);
-  }
-  Ura.refresh();
-})
-
-events.add("game_invite", async (data) => {
-  if (data.length) {
-    data = data[0];
-    // console.log("heyyyy:", data);
-    if (!Ura.In("/notifications")) Ura.create(<Toast message={`New game invitation from ${data.invite.inviter.display_name}`} color="green" />);
-  }
-})
-
-
-
-
-
 export default events

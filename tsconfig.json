@@ -1,12 +1,13 @@
-{ 
+{
   "compilerOptions": {
     "module": "ESNext",
     "target": "ES2020",
     "jsx": "react",
+    "rootDir": "src",
     "jsxFactory": "Ura.e",
     "jsxFragmentFactory": "Ura.fr",
     "skipLibCheck": false,
-    "allowJs": true,
+    "allowJs": true
   },
   "exclude": ["node_modules", "scripts", "ura.config.js"]
 }

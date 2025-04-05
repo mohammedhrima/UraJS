@@ -1,10 +1,13 @@
-import { setConfig } from "./scripts/utils.js";
+import { checkConfig, setConfig } from "./scripts/utils.js";
 
-setConfig({
-  dirRouting: true,
-  defaultRoute: "/home", /* will be used only if dirRouting is true */
-  port: 17000,
-  serverTiming: 1,
-  style: "css",
-  ext: "jsx"
-})
+(async()=>{
+  await setConfig({
+    typescript: "enable",
+    dirRouting: "enable",
+    defaultRoute: "home",
+    tailwinds: "enable",
+    scss: "enable",
+    port: 17000,
+  })
+  await checkConfig();
+})()
