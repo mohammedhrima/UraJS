@@ -43,7 +43,7 @@ To get started with **UraJS**, follow these simple steps:
 5. **Open your browser** and visit http://localhost:17000 to see the app running.
 + you should see something like this
 <p align="center">
-  <img src="./src/assets/home-page.png" alt="Logo" width="500">
+  <img src="./src/assets/home-page.png" alt="Logo" width="800">
 </p>
 
 6. **all commands**:
@@ -143,7 +143,7 @@ After generating the route and its styles, visit the route in the browser by nav
 ```
 + you will get a validation messages like this
 <p align="center">
-  <img src="./src/assets/config.png" alt="Logo" width="300">
+  <img src="./src/assets/config.png" alt="Logo" width="500">
 </p>
 
 ## Example Generated JSX

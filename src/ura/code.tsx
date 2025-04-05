@@ -96,8 +96,7 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       }
    }
    else if (tag === "loop" || tag === "dloop") {
-      console.warn("loop / dloop tags are depricated");
-
+      // console.warn("loop / dloop tags are depricated");
       let loopChildren = (props.on || []).flatMap((elem, id) =>
          (children || []).map((child) => {
             const evaluatedChild =
@@ -120,26 +119,26 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       };
    }
    //@ts-ignore
-   else if (props && props["ura-if"] != undefined) {
-      children = check(props["ura-if"] === true && children.length ? children : []);
-      console.log("cond:", props["ura-if"]);
-      console.log("children:", children);
-
+   else if (props && props["ura-if"] !== undefined) {
+      if (!props["ura-if"]) return null;
+      children = check(children.length ? children : []);
       ifTag = {
          tag: tag,
          type: ELEMENT,
          props: props,
-         children: check(children || []),
+         children: children,
       };
       return ifTag;
    }
    // @ts-ignore
    else if (props && props["ura-else"] !== undefined) {
+      if (!ifTag || ifTag.props.cond) return null;
+      children = check(!ifTag.props.cond && children.length ? children : []);
       return {
          type: ELSE,
          tag: "else",
-         props: ifTag?.props || {},
-         children: check(ifTag && !ifTag.props.cond && children.length ? children : []),
+         props: props,
+         children: children,
       };
    }
    //@ts-ignore
@@ -334,13 +333,12 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 
 // RECONCILIATION
 function reconciliate(prev: VDOM, next: VDOM) {
-   if(
-      (prev.props && prev.props["ura-if"] != undefined) || 
+   if (
+      (prev.props && prev.props["ura-if"] != undefined) ||
       (next.props && next.props["ura-if"] != undefined)
-   )
-   {
+   ) {
       console.log("compare: ", prev);
-      console.log("with: ", next);   
+      console.log("with: ", next);
    }
    if (prev.type != next.type || !deepEqual(prev.props, next.props))
       return execute(REPLACE, prev, next);
