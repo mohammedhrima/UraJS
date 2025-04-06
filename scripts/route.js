@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { basename, join } from "path";
-import { config, source, createFile, updateRoutes, } from "./utils.js";
+import { config, source, createFile, updateRoutes, root, } from "./utils.js";
 import { generateJSX, generateStyle } from "./gen.js";
 
 if (process.argv.length < 3) {
@@ -9,7 +9,7 @@ if (process.argv.length < 3) {
 }
 
 export async function createRouteFiles(name) {
-  const holder = await import("../ura.config.js")
+  const holder = await import(join(root, "ura.config.js"))
   await holder.default()
 
   const ext = config.typescript === "enable" ? "tsx" : "jsx";

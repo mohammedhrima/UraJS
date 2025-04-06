@@ -12,13 +12,13 @@ With built-in support for **live reloading**, **state-driven UI updates**.
 ## Summary
 - [Get Started](#get-started)
 - [Usage](#usage)
-- [First component](#generating-routes)
+- [Folders Structure](#folders-structure)
 - [Configuration](#configuration)
-- [Using Custom Routing (not recommended)](#using-custom-routing)
-- [Example Generated Component Code](#example-generated-component-code)
-- [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
-- [Tailwind support](#tailwind)
-- [Custom tags (if/else/loop)](#custom-tags)
+- [Example Generated JSX](#example-generated-jsx)
+- [Navigation](#component-that-navigates-with-parameters)
+- [Tailwind](#tailwind)
+- [Conditions `<ura-if>/<ura-elif>/<ura-else>`](#conditions)
+- [Loops `<ura-loop>`](#loops)
 - [Deploy using Docker](#deploy-using-docker)
 
 ## Get Started
@@ -168,6 +168,7 @@ After generating the route and its styles, visit the route in the browser by nav
     export default Component;
 ```
 + Route:
++ important routes tags should `<root></route>` so the can be viewed
 ```js
     function Route() {
       document.title = "Route Page";
@@ -297,8 +298,9 @@ This component receives the name and email parameters from the navigation and di
     import Ura from 'ura';
     
     function UserDetails() {
+      const { name, email } = Ura.getParams();
+
       const [render, State] = Ura.init();
-      const {name, email} = Ura.getParams();
       return render(() => (
         <div className="userDetails">
           <h1>User Name: {name}</h1>
@@ -328,166 +330,108 @@ This component receives the name and email parameters from the navigation and di
 ```
 
 ## Conditions:
-- `<if>` and `<else>` tag can be treated as any tag you can style theme, add className etc...
-- or you can use `ura-if` and `ura-else`
-- `if` takes condition as an attribute `cond`
-- but `ura-if` takes condition as callback
+- `ura-if`, `ura-elif`, `ura-else`
+- you can use them as tags `<ura-if>`, `<ura-elif>`, `<ura-else>`
+- or you can use as attributes
+
 ```js
     import Ura from "ura";
 
-    function UserProfile() {
+    function WeatherDisplay() {
       const [render, State] = Ura.init();
-      const [getUser, setUser] = State({
-        name: "Alex Johnson",
-        role: "premium", // Try changing to "free" or "admin"
-        lastLogin: new Date(),
-        posts: 42
-      });
+      const [getTemp, setTemp] = State(25); // Default temperature
+      const [isRaining, setIsRaining] = State(false);
 
       return render(() => (
-        <div className="profile-container">
-          <h1>Welcome back, {getUser().name}!</h1>
+        <div className="weather-widget">
+          <h2>Weather Conditions</h2>
           
-          {/* Approach 1: Custom <if>/<else> tags */}
-          <if cond={getUser().role === "admin"} className="bg-red-100"> {/*you can style theme*/}
-            <div class="admin-banner">
-              ⚙️ ADMIN DASHBOARD ACCESS
-            </div>
-          </if>
-          <else cond={getUser().role === "premium"}>
-            <p class="premium-badge">🌟 Premium Member</p>
-          </else>
-          <else>
-            <p>Free account - <a href="/upgrade">Upgrade to Premium</a></p>
-          </else>
+          {/* Tag syntax */}
+          <ura-if cond={getTemp() > 30}>
+            <div className="alert">Heat warning!</div>
+          </ura-if>
+          <ura-elif cond={getTemp() < 0}>
+            <div className="alert">Freezing temperatures!</div>
+          </ura-elif>
+          <ura-else>
+            <div>Normal temperature range</div>
+          </ura-else>
 
-          {/* Approach 2: ura-if/else attributes */}
-          <div ura-if={() => getUser().posts > 0}>
-            <h2>Your Activity</h2>
-            <p>You've created {getUser().posts} posts</p>
-            <div ura-if={() => getUser().posts > 30}>
-              <p>🔥 You're a top contributor!</p>
-            </div>
-            <div else>
-              <p>Keep posting to unlock badges!</p>
-            </div>
-          </div>
-          <div else>
-            <h2>Get Started</h2>
-            <p>You haven't posted yet. <button>Create your first post</button></p>
+          {/* Attribute syntax */}
+          <div ura-if={isRaining()}>Bring an umbrella! ☔</div>
+          <div ura-else>No rain expected today</div>
+
+          {/* Shorthand if statement (ternary) */}
+          <div>
+            Current temperature: {getTemp()}°C - 
+            {getTemp() > 20 ? " Warm" : " Cool"}
           </div>
 
-          {/* Approach 3: Ternary operator */}
-          <div class="login-status">
-            {new Date().getTime() - getUser().lastLogin.getTime() < 86400000
-              ? <span class="recent-login">✔️ Active today</span>
-              : <span class="inactive-warning">⚠️ Last seen {Math.floor(
-                  (new Date().getTime() - getUser().lastLogin.getTime()) / 86400000
-                )} days ago</span>
-            }
+          {/* Controls to demo dynamic changes */}
+          <div className="controls">
+            <button onClick={() => setTemp(getTemp() + 5)}>Increase Temp</button>
+            <button onClick={() => setTemp(getTemp() - 5)}>Decrease Temp</button>
+            <button onClick={() => setIsRaining(!isRaining())}>
+              Toggle Rain
+            </button>
           </div>
         </div>
       ));
     }
 
-    export default UserProfile;
+    export default WeatherDisplay;
 ```
 ## Loops:
 - `<loop>` tag can be treated as any tag you can style it, add className etc...
 ```js
-    function ProductList() {
+    function Card() {
       const [render, State] = Ura.init();
-      const [products, setProducts] = State([
-        { id: 1, name: "Wireless Headphones", price: 99.99, inStock: true },
-        { id: 2, name: "Smart Watch", price: 199.99, inStock: false },
-        { id: 3, name: "Bluetooth Speaker", price: 59.99, inStock: true }
-      ]);
+      const [getItems, setItems] = State(["Milk", "Eggs", "Bread", "Fruits"]);
 
       return render(() => (
-        <div class="product-grid">
-          <h2>Featured Products</h2>
-          
-          <loop on={products()}>
-            {(product) => (
-              <div class="product-card" key={product.id}>
-                <h3>{product.name}</h3>
-                <p>${product.price.toFixed(2)}</p>
-                
-                <if cond={product.inStock}>
-                  <button>Add to Cart</button>
-                  <p class="stock in-stock">In Stock</p>
-                </if>
-                <else>
-                  <button disabled>Out of Stock</button>
-                  <p class="stock out-of-stock">Backorder Available</p>
-                </else>
-                
-                <div class="product-actions">
-                  <button>Compare</button>
-                  <button>Save for Later</button>
+        <root>
+          <div className="shopping-list">
+            <h2>Grocery Items</h2>
+
+            {/* Tag syntax with <ura-loop> tag won't be shown in the view*/}
+            <ura-loop on={getItems()}>
+              {(item, index) => (
+                <div key={index} className="item">
+                  <span>{index + 1}. {item}</span>
+                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                    Remove
+                  </button>
                 </div>
-              </div>
-            )}
-          </loop>
-        </div>
-      ));
-    }
-```
-```js
-    function NotificationBell() {
-      const [render, State] = Ura.init();
-      const [notifications, setNotifications] = State([
-        "New message from Sarah",
-        "Your order has shipped",
-        "3 new followers"
-      ]);
+              )}
+            </ura-loop>
+            
+            {/* ura-loop as attribute div tag will be shown in the view even if the array is empty */}
+            <div ura-loop={getItems()}>
+              {(item, index) => (
+                <div key={index} className="item">
+                  <span>{index + 1}. {item}</span>
+                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
 
-      return render(() => (
-        <div class="notification-dropdown">
-          <button class="bell-icon">🔔</button>
-          
-          <div class="dropdown-content" ura-loop={notifications()}>
-            {(msg, index) => (
-              <div class="notification-item" key={index}>
-                <p>{msg}</p>
-                <button class="dismiss-btn">×</button>
+            {/* use map method */}
+            {getItems().map((item, index) => (
+              <div key={index} className="item">
+                <span>{index + 1}. {item}</span>
+                <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                  Remove
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-      ));
-    }
-```
-```js
-    function BlogPost() {
-      const [render, State] = Ura.init();
-      const [tags, setTags] = State(["javascript", "webdev", "urajs", "tutorial"]);
-
-      return render(() => (
-        <article>
-          <h1>Getting Started with UraJS</h1>
-          <p>Lorem ipsum dolor sit amet...</p>
-          
-          <div class="tag-container">
-            {tags().map(tag => (
-              <span class="tag-pill" key={tag}>
-                #{tag}
-              </span>
             ))}
+
+            <button onClick={() => setItems([...getItems(), "New Item"])}>
+              Add Item
+            </button>
           </div>
-          
-          <div class="related-posts">
-            {/* Combined with ternary for conditional rendering */}
-            {tags().length > 0
-              ? tags().slice(0,3).map(tag => (
-                  <a href={`/tags/${tag}`} class="tag-link">
-                    More about {tag}
-                  </a>
-                ))
-              : <p>No tags for this post</p>
-            }
-          </div>
-        </article>
+        </root>
       ));
     }
 ```

@@ -280,7 +280,7 @@ export const createFile = (filePath, content) => {
 
 
 export async function updateConfigFile() {
-  const configPath = join(__dirname, '../ura.config.js');
+  const configPath = join(root, 'ura.config.js');
   const configContent = `import { checkConfig, setConfig } from "./scripts/utils.js";
 
 export default (async () => {

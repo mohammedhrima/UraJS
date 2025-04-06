@@ -1,146 +1,101 @@
-import * as UTILS from "./utils.js";
+import {
+   IF, ELSE, LOOP, EXEC, CREATE, REPLACE, REMOVE,
+   ELEMENT, FRAGMENT, TEXT, deepEqual, loadCSS, svgElements, deepCopy,
+} from "./utils.js";
 import { VDOM, Props, Tag } from "./types.js";
-const { IF, ELSE, LOOP, EXEC, CREATE, REPLACE, REMOVE } = UTILS;
-const { ELEMENT, FRAGMENT, TEXT } = UTILS;
-const { deepEqual, loadCSS, svgElements } = UTILS;
 
-let ifTag = null;
-let uraifTag = null;
-let cond = false;
 // JSX
 function check(children: any): any {
    let result = [];
-   children.forEach(child => {
+   children.forEach((child) => {
       if (typeof child === "string" || typeof child === "number") {
          result.push({
             type: TEXT,
             props: {
                value: child,
-            }
-         })
+            },
+         });
       }
-      else if (Array.isArray(child)) result.push(...check(child));
-      else if (child !== undefined && child) result.push(child);
+      else if (Array.isArray(child)) {
+         result.push(...check(child));
+      }
+      else if (child != undefined && child) result.push(child);
    });
    return result;
 }
 
 function fr(props: Props = {}, ...children: any) {
-   // return {
-   //    type: FRAGMENT,
-   //    children: check(children || []),
-   // };
    return children;
 }
 
-function deepcopy(value) {
-   if (value === null || value === undefined) return value;
-   if (Array.isArray(value)) return value.map(deepcopy);
-   if (typeof value === "object") {
-      const copy = {};
-      for (const key in value) {
-         if (value.hasOwnProperty(key)) copy[key] = deepcopy(value[key]);
-      }
-      return copy;
-   }
-   return value;
-}
-
+let uraifTag = null;
+let conds = [];
 function e(tag: Tag, props: Props = {}, ...children: any) {
    if (typeof tag === "function") {
       let functag = null;
+      let tmp = deepCopy(conds);
+      conds = [];
       try {
          functag = tag(props, children);
-         if (!functag) {
-            return {
-               type: FRAGMENT,
-               children: [],
-            };
-         }
-         if (!functag) throw `function must return render(()=>(JSX)): ${tag}`
+         if (!functag) throw `function must return render(()=>(JSX)): ${tag}`;
       } catch (error) {
          console.error(error);
-         return {
-            type: FRAGMENT,
-            children: [],
-         };
       }
+      conds = tmp;
+      if (!functag) return [];
       functag.isfunc = true;
       functag.funcProps = props;
       functag.func = tag;
-      if (functag.type === FRAGMENT) functag = e("fr", {}, ...check(children || []));
       return functag;
    }
 
-   if (tag === "if") {
-      ifTag = {
-         type: IF,
-         tag: "if",
-         props: props,
-         children: check(props.cond && children.length ? children : []),
-      };
-      return ifTag;
-   }
-   else if (tag === "else") {
-      return {
-         type: ELSE,
-         tag: "else",
-         props: ifTag?.props || {},
-         children: check(ifTag && !ifTag.props.cond && children.length ? children : []),
-      };
-   }
-   else if (tag === "exec") {
+   if (tag === "ura-if") {
+      conds.push({ cond: props.cond }); // push current statement
+      if (props.cond === true) return check(children || []);
+      return [];
+   } else if (tag === "ura-elif") {
+      const last = conds[conds.length - 1];
+      if (!last) {
+         console.error("ura-elif tag should have a previous ura-if/ura-elif statament tag");
+         return [];
+      }
+
+      if (last.cond) return []; // if last if/elif is true
+      conds.pop(); // remove last if/elif statament
+      conds.push({ cond: props.cond }); // push current statement
+      if (!props.cond) return [];
+      return check(children || []);
+   } else if (tag === "ura-else") {
+      const last = conds[conds.length - 1];
+      if (!last) {
+         console.error("ura-else tag should have a previous ura-if/ura-elif statament tag");
+         return [];
+      }
+      conds.pop(); // remove last if/elif statament
+      if (last.cond) return []; // if last if/elif is true
+      return check(children || []);
+   } else if (tag === "exec") {
       return {
          type: EXEC,
          tag: "exec",
          call: props.call,
-         children: []
-      }
-   }
-   else if (tag === "loop" || tag === "dloop") {
+         children: [],
+      };
+   } else if (tag === "ura-loop") {
       // console.warn("loop / dloop tags are depricated");
       let loopChildren = (props.on || []).flatMap((elem, id) =>
          (children || []).map((child) => {
-            const evaluatedChild =
-               //@ts-ignore
-               typeof child === "function" ? child(elem, id) : child;
-            // I commented this line it caused me problem 
-            // in slider when copying input that has function onchange
-            // return structuredClone ? structuredClone(evaluatedChild)
-            //   : JSON.parse(JSON.stringify(evaluatedChild));
-            // return JSON.parse(JSON.stringify(evaluatedChild));
-            return deepcopy(evaluatedChild);
+            const evaluatedChild = typeof child === "function" ? child(elem, id) : child;
+            return deepCopy(evaluatedChild);
          })
       );
-      if (tag === "dloop") loopChildren = loopChildren.concat(loopChildren.map(deepcopy));
-      return {
-         type: LOOP,
-         tag: "loop",
-         props: props,
-         children: check(loopChildren || []),
-      };
+      return check(loopChildren || []);
    }
    //@ts-ignore
    else if (props && props["ura-if"] !== undefined) {
-      // console.log("found if");
-      // console.log(uraifTag);
-      
-      if (!props["ura-if"] || !props["ura-if"]()) return null;
-      children = check(children.length ? children : []);
-      uraifTag = {
-         type: ELEMENT,
-         tag: tag,
-         props: props,
-         children: children,
-      };
-      return uraifTag;
-   }
-   // @ts-ignore
-   else if (props && props["ura-else"] !== undefined) {
-      if (!uraifTag || !uraifTag.props || !uraifTag.props["ura-if"] || uraifTag.props["ura-if"]()) return null;
-      // console.log("found else", props);
-      // console.log("old if", uraifTag.props["ura-if"]());
-      children = check(!uraifTag.props.cond && children.length ? children : []);
+      conds.push({ cond: props["ura-if"] }); // push current statement
+      if (props.cond === true) children = check(children || []);
+      else children = [];
       return {
          type: ELEMENT,
          tag: tag,
@@ -148,22 +103,71 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          children: children,
       };
    }
-   //@ts-ignore
-   else if (props && props["ura-loop"]) {
-      let loopChildren = (props["ura-loop"] || []).flatMap((elem, id) =>
+   // @ts-ignore
+   else if (props && props["ura-elif"] !== undefined) {
+      const last = conds[conds.length - 1];
+      if (!last) {
+         console.error("ura-elif tag should have a previous ura-if/ura-elif statament tag");
+         children = [];
+      }
+      else {
+         if (last.cond) children = []; // if last if/elif is true
+         else {
+            conds.pop(); // remove last if/elif statament
+            conds.push({ cond: props.cond }); // push current statement
+            if (props.cond === true) children = check(children || []);
+            else children = [];
+         }
+      }
+      return {
+         type: ELEMENT,
+         tag: tag,
+         props: props,
+         children: children,
+      };
+   }
+   // @ts-ignore
+   else if (props && props["ura-else"] !== undefined) {
+      const last = conds[conds.length - 1];
+      if (!last) {
+         console.error(tag, "with attribute ura-else should have a previous ura-if/ura-elif statament tag");
+         children = [];
+      }
+      else {
+         conds.pop(); // remove last if/elif statament
+         if (last.cond) children = []; // if last if/elif is true
+         else children = check(children || []);
+      }
+      return {
+         type: ELEMENT,
+         tag: tag,
+         props: props,
+         children: children,
+      };
+   }
+   else if (tag === "ura-loop") {
+      let loopChildren = (props["on"] || []).flatMap((elem, id) =>
          (children || []).map((child) => {
-            const evaluatedChild =
-               //@ts-ignore
-               typeof child === "function" ? child(elem, id) : child;
-            // I commented this line it caused me problem 
-            // in slider when copying input that has function onchange
-            // return structuredClone ? structuredClone(evaluatedChild)
-            //   : JSON.parse(JSON.stringify(evaluatedChild));
-            // return JSON.parse(JSON.stringify(evaluatedChild));
-            return deepcopy(evaluatedChild);
+            const evaluatedChild = typeof child === "function" ? child(elem, id) : child;
+            return deepCopy(evaluatedChild);
          })
       );
-      children = loopChildren;
+      return loopChildren;
+   }
+   //@ts-ignore
+   else if (props && props["ura-loop"] != undefined) {
+      let loopChildren = (props["ura-loop"] || []).flatMap((elem, id) =>
+         (children || []).map((child) => {
+            const evaluatedChild = typeof child === "function" ? child(elem, id) : child;
+            return deepCopy(evaluatedChild);
+         })
+      );
+      return {
+         type: ELEMENT,
+         tag: tag,
+         props: props,
+         children: loopChildren,
+      };
    }
    return {
       type: ELEMENT,
@@ -188,8 +192,7 @@ function setProps(vdom) {
             vdom.dom.addEventListener("mouseover", props[key]);
             vdom.dom.addEventListener("mouseout", props[key]);
          } else vdom.dom.addEventListener(eventType, props[key]);
-      }
-      else if (key === "style") Object.assign(style, props[key]);
+      } else if (key === "style") Object.assign(style, props[key]);
       else {
          if (svgElements.has(tag)) vdom.dom.setAttribute(key, props[key]);
          else vdom.dom[key] = props[key];
@@ -226,10 +229,12 @@ function createDOM(vdom): VDOM {
             default:
                if (vdom.dom) {
                   console.error("vdom already has dom"); // TODO: to be removed
-               }
-               else {
+               } else {
                   if (svgElements.has(vdom.tag))
-                     vdom.dom = document.createElementNS("http://www.w3.org/2000/svg", vdom.tag);
+                     vdom.dom = document.createElementNS(
+                        "http://www.w3.org/2000/svg",
+                        vdom.tag
+                     );
                   else vdom.dom = document.createElement(vdom.tag);
                }
                break;
@@ -237,7 +242,6 @@ function createDOM(vdom): VDOM {
          break;
       }
       case FRAGMENT: {
-         if (vdom.dom) console.error("fr already has dom"); // TODO: to be removed
          vdom.dom = document.createElement("container");
          break;
       }
@@ -245,7 +249,6 @@ function createDOM(vdom): VDOM {
          if (vdom.props.value === undefined || vdom.props.value === "undefined") {
             console.error("TEXT: found undefiend");
          }
-
          vdom.dom = document.createTextNode(vdom.props.value);
          break;
       }
@@ -285,14 +288,11 @@ function removeProps(vdom: VDOM) {
                if (vdom.dom[key] !== undefined) delete vdom.dom[key];
                else vdom.dom?.removeAttribute(key);
             }
-         }
-         else
-            delete props[key];
-      };
+         } else delete props[key];
+      }
       vdom.props = {};
    } catch (error) {
       // console.log("remove props");
-
    }
 }
 
@@ -308,18 +308,20 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
    switch (mode) {
       case CREATE: {
          createDOM(prev);
-         // console.log("prev", prev);
          prev.children?.map((child) => {
-            if (!child.dom) child = execute(mode, child as VDOM);
-            if (child.dom === undefined && child.dom) console.error("CHILD 0: found undefiend",);
-            if (child.dom) prev.dom.appendChild((child as VDOM).dom);
+            if (child) {
+               child = execute(mode, child as VDOM);
+               prev.dom.appendChild((child as VDOM).dom);
+            }
          });
          break;
       }
       case REPLACE: {
          removeProps(prev);
          execute(CREATE, next);
+
          if (prev.dom && next.dom) prev.dom.replaceWith(next.dom);
+
          prev.dom = next.dom;
          prev.children = next.children;
          // I commented it because it caused me an error
@@ -340,18 +342,11 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 
 // RECONCILIATION
 function reconciliate(prev: VDOM, next: VDOM) {
-   // if (
-   //    (prev.props && prev.props["ura-if"] != undefined) ||
-   //    (next.props && next.props["ura-if"] != undefined)
-   // ) {
-   //    console.log("compare: ", prev);
-   //    console.log("with: ", next);
-   // }
-   if (prev.type != next.type || !deepEqual(prev.props, next.props))
+
+   if (prev.type != next.type || prev.tag != next.tag || !deepEqual(prev.props, next.props))
       return execute(REPLACE, prev, next);
 
    if (next.type === EXEC) {
-      // console.log("replace exec");
       prev.call();
       next.call();
    }
@@ -362,22 +357,26 @@ function reconciliate(prev: VDOM, next: VDOM) {
       let child1 = prevs[i];
       let child2 = nexts[i];
 
-      if ((child1 && child2) && (child1.isfunc || child2.isfunc)) {
+      if (child1 && child2 && (child1.isfunc || child2.isfunc)) {
          if (!deepEqual(child1.func, child2.func)) {
             execute(REPLACE, child1, child2);
             prevs[i] = child2;
-         }
-         else if (!deepEqual(child1.funcProps, child2.funcProps)) {
+         } else if (!deepEqual(child1.funcProps, child2.funcProps)) {
             execute(REPLACE, child1, child2);
             prevs[i] = child2;
          }
-      }
-      else if (child1 && child2) {
+      } else if (child1 && child2) {
          reconciliate(child1 as VDOM, child2 as VDOM);
       } else if (!child1 && child2) {
-         execute(CREATE, child2 as VDOM);
-         if (i > prevs.length) prevs.push(child2);
-         else prevs[i] = child2;
+         if (i >= prevs.length) { // append
+            execute(CREATE, child2 as VDOM);
+            prevs.push(child2);
+            prev.dom.appendChild(child2.dom);
+         }
+         else { // replace
+            execute(CREATE, child2 as VDOM);
+            prevs[i] = child2;
+         }
       } else if (child1 && !child2) {
          execute(REMOVE, child1 as VDOM);
          prevs[i] = null;
@@ -385,14 +384,13 @@ function reconciliate(prev: VDOM, next: VDOM) {
    }
 }
 
-
 function display(vdom: VDOM) {
    if (GlobalVDOM !== null) reconciliate(GlobalVDOM, vdom);
    else {
       execute(CREATE, vdom);
       GlobalVDOM = vdom;
    }
-   return GlobalVDOM
+   return GlobalVDOM;
 }
 
 export function create(vdom: VDOM) {
@@ -441,7 +439,7 @@ export function init() {
          states[stateIndex] = newValue;
       };
       return [getter, setter];
-   }
+   };
 
    const updateState = () => {
       const newVDOM = View();
@@ -460,26 +458,22 @@ export function init() {
 // ROUTING
 function ErrorPage(props: Props | null) {
    const [render, State] = init();
-   return render(() => <h4 style={{
-      fontFamily: "sans-serif",
-      fontSize: "6vw",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      textAlign: "center",
-      height: "100%"
-   }}>
-      Error: [{props.message}] Not Found, check browser console for any details
-   </h4>);
+   return render(() => (
+      <h4 style={{
+         fontFamily: "sans-serif", fontSize: "6vw", display: "flex",
+         justifyContent: "center", alignItems: "center", textAlign: "center", height: "100%"
+      }}>
+         Error: [{props.message}] Not Found, check browser console for any details
+      </h4>
+   ));
 }
-
 
 const Routes: { [path: string]: Function } = {};
 
 function resetRoutes() {
-   Object.keys(Routes).forEach(key => {
+   Object.keys(Routes).forEach((key) => {
       delete Routes[key];
-   })
+   });
    Routes["*"] = () => ErrorPage({ message: window.location.pathname });
 }
 
@@ -501,12 +495,11 @@ function getRoute(path = window.location.pathname) {
    return Routes[cleanPath(path)] || Routes["*"];
 }
 
-
 function setRoutes(currRoutes) {
    resetRoutes();
-   Object.keys(currRoutes).forEach(key => {
+   Object.keys(currRoutes).forEach((key) => {
       setRoute(cleanPath(key), currRoutes[key]);
-   })
+   });
 }
 
 let navigate_handler = null;
@@ -538,9 +531,8 @@ export function setQuery(key, value) {
    const urlParams = url.searchParams;
    if (value === null || value === undefined) urlParams.delete(key);
    else urlParams.set(key, value);
-   window.history.replaceState({}, '', `${url.pathname}?${urlParams}`);
+   window.history.replaceState({}, "", `${url.pathname}?${urlParams}`);
 }
-
 
 function refresh(params = null) {
    // console.log("call refresh", params);
@@ -584,7 +576,9 @@ async function loadJSFiles(routes, base) {
       try {
          const module = await import(routes[route]);
          if (!module.default) {
-            throw new Error(`${route}: ${routes[route]} must have a default export`);
+            throw new Error(
+               `${route}: ${routes[route]} must have a default export`
+            );
          }
          Ura.setRoute(Ura.normalizePath(route), module.default);
          if (base && route === base) {
@@ -599,11 +593,11 @@ async function loadJSFiles(routes, base) {
 function setEventListeners() {
    window.addEventListener("DOMContentLoaded", () => {
       // console.error("load dom");
-      Ura.refresh()
+      Ura.refresh();
    });
    window.addEventListener("popstate", () => {
       // console.error("popstate");
-      Ura.refresh()
+      Ura.refresh();
    });
 }
 
@@ -633,8 +627,7 @@ async function sync() {
       if (event.action === "reload") window.location.reload();
       else
          switch (event.ext) {
-            case ".ts": case ".tsx":
-            case ".jsx": case ".js": {
+            case ".ts": case ".tsx": case ".jsx": case ".js": {
                window.location.reload();
                break;
             }
@@ -661,7 +654,7 @@ async function sync() {
 }
 
 async function setStyles(list) {
-   list.forEach(elem => {
+   list.forEach((elem) => {
       handleCSSUpdate(elem);
    });
 }
@@ -675,7 +668,7 @@ async function start() {
 }
 
 export function getCookie(name) {
-   const cookies = document.cookie.split(";").map(cookie => cookie.split("="));
+   const cookies = document.cookie.split(";").map((cookie) => cookie.split("="));
    const cookie = cookies.find(([key]) => key === name);
    return cookie ? decodeURIComponent(cookie[1]) : null;
 }
@@ -690,8 +683,8 @@ export function rmCookie(name, path = "/", domain) {
 
 function getCurrentRoute() {
    let path = window.location.pathname || "*";
-   path = normalizePath(path);;
-   return path
+   path = normalizePath(path);
+   return path;
 }
 
 function In(path) {
@@ -704,31 +697,10 @@ window.seeTree = function () {
 };
 
 const Ura = {
-   e,
-   fr,
-   setRoute,
-   getRoute,
-   display,
-   create,
-   sync,
-   loadCSS,
-   init,
-   Routes,
-   reconciliate,
-   deepEqual,
-   normalizePath,
-   refresh,
-   navigate,
-   setRoutes,
-   setStyles,
-   In,
-   start,
-   getCookie,
-   rmCookie,
-   onNavigate,
-   getParams,
-   setQuery,
-   getCurrentRoute
+   e, fr, setRoute, getRoute, display, create, sync, loadCSS, init, Routes,
+   reconciliate, deepEqual, normalizePath, refresh, navigate, setRoutes,
+   setStyles, In, start, getCookie, rmCookie, onNavigate, getParams,
+   setQuery, getCurrentRoute,
 };
 
 export default Ura;
