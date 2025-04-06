@@ -296,13 +296,13 @@ This component receives the name and email parameters from the navigation and di
 ```js
     import Ura from 'ura';
     
-    function UserDetails(props) {
+    function UserDetails() {
       const [render, State] = Ura.init();
-    
+      const {name, email} = Ura.getParams();
       return render(() => (
         <div className="userDetails">
-          <h1>User Name: {props.name}</h1>
-          <p>Email: {props.email}</p>
+          <h1>User Name: {name}</h1>
+          <p>Email: {email}</p>
         </div>
       ));
     }
@@ -329,6 +329,9 @@ This component receives the name and email parameters from the navigation and di
 
 ## Conditions:
 - `<if>` and `<else>` tag can be treated as any tag you can style theme, add className etc...
+- or you can use `ura-if` and `ura-else`
+- `if` takes condition as an attribute `cond`
+- but `ura-if` takes condition as callback
 ```js
     import Ura from "ura";
 
@@ -359,10 +362,10 @@ This component receives the name and email parameters from the navigation and di
           </else>
 
           {/* Approach 2: ura-if/else attributes */}
-          <div ura-if={getUser().posts > 0}>
+          <div ura-if={() => getUser().posts > 0}>
             <h2>Your Activity</h2>
             <p>You've created {getUser().posts} posts</p>
-            <div ura-if={getUser().posts > 30}>
+            <div ura-if={() => getUser().posts > 30}>
               <p>🔥 You're a top contributor!</p>
             </div>
             <div else>

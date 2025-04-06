@@ -5,6 +5,7 @@ const { ELEMENT, FRAGMENT, TEXT } = UTILS;
 const { deepEqual, loadCSS, svgElements } = UTILS;
 
 let ifTag = null;
+let uraifTag = null;
 let cond = false;
 // JSX
 function check(children: any): any {
@@ -25,10 +26,11 @@ function check(children: any): any {
 }
 
 function fr(props: Props = {}, ...children: any) {
-   return {
-      type: FRAGMENT,
-      children: check(children || []),
-   };
+   // return {
+   //    type: FRAGMENT,
+   //    children: check(children || []),
+   // };
+   return children;
 }
 
 function deepcopy(value) {
@@ -120,23 +122,28 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
    }
    //@ts-ignore
    else if (props && props["ura-if"] !== undefined) {
-      if (!props["ura-if"]) return null;
+      // console.log("found if");
+      // console.log(uraifTag);
+      
+      if (!props["ura-if"] || !props["ura-if"]()) return null;
       children = check(children.length ? children : []);
-      ifTag = {
-         tag: tag,
+      uraifTag = {
          type: ELEMENT,
+         tag: tag,
          props: props,
          children: children,
       };
-      return ifTag;
+      return uraifTag;
    }
    // @ts-ignore
    else if (props && props["ura-else"] !== undefined) {
-      if (!ifTag || ifTag.props.cond) return null;
-      children = check(!ifTag.props.cond && children.length ? children : []);
+      if (!uraifTag || !uraifTag.props || !uraifTag.props["ura-if"] || uraifTag.props["ura-if"]()) return null;
+      // console.log("found else", props);
+      // console.log("old if", uraifTag.props["ura-if"]());
+      children = check(!uraifTag.props.cond && children.length ? children : []);
       return {
-         type: ELSE,
-         tag: "else",
+         type: ELEMENT,
+         tag: tag,
          props: props,
          children: children,
       };
@@ -159,8 +166,8 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       children = loopChildren;
    }
    return {
-      tag: tag,
       type: ELEMENT,
+      tag: tag,
       props: props,
       children: check(children || []),
    };
@@ -284,7 +291,7 @@ function removeProps(vdom: VDOM) {
       };
       vdom.props = {};
    } catch (error) {
-      console.log("remove props");
+      // console.log("remove props");
 
    }
 }
@@ -333,18 +340,18 @@ function execute(mode: number, prev: VDOM, next: VDOM = null) {
 
 // RECONCILIATION
 function reconciliate(prev: VDOM, next: VDOM) {
-   if (
-      (prev.props && prev.props["ura-if"] != undefined) ||
-      (next.props && next.props["ura-if"] != undefined)
-   ) {
-      console.log("compare: ", prev);
-      console.log("with: ", next);
-   }
+   // if (
+   //    (prev.props && prev.props["ura-if"] != undefined) ||
+   //    (next.props && next.props["ura-if"] != undefined)
+   // ) {
+   //    console.log("compare: ", prev);
+   //    console.log("with: ", next);
+   // }
    if (prev.type != next.type || !deepEqual(prev.props, next.props))
       return execute(REPLACE, prev, next);
 
    if (next.type === EXEC) {
-      console.log("replace exec");
+      // console.log("replace exec");
       prev.call();
       next.call();
    }
@@ -517,7 +524,7 @@ function normalizePath(path) {
    return path;
 }
 
-export function getQueries() {
+export function getParams() {
    const res = {};
    const urlParams = new URLSearchParams(window.location.search);
    for (const [key, value] of urlParams) {
@@ -536,7 +543,7 @@ export function setQuery(key, value) {
 
 
 function refresh(params = null) {
-   console.log("call refresh", params);
+   // console.log("call refresh", params);
    if (navigate_handler) navigate_handler();
    let path = window.location.pathname || "*";
    path = normalizePath(path);
@@ -546,10 +553,11 @@ function refresh(params = null) {
 
 export function navigate(route, params = {}) {
    route = normalizePath(route);
-   console.log("navigate to ", route, "with", params);
-
-   window.history.pushState({}, "", `${route}`);
-
+   if (Object.keys(params).length > 0) {
+      const queryString = new URLSearchParams(params).toString();
+      route = `${route}?${queryString}`;
+   }
+   window.history.pushState({}, "", route);
    return refresh(params);
 }
 
@@ -718,7 +726,7 @@ const Ura = {
    getCookie,
    rmCookie,
    onNavigate,
-   getQueries,
+   getParams,
    setQuery,
    getCurrentRoute
 };

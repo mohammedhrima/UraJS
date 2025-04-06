@@ -444,6 +444,9 @@ const pagesDir = join(source, 'pages');
 routes = {};
 styles = [];
 
+await fs.mkdir(join(source, "components"), { recursive: true });
+await fs.mkdir(join(source, "pages"), { recursive: true });
+await fs.mkdir(join(source, "assets"), { recursive: true });
 export function updateRoutes() {
   try {
     if (config.dirRouting !== "enable") {
@@ -451,6 +454,7 @@ export function updateRoutes() {
       console.log(config);
       return;
     }
+
     routes = {};
     styles = {};
     generateRoutes(pagesDir, '', true);
