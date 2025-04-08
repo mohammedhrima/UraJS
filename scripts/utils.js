@@ -401,7 +401,7 @@ export default function updateStyles() {
         let relativePath = relative(source, fullPath).replace(/\\/g, '/');
         if (relativePath.endsWith('.scss')) relativePath = relativePath.replace(/\.scss$/, '.css');
         if (!relativePath.includes("styles.js")) { // Exclude styles.js itself
-          styles.push(`./${relativePath}`);
+          styles.push(`/${relativePath}`);
           loginfo(`Added style path: ${relativePath}`);
         }
       }
