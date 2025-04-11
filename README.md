@@ -227,7 +227,7 @@ For a complete list of event names, check W3Schools JavaScript Events  (https://
     npm run comp /Navbar
 ```
 ```js
-    // components/Navbar/Navbar.jsx
+    // components/Navbar.jsx
     import Ura from 'ura';
     
     function Navbar() {
@@ -256,16 +256,18 @@ Once the `Navbar` component is created, you can include it in your `home` page c
 ```js
     // pages/home/home.jsx
     import Ura from 'ura';
-    import Navbar from '../../components/Navbar/Navbar.js';
+    import Navbar from '../../components/Navbar.js';
     
     function Home() {
       const [render, State] = Ura.init();
     
       return render(() => (
-        <div>
-          <Navbar />
-          <h1>Welcome to the Home Page!</h1>
-        </div>
+        <root>
+          <div>
+            <Navbar />
+            <h1>Welcome to the Home Page!</h1>
+          </div>
+        </root>
       ));
     }
     
@@ -281,12 +283,14 @@ This component uses Ura.navigate to navigate to a new page (`/userDetails`) and 
       const [render, State] = Ura.init();
     
       return render(() => (
-        <div className="user-page">
-          <h1>Welcome to the User Page!</h1>
-          <button onclick={() => Ura.navigate("/userDetails", { name: "John Doe", email: "john.doe@example.com" })}>
-            Show Details
-          </button>
-        </div>
+        <root>
+          <div className="user-page">
+            <h1>Welcome to the User Page!</h1>
+            <button onclick={() => Ura.navigate("/userDetails", { name: "John Doe", email: "john.doe@example.com" })}>
+              Show Details
+            </button>
+          </div>
+        </root>
       ));
     }
     
@@ -299,13 +303,15 @@ This component receives the name and email parameters from the navigation and di
     
     function UserDetails() {
       const { name, email } = Ura.getParams();
-
       const [render, State] = Ura.init();
+
       return render(() => (
-        <div className="userDetails">
-          <h1>User Name: {name}</h1>
-          <p>Email: {email}</p>
-        </div>
+        <root>
+          <div className="userDetails">
+            <h1>User Name: {name}</h1>
+            <p>Email: {email}</p>
+          </div>
+        </root>
       ));
     }
     
@@ -342,40 +348,42 @@ This component receives the name and email parameters from the navigation and di
       const [getTemp, setTemp] = State(25); // Default temperature
       const [isRaining, setIsRaining] = State(false);
 
-      return render(() => (
-        <div className="weather-widget">
-          <h2>Weather Conditions</h2>
-          
-          {/* Tag syntax */}
-          <ura-if cond={getTemp() > 30}>
-            <div className="alert">Heat warning!</div>
-          </ura-if>
-          <ura-elif cond={getTemp() < 0}>
-            <div className="alert">Freezing temperatures!</div>
-          </ura-elif>
-          <ura-else>
-            <div>Normal temperature range</div>
-          </ura-else>
-
-          {/* Attribute syntax */}
-          <div ura-if={isRaining()}>Bring an umbrella! ☔</div>
-          <div ura-else>No rain expected today</div>
-
-          {/* Shorthand if statement (ternary) */}
-          <div>
-            Current temperature: {getTemp()}°C - 
-            {getTemp() > 20 ? " Warm" : " Cool"}
+      return render(() => 
+        <root>
+          <div className="weather-widget">
+            <h2>Weather Conditions</h2>
+            
+            {/* Tag syntax */}
+            <ura-if cond={getTemp() > 30}>
+              <div className="alert">Heat warning!</div>
+            </ura-if>
+            <ura-elif cond={getTemp() < 0}>
+              <div className="alert">Freezing temperatures!</div>
+            </ura-elif>
+            <ura-else>
+              <div>Normal temperature range</div>
+            </ura-else>
+  
+            {/* Attribute syntax */}
+            <div ura-if={isRaining()}>Bring an umbrella! ☔</div>
+            <div ura-else>No rain expected today</div>
+  
+            {/* Shorthand if statement (ternary) */}
+            <div>
+              Current temperature: {getTemp()}°C - 
+              {getTemp() > 20 ? " Warm" : " Cool"}
+            </div>
+  
+            {/* Controls to demo dynamic changes */}
+            <div className="controls">
+              <button onClick={() => setTemp(getTemp() + 5)}>Increase Temp</button>
+              <button onClick={() => setTemp(getTemp() - 5)}>Decrease Temp</button>
+              <button onClick={() => setIsRaining(!isRaining())}>
+                Toggle Rain
+              </button>
+            </div>
           </div>
-
-          {/* Controls to demo dynamic changes */}
-          <div className="controls">
-            <button onClick={() => setTemp(getTemp() + 5)}>Increase Temp</button>
-            <button onClick={() => setTemp(getTemp() - 5)}>Decrease Temp</button>
-            <button onClick={() => setIsRaining(!isRaining())}>
-              Toggle Rain
-            </button>
-          </div>
-        </div>
+        </root>
       ));
     }
 
