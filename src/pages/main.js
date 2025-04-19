@@ -26,8 +26,8 @@ Ura.setRoutes({
 });
   
 Ura.setStyles([
-  "./pages/home/home.css",
-  "./pages/main.css"
+  "/pages/home/home.css",
+  "/pages/main.css"
 ]);
   
 Ura.start();

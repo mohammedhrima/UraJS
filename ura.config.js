@@ -2,7 +2,7 @@ import { checkConfig, setConfig } from "./scripts/utils.js";
 
 export default (async () => {
   setConfig({
-    typescript: "enable",
+    typescript: "disable",
     dirRouting: "enable",
     defaultRoute: "home",
     tailwind: "disable",

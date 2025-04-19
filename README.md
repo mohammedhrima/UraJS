@@ -11,18 +11,18 @@ With built-in support for **live reloading**, **state-driven UI updates**.
 
 ## Summary
 - [Get Started](#get-started)
-- [Usage](#usage)
-- [First component](#generating-routes)
+- [Generate Route](#generate-component-or-route)
+- [Example Generated JSX](#example-generated-jsx)
+- [Folders Structure](#folders-structure)
 - [Configuration](#configuration)
-- [Using Custom Routing (not recommended)](#using-custom-routing)
-- [Example Generated Component Code](#example-generated-component-code)
-- [Custom Navbar with "navigate" hook](#example-creating-a-custom-navbar-component-for-the-homepage)
-- [Tailwind support](#tailwind)
-- [Custom tags (if/else/loop)](#custom-tags)
+- [Navigate between routes](#navigate-between-routes)
+- [Navigate with Parameters](#navigate-with-parameters)
+- [Tailwind](#tailwind)
+- [Conditions `<ura-if>/<ura-elif>/<ura-else>`](#conditions)
+- [Loops `<ura-loop>`](#loops)
 - [Deploy using Docker](#deploy-using-docker)
 
 ## Get Started
-
 To get started with **UraJS**, follow these simple steps:
 1. **Clone the repository**:
 ```bash
@@ -66,7 +66,7 @@ To get started with **UraJS**, follow these simple steps:
   npm run config #change configuration
 ```
 
-## Usage
+## Generate Route
 To generate routes automatically, you can use the following commands:
 - To generate a **basic route and its CSS/SCSS file if neede**, run:
     
@@ -85,7 +85,83 @@ After generating the route and its styles, visit the route in the browser by nav
       npm run route /helloworld/again
     ```
 
-## folders structure:
+## Example Generated JSX
++ Component:
+```js
+    import Ura from 'ura';
+    
+    function Component() {
+      const [render, State] = Ura.init();  // Initialize Ura and state management
+      const [getter, setter] = State(0);  // Declare a state with an initial value of 0
+    
+      return render(() => (
+        <div className="component">
+          <h1>Hello from the Component component!</h1>
+          <button onclick={() => setter(getter() + 1)}>
+            Click me [{getter()}]
+          </button>
+        </div>
+      ));
+    }
+    
+    export default Component;
+```
++ Route: <span style="color:red">Route tag should have `<root></route>` so the can be viewed</span>
+```js
+    function Route() {
+      document.title = "Route Page";
+      const [render, State] = Ura.init();
+      const [count, setCount] = State(0);
+      const [darkMode, setDarkMode] = State(true);
+
+      return render(() => (
+        <root>
+          <div className={`home ${darkMode() ? 'dark' : 'light'}`}>
+            <header className="navbar">
+              <div className="logo">UraJS</div>
+              <nav>
+                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">GitHub</a>
+                <a onclick={() => setDarkMode(!darkMode())}>
+                  {darkMode() ? 'Light Mode' : 'Dark Mode'}
+                </a>
+              </nav>
+            </header>
+
+            <main className="body">
+              <h1>Welcome to UraJS</h1>
+              <p className="subtitle">Lightweight. Reactive. Yours.</p>
+              <button onclick={() => setCount(count() + 1)}>
+                Click me [{count()}]
+              </button>
+            </main>
+
+            <footer className="footer">
+              <p>Built with 💙 using UraJS</p>
+            </footer>
+          </div>
+        </root>
+      ));
+    }
+   export default Route;
+```
+#### Explanation of the Code:
+1. State: 
+- used to updated the view wherever the value change: `const [getter, setter] = State(initialValue); `
+- componenet can hold multiple states
+- essential for updating the view weh state change
+2. Rendering the Component:
++ `return render(() => ( ... ))`: saves JSX component for future reconciliation.
+3. Event Handling:
++ `<button onclick={() => setter(getter() + 1)}>`: onlick state change
++ In UraJS, event names should be written in lowercase. This is the standard convention for handling events in JavaScript.
+    + For example:
+        + `onclick` for mouse clicks.
+        + `onchange` for input changes.
+        + `onkeyup` for key presses.
+For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
+4. `<root></root>` reference to the `<div id="root"></div>` in ./src/index.html
+
+## Folders structure:
 ```
     UraJS/
     ├── out/ # Production-ready transpiled JavaScript files
@@ -146,87 +222,14 @@ After generating the route and its styles, visit the route in the browser by nav
   <img src="./src/assets/config.png" alt="Logo" width="500">
 </p>
 
-## Example Generated JSX
-+ Component:
-```js
-    import Ura from 'ura';
-    
-    function Component() {
-      const [render, State] = Ura.init();  // Initialize Ura and state management
-      const [getter, setter] = State(0);  // Declare a state with an initial value of 0
-    
-      return render(() => (
-        <div className="component">
-          <h1>Hello from the Component component!</h1>
-          <button onclick={() => setter(getter() + 1)}>
-            Click me [{getter()}]
-          </button>
-        </div>
-      ));
-    }
-    
-    export default Component;
-```
-+ Route:
-```js
-    function Route() {
-      document.title = "Route Page";
-      const [render, State] = Ura.init();
-      const [count, setCount] = State(0);
-      const [darkMode, setDarkMode] = State(true);
-
-      return render(() => (
-        <root>
-          <div className={`home ${darkMode() ? 'dark' : 'light'}`}>
-            <header className="navbar">
-              <div className="logo">UraJS</div>
-              <nav>
-                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">GitHub</a>
-                <a onclick={() => setDarkMode(!darkMode())}>
-                  {darkMode() ? 'Light Mode' : 'Dark Mode'}
-                </a>
-              </nav>
-            </header>
-
-            <main className="body">
-              <h1>Welcome to UraJS</h1>
-              <p className="subtitle">Lightweight. Reactive. Yours.</p>
-              <button onclick={() => setCount(count() + 1)}>
-                Click me [{count()}]
-              </button>
-            </main>
-
-            <footer className="footer">
-              <p>Built with 💙 using UraJS</p>
-            </footer>
-          </div>
-        </root>
-      ));
-    }
-   export default Route;
-```
-#### Explanation of the Code:
-1. State: 
-- used to updated the view wherever the value change: `const [getter, setter] = State(initialValue); `
-- componenet can hold multiple states
-- essential for updating the view weh state change
-2. Rendering the Component:
-+ `return render(() => ( ... ))`: saves JSX component for future reconciliation.
-3. Event Handling:
-+ `<button onclick={() => setter(getter() + 1)}>`: onlick state change
-+ In UraJS, event names should be written in lowercase. This is the standard convention for handling events in JavaScript.
-    + For example:
-        + `onclick` for mouse clicks.
-        + `onchange` for input changes.
-        + `onkeyup` for key presses.
-For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
-4. `<root></root>` reference to the `<div id="root"></div>` in ./src/index.html
-## Example Creating a Custom Navbar Component for the Homepage
+## Navigate between routes
 ```bash
-    npm run comp /Navbar
+    npm run route /home
+    npm run route /about
+    npm run comp /navbar
 ```
 ```js
-    // components/Navbar/Navbar.jsx
+    // components/Navbar.jsx
     import Ura from 'ura';
     
     function Navbar() {
@@ -249,65 +252,76 @@ For a complete list of event names, check W3Schools JavaScript Events  (https://
 + `Ura.navigate` is a built-in function in UraJS that programmatically changes the current route of the app. When you call this function, it will update the URL and load the corresponding component.
 
 ### Adding the Navbar to the Home Page
-
 Once the `Navbar` component is created, you can include it in your `home` page component. For instance:
 
 ```js
     // pages/home/home.jsx
     import Ura from 'ura';
-    import Navbar from '../../components/Navbar/Navbar.js';
+    import Navbar from '../../components/Navbar.js';
     
     function Home() {
       const [render, State] = Ura.init();
     
       return render(() => (
-        <div>
-          <Navbar />
-          <h1>Welcome to the Home Page!</h1>
-        </div>
+        <root>
+          <div>
+            <Navbar />
+            <h1>Welcome to the Home Page!</h1>
+          </div>
+        </root>
       ));
     }
     
     export default Home;
 ```
 
-### Component That Navigates with Parameters
-This component uses Ura.navigate to navigate to a new page (`/userDetails`) and passes the `name` and `email` parameters.
+## Navigate with Parameters
+```bash
+    npm run route /home
+    npm run route /user
+    npm run comp /navbar
+```
+This component uses Ura.navigate to navigate to a new page (`/user`) and passes the `name` and `email` parameters.
 ```js
     import Ura from 'ura';
     
-    function UserPage() {
+    function Home() {
       const [render, State] = Ura.init();
     
       return render(() => (
-        <div className="user-page">
-          <h1>Welcome to the User Page!</h1>
-          <button onclick={() => Ura.navigate("/userDetails", { name: "John Doe", email: "john.doe@example.com" })}>
-            Show Details
-          </button>
-        </div>
+        <root>
+          <div className="home">
+            <h1>Welcome to the Home Page!</h1>
+            <button onclick={() => Ura.navigate("/user", { name: "John Doe", email: "john.doe@example.com" })}>
+              Show Details
+            </button>
+          </div>
+        </root>
       ));
     }
     
-    export default UserPage;
+    export default Home;
 ```
-#### Component That Receives and Visualizes the Parameters (e.g., UserDetails)
+#### Component That Receives and Visualizes the Parameters
 This component receives the name and email parameters from the navigation and displays them.
 ```js
     import Ura from 'ura';
     
-    function UserDetails(props) {
+    function User() {
+      const { name, email } = Ura.getParams();
       const [render, State] = Ura.init();
-    
+
       return render(() => (
-        <div className="userDetails">
-          <h1>User Name: {props.name}</h1>
-          <p>Email: {props.email}</p>
-        </div>
+        <root>
+          <div className="user">
+            <h1>User Name: {name}</h1>
+            <p>Email: {email}</p>
+          </div>
+        </root>
       ));
     }
     
-    export default UserDetails;
+    export default user;
 
 ```
 
@@ -328,166 +342,115 @@ This component receives the name and email parameters from the navigation and di
 ```
 
 ## Conditions:
-- `<if>` and `<else>` tag can be treated as any tag you can style theme, add className etc...
+- `ura-if`, `ura-elif`, `ura-else`
+- you can use them as tags `<ura-if>`, `<ura-elif>`, `<ura-else>`
+- or you can use as attributes
+
 ```js
     import Ura from "ura";
 
-    function UserProfile() {
+    function WeatherDisplay() {
       const [render, State] = Ura.init();
-      const [getUser, setUser] = State({
-        name: "Alex Johnson",
-        role: "premium", // Try changing to "free" or "admin"
-        lastLogin: new Date(),
-        posts: 42
-      });
+      const [getTemp, setTemp] = State(25); // Default temperature
+      const [isRaining, setIsRaining] = State(false);
 
       return render(() => (
-        <div className="profile-container">
-          <h1>Welcome back, {getUser().name}!</h1>
-          
-          {/* Approach 1: Custom <if>/<else> tags */}
-          <if cond={getUser().role === "admin"} className="bg-red-100"> {/*you can style theme*/}
-            <div class="admin-banner">
-              ⚙️ ADMIN DASHBOARD ACCESS
+        <root>
+          <div className="weather-widget">
+            <h2>Weather Conditions</h2>
+            
+            {/* Tag syntax */}
+            <ura-if cond={getTemp() > 30}>
+              <div className="alert">Heat warning!</div>
+            </ura-if>
+            <ura-elif cond={getTemp() < 0}>
+              <div className="alert">Freezing temperatures!</div>
+            </ura-elif>
+            <ura-else>
+              <div>Normal temperature range</div>
+            </ura-else>
+  
+            {/* Attribute syntax */}
+            <div ura-if={isRaining()}>Bring an umbrella! ☔</div>
+            <div ura-else>No rain expected today</div>
+  
+            {/* Shorthand if statement (ternary) */}
+            <div>
+              Current temperature: {getTemp()}°C - 
+              {getTemp() > 20 ? " Warm" : " Cool"}
             </div>
-          </if>
-          <else cond={getUser().role === "premium"}>
-            <p class="premium-badge">🌟 Premium Member</p>
-          </else>
-          <else>
-            <p>Free account - <a href="/upgrade">Upgrade to Premium</a></p>
-          </else>
-
-          {/* Approach 2: ura-if/else attributes */}
-          <div ura-if={getUser().posts > 0}>
-            <h2>Your Activity</h2>
-            <p>You've created {getUser().posts} posts</p>
-            <div ura-if={getUser().posts > 30}>
-              <p>🔥 You're a top contributor!</p>
-            </div>
-            <div else>
-              <p>Keep posting to unlock badges!</p>
+  
+            {/* Controls to demo dynamic changes */}
+            <div className="controls">
+              <button onClick={() => setTemp(getTemp() + 5)}>Increase Temp</button>
+              <button onClick={() => setTemp(getTemp() - 5)}>Decrease Temp</button>
+              <button onClick={() => setIsRaining(!isRaining())}>
+                Toggle Rain
+              </button>
             </div>
           </div>
-          <div else>
-            <h2>Get Started</h2>
-            <p>You haven't posted yet. <button>Create your first post</button></p>
-          </div>
-
-          {/* Approach 3: Ternary operator */}
-          <div class="login-status">
-            {new Date().getTime() - getUser().lastLogin.getTime() < 86400000
-              ? <span class="recent-login">✔️ Active today</span>
-              : <span class="inactive-warning">⚠️ Last seen {Math.floor(
-                  (new Date().getTime() - getUser().lastLogin.getTime()) / 86400000
-                )} days ago</span>
-            }
-          </div>
-        </div>
+        </root>
       ));
     }
 
-    export default UserProfile;
+    export default WeatherDisplay;
 ```
+
 ## Loops:
 - `<loop>` tag can be treated as any tag you can style it, add className etc...
 ```js
-    function ProductList() {
+    function Card() {
       const [render, State] = Ura.init();
-      const [products, setProducts] = State([
-        { id: 1, name: "Wireless Headphones", price: 99.99, inStock: true },
-        { id: 2, name: "Smart Watch", price: 199.99, inStock: false },
-        { id: 3, name: "Bluetooth Speaker", price: 59.99, inStock: true }
-      ]);
+      const [getItems, setItems] = State(["Milk", "Eggs", "Bread", "Fruits"]);
 
       return render(() => (
-        <div class="product-grid">
-          <h2>Featured Products</h2>
-          
-          <loop on={products()}>
-            {(product) => (
-              <div class="product-card" key={product.id}>
-                <h3>{product.name}</h3>
-                <p>${product.price.toFixed(2)}</p>
-                
-                <if cond={product.inStock}>
-                  <button>Add to Cart</button>
-                  <p class="stock in-stock">In Stock</p>
-                </if>
-                <else>
-                  <button disabled>Out of Stock</button>
-                  <p class="stock out-of-stock">Backorder Available</p>
-                </else>
-                
-                <div class="product-actions">
-                  <button>Compare</button>
-                  <button>Save for Later</button>
+        <root>
+          <div className="shopping-list">
+            <h2>Grocery Items</h2>
+
+            {/* Tag syntax with <ura-loop> tag won't be shown in the view*/}
+            <ura-loop on={getItems()}>
+              {(item, index) => (
+                <div key={index} className="item">
+                  <span>{index + 1}. {item}</span>
+                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                    Remove
+                  </button>
                 </div>
-              </div>
-            )}
-          </loop>
-        </div>
-      ));
-    }
-```
-```js
-    function NotificationBell() {
-      const [render, State] = Ura.init();
-      const [notifications, setNotifications] = State([
-        "New message from Sarah",
-        "Your order has shipped",
-        "3 new followers"
-      ]);
+              )}
+            </ura-loop>
+            
+            {/* ura-loop as attribute div tag will be shown in the view even if the array is empty */}
+            <div ura-loop={getItems()}>
+              {(item, index) => (
+                <div key={index} className="item">
+                  <span>{index + 1}. {item}</span>
+                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
 
-      return render(() => (
-        <div class="notification-dropdown">
-          <button class="bell-icon">🔔</button>
-          
-          <div class="dropdown-content" ura-loop={notifications()}>
-            {(msg, index) => (
-              <div class="notification-item" key={index}>
-                <p>{msg}</p>
-                <button class="dismiss-btn">×</button>
+            {/* use map method */}
+            {getItems().map((item, index) => (
+              <div key={index} className="item">
+                <span>{index + 1}. {item}</span>
+                <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
+                  Remove
+                </button>
               </div>
-            )}
-          </div>
-        </div>
-      ));
-    }
-```
-```js
-    function BlogPost() {
-      const [render, State] = Ura.init();
-      const [tags, setTags] = State(["javascript", "webdev", "urajs", "tutorial"]);
-
-      return render(() => (
-        <article>
-          <h1>Getting Started with UraJS</h1>
-          <p>Lorem ipsum dolor sit amet...</p>
-          
-          <div class="tag-container">
-            {tags().map(tag => (
-              <span class="tag-pill" key={tag}>
-                #{tag}
-              </span>
             ))}
+
+            <button onClick={() => setItems([...getItems(), "New Item"])}>
+              Add Item
+            </button>
           </div>
-          
-          <div class="related-posts">
-            {/* Combined with ternary for conditional rendering */}
-            {tags().length > 0
-              ? tags().slice(0,3).map(tag => (
-                  <a href={`/tags/${tag}`} class="tag-link">
-                    More about {tag}
-                  </a>
-                ))
-              : <p>No tags for this post</p>
-            }
-          </div>
-        </article>
+        </root>
       ));
     }
 ```
+
 ## Deploy using docker
 
 1. Build the Project

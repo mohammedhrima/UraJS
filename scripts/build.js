@@ -115,7 +115,7 @@ function copyDir(src, dest) {
 
 (async ()=>{
   try {
-    const holder = await import("../ura.config.js");
+    const holder = await import(join(root, "ura.config.js"));
     holder.default();
     
     let port = config.port;

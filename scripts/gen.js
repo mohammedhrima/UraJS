@@ -15,7 +15,7 @@ export const generateJSX = (name, type = "component") => {
 
 function ${JSXname}(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
   ${type === "route" ? `document.title = "${name} Page"` : ""}
-  const [render, State] = Ura.init();
+  const {render, State} = Ura.init();
   const [count, setCount] = State${isTS ? "<number>" : ""}(0);
   
   return render(() => (

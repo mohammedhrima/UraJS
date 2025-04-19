@@ -280,7 +280,7 @@ export const createFile = (filePath, content) => {
 
 
 export async function updateConfigFile() {
-  const configPath = join(__dirname, '../ura.config.js');
+  const configPath = join(root, 'ura.config.js');
   const configContent = `import { checkConfig, setConfig } from "./scripts/utils.js";
 
 export default (async () => {
@@ -401,7 +401,7 @@ export default function updateStyles() {
         let relativePath = relative(source, fullPath).replace(/\\/g, '/');
         if (relativePath.endsWith('.scss')) relativePath = relativePath.replace(/\.scss$/, '.css');
         if (!relativePath.includes("styles.js")) { // Exclude styles.js itself
-          styles.push(`./${relativePath}`);
+          styles.push(`/${relativePath}`);
           loginfo(`Added style path: ${relativePath}`);
         }
       }
@@ -444,6 +444,9 @@ const pagesDir = join(source, 'pages');
 routes = {};
 styles = [];
 
+await fs.mkdir(join(source, "components"), { recursive: true });
+await fs.mkdir(join(source, "pages"), { recursive: true });
+await fs.mkdir(join(source, "assets"), { recursive: true });
 export function updateRoutes() {
   try {
     if (config.dirRouting !== "enable") {
@@ -451,6 +454,7 @@ export function updateRoutes() {
       console.log(config);
       return;
     }
+
     routes = {};
     styles = {};
     generateRoutes(pagesDir, '', true);

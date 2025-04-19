@@ -2,8 +2,8 @@
 import { join, extname as extension, relative } from "path";
 import net from "net";
 import express from "express";
-import { output as outdir, source, config, updateRoutes, handleCopy, handleDelete } from "./utils.js";
-import { statSync, rmSync, existsSync, readdirSync, promises } from "fs";
+import { output as outdir, source, config, updateRoutes, handleCopy, handleDelete, root } from "./utils.js";
+import { statSync, rmSync, existsSync, readdirSync, promises, mkdirSync } from "fs";
 import http from "http";
 import chokidar from "chokidar";
 import { WebSocketServer } from "ws";
@@ -174,7 +174,7 @@ async function startServer(startPort = 17000) {
 }
 
 (async () => {
-  const holder = await import("../ura.config.js")
+  const holder = await import(join(root, "ura.config.js"))
   await holder.default()
 
   if (existsSync(outdir))

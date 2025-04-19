@@ -9,7 +9,8 @@
     "comp": "node ./scripts/comp.js",
     "clear": "rm -rf ./out/*",
     "build": "node ./scripts/build.js",
-    "config": "node ./scripts/config.js"
+    "config": "node ./scripts/config.js",
+    "reset": ""
   },
   "bin": {
     "urastart": "node ./scripts/server.js",
