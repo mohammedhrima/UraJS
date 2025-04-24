@@ -20,6 +20,7 @@ With built-in support for **live reloading**, **state-driven UI updates**.
 - [Tailwind](#tailwind)
 - [Conditions `<ura-if>/<ura-elif>/<ura-else>`](#conditions)
 - [Loops `<ura-loop>`](#loops)
+- [Component Composition](#component-composition)
 - [Deploy using Docker](#deploy-using-docker)
 
 ## Get Started
@@ -449,6 +450,49 @@ This component receives the name and email parameters from the navigation and di
         </root>
       ));
     }
+```
+
+## Component Composition
++ example card component
+```js
+  import Ura from 'ura';
+  
+  function Card(props, children) {
+    const [render] = Ura.init();
+  
+    return render(() => (
+      <div className="card">
+        <h2>{props.title}</h2>
+        {children}
+      </div>
+    ));
+  }
+  export default Card;
+```
+```js
+  import Ura from 'ura';
+  import Card from '../../components/Card.js';
+  
+ function Dashboard() {
+    const [render] = Ura.init();
+  
+    return render(() => (
+      <root>
+        <Card title="User Info">
+          <p>Name: John Doe</p>
+          <p>Email: john@example.com</p>
+        </Card>
+  
+        <Card title="Stats">
+          <ul>
+            <li>Posts: 34</li>
+            <li>Followers: 120</li>
+          </ul>
+        </Card>
+      </root>
+    ));
+  }
+ export default Dashboard;
 ```
 
 ## Deploy using docker
