@@ -1,0 +1,19 @@
+{
+   "compilerOptions": {
+      "module": "ESNext",
+      "target": "ES2020",
+      "jsx": "react",
+      "rootDir": "src",
+      "outDir": "out",
+      "baseUrl": "./",
+      "strict": false,
+      "jsxFactory": "element",
+      "jsxFragmentFactory": "fragement",
+      "skipLibCheck": false,
+      "allowJs": true
+   },
+   "exclude": [
+      "node_modules",
+      "out"
+   ]
+}
