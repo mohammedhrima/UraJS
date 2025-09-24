@@ -94,13 +94,12 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
    //@ts-ignore
    else if (props && props["ura-if"] !== undefined) {
       conds.push({ cond: props["ura-if"] }); // push current statement
-      if (props.cond === true) children = check(children || []);
-      else children = [];
+      if (!props["ura-if"]) return [];
       return {
          type: ELEMENT,
          tag: tag,
          props: props,
-         children: children,
+         children: check(children || [])
       };
    }
    // @ts-ignore
@@ -108,22 +107,20 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       const last = conds[conds.length - 1];
       if (!last) {
          console.error("ura-elif tag should have a previous ura-if/ura-elif statament tag");
-         children = [];
+         return [];
       }
-      else {
-         if (last.cond) children = []; // if last if/elif is true
-         else {
-            conds.pop(); // remove last if/elif statament
-            conds.push({ cond: props.cond }); // push current statement
-            if (props.cond === true) children = check(children || []);
-            else children = [];
-         }
-      }
+      
+      if (last.cond) return []; // if last if/elif is true
+
+      conds.pop(); // remove last if/elif statament
+      conds.push({ cond: props["ura-elif"] }); // push current statement
+      if (!props["ura-elif"]) return [];
+
       return {
          type: ELEMENT,
          tag: tag,
          props: props,
-         children: children,
+         children: check(children || [])
       };
    }
    // @ts-ignore
@@ -131,18 +128,17 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       const last = conds[conds.length - 1];
       if (!last) {
          console.error(tag, "with attribute ura-else should have a previous ura-if/ura-elif statament tag");
-         children = [];
+         return [];
       }
-      else {
-         conds.pop(); // remove last if/elif statament
-         if (last.cond) children = []; // if last if/elif is true
-         else children = check(children || []);
-      }
+
+      conds.pop(); // remove last if/elif statament
+      if (last.cond) return []; // if last if/elif is true
+
       return {
          type: ELEMENT,
          tag: tag,
          props: props,
-         children: children,
+         children: check(children || []),
       };
    }
    else if (tag === "ura-loop") {

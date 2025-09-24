@@ -4,7 +4,7 @@
   "description": "frontend framework",
   "type": "module",
   "scripts": {
-    "start": "node ./scripts/server.js",
+    "start": "npm run clear && node ./scripts/server.js",
     "route": "node ./scripts/route.js",
     "comp": "node ./scripts/comp.js",
     "clear": "rm -rf ./out/*",
