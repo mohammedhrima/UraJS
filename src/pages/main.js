@@ -19,15 +19,18 @@
 import Ura from "ura";
   
 import Home from "./home/home.js";
+import User from "./user/user.js";
   
 Ura.setRoutes({
   "*": Home,
-  "/home": Home
+  "/home": Home,
+  "/user": User
 });
   
 Ura.setStyles([
-  "./pages/home/home.css",
-  "./pages/main.css"
+  "/pages/home/home.css",
+  "/pages/main.css",
+  "/pages/user/user.css"
 ]);
   
 Ura.start();

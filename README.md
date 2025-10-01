@@ -2,7 +2,6 @@
   <img src="./src/assets/logo.png" alt="Logo" width="200">
 </p>
 
-
 **UraJS** is a lightweight single-page application (SPA) framework designed to make building interactive and dynamic web applications intuitive and efficient.
 
 Inspired by the simplicity of **React**, the directory-based routing of **Next.js**, UraJS introduces its own take on SPA development. Its directory-based routing system automatically generates routes from the file structure, streamlining navigation setup for developers.
@@ -11,7 +10,8 @@ With built-in support for **live reloading**, **state-driven UI updates**.
 
 ## Summary
 - [Get Started](#get-started)
-- [Generate Route](#generate-component-or-route)
+- [Generate Route](#generate-route)
+- [Generate Component](#generate-component)
 - [Example Generated JSX](#example-generated-jsx)
 - [Folders Structure](#folders-structure)
 - [Configuration](#configuration)
@@ -42,501 +42,613 @@ To get started with **UraJS**, follow these simple steps:
    npm start
 ```
 5. **Open your browser** and visit http://localhost:17000 to see the app running.
-+ you should see something like this
+
+You should see something like this:
 <p align="center">
   <img src="./src/assets/home-page.png" alt="Logo" width="800">
 </p>
 
-6. **all commands**:
+6. **All commands**:
 ```bash
-  npm start #start server
-```
-```bash
-  npm run clear #clear outfile
-```
-```bash
-  npm run route #create route
-```
-```bash
-  npm run comp #create component
-```
-```bash
-  npm run build #to build
-```
-```bash
-  npm run config #change configuration
+  npm start      # Start development server
+  npm run clear  # Clear outfile
+  npm run route  # Create route
+  npm run comp   # Create component
+  npm run build  # Build for production
+  npm run config # Change configuration
 ```
 
 ## Generate Route
 To generate routes automatically, you can use the following commands:
-- To generate a **basic route and its CSS/SCSS file if neede**, run:
-    
-    ```bash
-      npm run route /helloworld
-    ```
 
-+ This will create 
-`pages/helloworld/helloworld.[jsx|tsx]` mapped to the /helloworld route.
-`pages/helloworld/helloworld.[css|scss]` for styling the route.
-After generating the route and its styles, visit the route in the browser by navigating to the corresponding URL `http://localhost:17000/helloworld`
-
-- To generate a **nested route and its SCSS file**, run:
+### Basic Route
+To generate a **route with Header, Main, and Footer components**:
     
-    ```bash
-      npm run route /helloworld/again
-    ```
+```bash
+npm run route user
+```
+
+This will create:
+```
+pages/user/
+  ├── user.jsx     # Main route file
+  ├── header.jsx   # Header component
+  ├── main.jsx     # Main content component
+  ├── footer.jsx   # Footer component
+  ├── user.css     # Route styles (if CSS enabled)
+  └── components/  # Folder for route-specific components
+```
+
+The route will be accessible at `http://localhost:17000/user`
+
+### Nested Route
+To generate a **nested route**:
+    
+```bash
+npm run route user/settings
+```
+
+This creates: `pages/user/settings/settings.jsx` mapped to `/user/settings`
+
+## Generate Component
+
+### Shared Components (Global)
+To create a **shared component** available across all routes:
+
+```bash
+npm run comp Button
+npm run comp Navbar
+```
+
+This creates components in `src/components/`:
+```
+src/components/
+  ├── Button.jsx
+  ├── Button.css
+  ├── Navbar.jsx
+  └── Navbar.css
+```
+
+### Route-Specific Components
+To create a **component specific to a route**:
+
+```bash
+npm run comp user/UserProfile user/UserStats
+```
+
+This creates components in the route's components folder:
+```
+pages/user/components/
+  ├── UserProfile.jsx
+  ├── UserProfile.css
+  ├── UserStats.jsx
+  └── UserStats.css
+```
+
+### Nested Route Components
+For deeply nested routes:
+
+```bash
+npm run comp user/settings/SettingsForm
+```
+
+Creates: `pages/user/settings/components/SettingsForm.jsx`
 
 ## Example Generated JSX
-+ Component:
-```js
-    import Ura from 'ura';
-    
-    function Component() {
-      const [render, State] = Ura.init();  // Initialize Ura and state management
-      const [getter, setter] = State(0);  // Declare a state with an initial value of 0
-    
-      return render(() => (
-        <div className="component">
-          <h1>Hello from the Component component!</h1>
-          <button onclick={() => setter(getter() + 1)}>
-            Click me [{getter()}]
-          </button>
-        </div>
-      ));
-    }
-    
-    export default Component;
+
+### Component
+```jsx
+import Ura, { VDOM, Props } from 'ura';
+
+function Button(props: Props): VDOM {
+  const [count, setCount] = Ura.State(0);
+
+  return (
+    <div className="button">
+      <h1>Hello from Button component!</h1>
+      <button onclick={() => setCount(count() + 1)}>
+        Click me [{count()}]
+      </button>
+    </div>
+  );
+}
+
+export default Button;
 ```
-+ Route: <span style="color:red">Route tag should have `<root></route>` so the can be viewed</span>
-```js
-    function Route() {
-      document.title = "Route Page";
-      const [render, State] = Ura.init();
-      const [count, setCount] = State(0);
-      const [darkMode, setDarkMode] = State(true);
 
-      return render(() => (
-        <root>
-          <div className={`home ${darkMode() ? 'dark' : 'light'}`}>
-            <header className="navbar">
-              <div className="logo">UraJS</div>
-              <nav>
-                <a href="https://github.com/mohammedhrima/UraJS/" target="_blank">GitHub</a>
-                <a onclick={() => setDarkMode(!darkMode())}>
-                  {darkMode() ? 'Light Mode' : 'Dark Mode'}
-                </a>
-              </nav>
-            </header>
+### Route
+```jsx
+import Ura, { VDOM, Props } from 'ura';
+import Header from './header';
+import Main from './main';
+import Footer from './footer';
 
-            <main className="body">
-              <h1>Welcome to UraJS</h1>
-              <p className="subtitle">Lightweight. Reactive. Yours.</p>
-              <button onclick={() => setCount(count() + 1)}>
-                Click me [{count()}]
-              </button>
-            </main>
+function User(props: Props): VDOM {
+  document.title = "user Page";
 
-            <footer className="footer">
-              <p>Built with 💙 using UraJS</p>
-            </footer>
-          </div>
-        </root>
-      ));
-    }
-   export default Route;
+  return (
+    <div className="flex flex-col min-h-screen text-text bg-bg">
+      <Header />
+      <Main />
+      <Footer />
+    </div>
+  );
+}
+
+export default User;
 ```
-#### Explanation of the Code:
-1. State: 
-- used to updated the view wherever the value change: `const [getter, setter] = State(initialValue); `
-- componenet can hold multiple states
-- essential for updating the view weh state change
-2. Rendering the Component:
-+ `return render(() => ( ... ))`: saves JSX component for future reconciliation.
-3. Event Handling:
-+ `<button onclick={() => setter(getter() + 1)}>`: onlick state change
-+ In UraJS, event names should be written in lowercase. This is the standard convention for handling events in JavaScript.
-    + For example:
-        + `onclick` for mouse clicks.
-        + `onchange` for input changes.
-        + `onkeyup` for key presses.
-For a complete list of event names, check W3Schools JavaScript Events  (https://www.w3schools.com/jsref/obj_events.asp)
-4. `<root></root>` reference to the `<div id="root"></div>` in ./src/index.html
 
-## Folders structure:
+### Header Component (Generated)
+```jsx
+import Ura, { VDOM, Props } from 'ura';
+
+function Header(props: Props): VDOM {
+  return (
+    <header className="bg-nav px-8 py-4 flex justify-between items-center border-b border-border">
+      <div className="text-[--accent] text-2xl font-bold">UraJS</div>
+      <nav>
+        <a className="ml-6 text-text hover:text-[#3c82c9] transition-colors duration-300" 
+           href="https://github.com/mohammedhrima/UraJS/" target="_blank">
+          github
+        </a>
+      </nav>
+    </header>
+  );
+}
+
+export default Header;
 ```
-    UraJS/
-    ├── out/ # Production-ready transpiled JavaScript files
-    │   └── (All framework and app code transpiled to vanilla JS)
-    │
-    ├── scripts/ # scripts used by the framework.
-    │
-    ├── src/
-    │   ├── assets/ # Static assets
-    │   │   └── (image.png, ...)
-    │   │
-    │   ├── components/ # Reusable UI components
-    │   │   ├── Button/ # Example component
-    │   │   │   ├── Button.jsx
-    │   │   │   └── Button.css
-    │   │   └── (Other components...)
-    │   │
-    │   ├── pages/ # Route-based components
-    │   │   ├── home/ # Example route: /home
-    │   │   │   ├── home.jsx # Route component
-    │   │   │   └── home.css # Route-specific styles
-    │   │   │
-    │   │   ├── main.js # Application entry point
-    │   │   ├── main.scss # Global styles/variables
-    │   │   └── tailwind.css # Tailwind imports (if enabled)
-    │   │
-    │   ├── services/ # Business logic/services
-    │   │   ├── api.jsx # API service layer
-    │   │   └── events.js # Event bus/service (in developement)
-    │   │
-    │   └── ura/ # Framework frontend code
-    │
-    ├── tailwind.config.js # Tailwind CSS configuration
-    ├── ura.config.js # Framework configuration
-    ├── tsconfig.json # TypeScript configuration
-    └── package.json # Project dependencies and scripts
-             
+
+### Main Component (Generated)
+```jsx
+import Ura, { VDOM, Props } from 'ura';
+
+function Main(props: Props): VDOM {
+  const [count, setCount] = Ura.State(0);
+
+  return (
+    <main className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center">
+      <h1 className="text-4xl md:text-5xl mb-8 text-[#f1f5f9]">
+        Hello from User route!
+      </h1>
+      <button className="px-6 py-3 bg-[--accent] text-white rounded-lg text-base shadow-lg transition-transform transform hover:bg-[#3c82c9] hover:-translate-y-0.5 active:scale-95" 
+              onclick={() => setCount(count() + 1)}>
+        Click me [{count()}]
+      </button>
+    </main>
+  );
+}
+
+export default Main;
+```
+
+### Footer Component (Generated)
+```jsx
+import Ura, { VDOM, Props } from 'ura';
+
+function Footer(props: Props): VDOM {
+  return (
+    <footer className="bg-nav text-center p-4 text-sm border-t border-border text-text-muted">
+      <p>Built with 💙 using UraJS</p>
+    </footer>
+  );
+}
+
+export default Footer;
+```
+
+### Explanation of the Code:
+1. **State Management**: 
+   - `const [getter, setter] = Ura.State(initialValue);` creates reactive state
+   - Components can hold multiple states
+   - Essential for updating the view when state changes
+   - Use `getter()` to access value, `setter(newValue)` to update
+
+2. **Rendering the Component**:
+   - Components directly return JSX (similar to React)
+   - No need for render wrapper anymore
+
+3. **Event Handling**:
+   - `<button onclick={() => setter(getter() + 1)}>`: Updates state on click
+   - Event names should be written in lowercase (onclick, onchange, onkeyup, etc.)
+   - For a complete list of event names, check [W3Schools JavaScript Events](https://www.w3schools.com/jsref/obj_events.asp)
+
+4. **Route Structure**:
+   - Routes are automatically split into Header, Main, and Footer components
+   - Easy to customize each section independently
+   - Main route file imports and composes these components
+
+## Folders Structure
+```
+UraJS/
+├── out/                      # Production-ready transpiled JavaScript files
+│   └── (All framework and app code transpiled to vanilla JS)
+│
+├── scripts/                  # Scripts used by the framework
+│
+├── src/
+│   ├── assets/              # Static assets
+│   │   └── (image.png, ...)
+│   │
+│   ├── components/          # Shared/global components
+│   │   ├── Button.jsx
+│   │   ├── Button.css
+│   │   ├── Navbar.jsx
+│   │   └── Navbar.css
+│   │
+│   ├── pages/               # Route-based components
+│   │   ├── home/           # Example route: /home
+│   │   │   ├── home.jsx    # Main route file
+│   │   │   ├── header.jsx  # Route header
+│   │   │   ├── main.jsx    # Route main content
+│   │   │   ├── footer.jsx  # Route footer
+│   │   │   ├── home.css    # Route styles
+│   │   │   └── components/ # Route-specific components
+│   │   │       ├── Hero.jsx
+│   │   │       └── Features.jsx
+│   │   │
+│   │   ├── user/           # Example route: /user
+│   │   │   ├── user.jsx
+│   │   │   ├── header.jsx
+│   │   │   ├── main.jsx
+│   │   │   ├── footer.jsx
+│   │   │   └── components/
+│   │   │       ├── UserProfile.jsx
+│   │   │       └── UserStats.jsx
+│   │   │
+│   │   ├── main.js         # Application entry point
+│   │   ├── main.scss       # Global styles/variables
+│   │   └── tailwind.css    # Tailwind imports (if enabled)
+│   │
+│   ├── services/           # Business logic/services
+│   │   ├── api.jsx        # API service layer
+│   │   └── events.js      # Event bus/service (in development)
+│   │
+│   └── ura/               # Framework frontend code
+│
+├── tailwind.config.js     # Tailwind CSS configuration
+├── ura.config.js          # Framework configuration
+├── tsconfig.json          # TypeScript configuration
+└── package.json           # Project dependencies and scripts
 ```
 
 ## Configuration
-+ The `ura.config.js` file allows you to customize various settings for your project
-+ Default config:
+The `ura.config.js` file allows you to customize various settings for your project.
+
+Default config:
 ```js
-    typescript: "disable" 
-    dirRouting: "enable"
-    defaultRoute: "home"
-    tailwind: "disable"
-    scss: "disable"
-    css: "enable"
-    port: 17000
+typescript: "disable" 
+dirRouting: "enable"
+defaultRoute: "home"
+tailwind: "disable"
+scss: "disable"
+css: "enable"
+port: 17000
 ```
-+ to change it: run
+
+To change it, run:
 ```bash
-  npm run config #change configuration
+npm run config
 ```
-+ you will get a validation messages like this
+
+You will get validation messages like this:
 <p align="center">
   <img src="./src/assets/config.png" alt="Logo" width="500">
 </p>
 
 ## Navigate between routes
 ```bash
-    npm run route /home
-    npm run route /about
-    npm run comp /navbar
+npm run route home about
+npm run comp Navbar
 ```
-```js
-    // components/Navbar.jsx
-    import Ura from 'ura';
-    
-    function Navbar() {
-      const [render, State] = Ura.init();
-    
-      return render(() => (
-        <nav className="navbar">
-          <ul>
-            <li onclick={() => Ura.navigate("/home")}><a href="/home">Home</a></li>
-            <li onclick={() => Ura.navigate("/about")}><a href="/about">About</a></li>
-          </ul>
-        </nav>
-      ));
-    }
-    
-    export default Navbar;
+
+```jsx
+// components/Navbar.jsx
+import Ura from 'ura';
+
+function Navbar() {
+  const [render, State] = Ura.init();
+
+  return (
+    <nav className="navbar">
+      <ul>
+        <li onclick={() => Ura.navigate("/home")}><a href="/home">Home</a></li>
+        <li onclick={() => Ura.navigate("/about")}><a href="/about">About</a></li>
+      </ul>
+    </nav>
+  );
+}
+
+export default Navbar;
 ```
-**Explanation of the navigate Hook:**
 
-+ `Ura.navigate` is a built-in function in UraJS that programmatically changes the current route of the app. When you call this function, it will update the URL and load the corresponding component.
+**Explanation:**
+- `Ura.navigate` is a built-in function that programmatically changes the current route
+- It updates the URL and loads the corresponding component
 
-### Adding the Navbar to the Home Page
-Once the `Navbar` component is created, you can include it in your `home` page component. For instance:
+### Adding the Navbar to a Route
+```jsx
+// pages/home/home.jsx
+import Ura from 'ura';
+import Navbar from '../../components/Navbar.js';
+import Header from './header';
+import Main from './main';
+import Footer from './footer';
 
-```js
-    // pages/home/home.jsx
-    import Ura from 'ura';
-    import Navbar from '../../components/Navbar.js';
-    
-    function Home() {
-      const [render, State] = Ura.init();
-    
-      return render(() => (
-        <root>
-          <div>
-            <Navbar />
-            <h1>Welcome to the Home Page!</h1>
-          </div>
-        </root>
-      ));
-    }
-    
-    export default Home;
+function Home() {
+  document.title = "Home Page";
+
+  return (
+    <div>
+      <Navbar />
+      <Header />
+      <Main />
+      <Footer />
+    </div>
+  );
+}
+
+export default Home;
 ```
 
 ## Navigate with Parameters
 ```bash
-    npm run route /home
-    npm run route /user
-    npm run comp /navbar
+npm run route home
+npm run route user
 ```
-This component uses Ura.navigate to navigate to a new page (`/user`) and passes the `name` and `email` parameters.
-```js
-    import Ura from 'ura';
-    
-    function Home() {
-      const [render, State] = Ura.init();
-    
-      return render(() => (
-        <root>
-          <div className="home">
-            <h1>Welcome to the Home Page!</h1>
-            <button onclick={() => Ura.navigate("/user", { name: "John Doe", email: "john.doe@example.com" })}>
-              Show Details
-            </button>
-          </div>
-        </root>
-      ));
-    }
-    
-    export default Home;
+
+### Sending Parameters
+```jsx
+import Ura from 'ura';
+
+function Home() {
+  return (
+    <div className="home">
+      <h1>Welcome to the Home Page!</h1>
+      <button onclick={() => Ura.navigate("/user", { name: "John Doe", email: "john.doe@example.com" })}>
+        Show Details
+      </button>
+    </div>
+  );
+}
+
+export default Home;
 ```
-#### Component That Receives and Visualizes the Parameters
-This component receives the name and email parameters from the navigation and displays them.
-```js
-    import Ura from 'ura';
-    
-    function User() {
-      const { name, email } = Ura.getParams();
-      const [render, State] = Ura.init();
 
-      return render(() => (
-        <root>
-          <div className="user">
-            <h1>User Name: {name}</h1>
-            <p>Email: {email}</p>
-          </div>
-        </root>
-      ));
-    }
-    
-    export default user;
+### Receiving Parameters
+```jsx
+import Ura from 'ura';
 
+function Main() {
+  const { name, email } = Ura.getParams();
+
+  return (
+    <main className="user">
+      <h1>User Name: {name}</h1>
+      <p>Email: {email}</p>
+    </main>
+  );
+}
+
+export default Main;
 ```
 
 ## Tailwind
-+ make sure to enbale the tailwind in config to see the change
-```js
-  import Ura from "ura"
+Make sure to enable Tailwind in config to see the changes:
 
-  function Button() {
-    const [render, State] = Ura.init();
+```jsx
+import Ura from "ura";
 
-    return render(() => (
-      <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300">
-        Click Me
-      </button>
-    ));
-  }
+function Button() {
+  const [count, setCount] = Ura.State(0);
+
+  return (
+    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
+            onclick={() => setCount(count() + 1)}>
+      Click Me [{count()}]
+    </button>
+  );
+}
+
+export default Button;
 ```
 
-## Conditions:
-- `ura-if`, `ura-elif`, `ura-else`
-- you can use them as tags `<ura-if>`, `<ura-elif>`, `<ura-else>`
-- or you can use as attributes
+## Conditions
+You can use conditions as tags or attributes:
+- `<ura-if>`, `<ura-elif>`, `<ura-else>` as tags
+- `ura-if`, `ura-elif`, `ura-else` as attributes
 
-```js
-    import Ura from "ura";
+```jsx
+import Ura from "ura";
 
-    function WeatherDisplay() {
-      const [render, State] = Ura.init();
-      const [getTemp, setTemp] = State(25); // Default temperature
-      const [isRaining, setIsRaining] = State(false);
+function WeatherDisplay() {
+  const [temp, setTemp] = Ura.State(25);
+  const [isRaining, setIsRaining] = Ura.State(false);
 
-      return render(() => (
-        <root>
-          <div className="weather-widget">
-            <h2>Weather Conditions</h2>
-            
-            {/* Tag syntax */}
-            <ura-if cond={getTemp() > 30}>
-              <div className="alert">Heat warning!</div>
-            </ura-if>
-            <ura-elif cond={getTemp() < 0}>
-              <div className="alert">Freezing temperatures!</div>
-            </ura-elif>
-            <ura-else>
-              <div>Normal temperature range</div>
-            </ura-else>
-  
-            {/* Attribute syntax */}
-            <div ura-if={isRaining()}>Bring an umbrella! ☔</div>
-            <div ura-else>No rain expected today</div>
-  
-            {/* Shorthand if statement (ternary) */}
-            <div>
-              Current temperature: {getTemp()}°C - 
-              {getTemp() > 20 ? " Warm" : " Cool"}
-            </div>
-  
-            {/* Controls to demo dynamic changes */}
-            <div className="controls">
-              <button onClick={() => setTemp(getTemp() + 5)}>Increase Temp</button>
-              <button onClick={() => setTemp(getTemp() - 5)}>Decrease Temp</button>
-              <button onClick={() => setIsRaining(!isRaining())}>
-                Toggle Rain
-              </button>
-            </div>
-          </div>
-        </root>
-      ));
-    }
+  return (
+    <div className="weather-widget">
+      <h2>Weather Conditions</h2>
+      
+      {/* Tag syntax */}
+      <ura-if cond={temp() > 30}>
+        <div className="alert">Heat warning!</div>
+      </ura-if>
+      <ura-elif cond={temp() < 0}>
+        <div className="alert">Freezing temperatures!</div>
+      </ura-elif>
+      <ura-else>
+        <div>Normal temperature range</div>
+      </ura-else>
 
-    export default WeatherDisplay;
+      {/* Attribute syntax */}
+      <div ura-if={isRaining()}>Bring an umbrella!</div>
+      <div ura-else>No rain expected today</div>
+
+      {/* Ternary operator */}
+      <div>
+        Current temperature: {temp()}°C - 
+        {temp() > 20 ? " Warm" : " Cool"}
+      </div>
+
+      {/* Controls */}
+      <div className="controls">
+        <button onclick={() => setTemp(temp() + 5)}>Increase Temp</button>
+        <button onclick={() => setTemp(temp() - 5)}>Decrease Temp</button>
+        <button onclick={() => setIsRaining(!isRaining())}>Toggle Rain</button>
+      </div>
+    </div>
+  );
+}
+
+export default WeatherDisplay;
 ```
 
-## Loops:
-- `<loop>` tag can be treated as any tag you can style it, add className etc...
-```js
-    function Card() {
-      const [render, State] = Ura.init();
-      const [getItems, setItems] = State(["Milk", "Eggs", "Bread", "Fruits"]);
+## Loops
+The `<ura-loop>` tag can be styled with className and other attributes:
 
-      return render(() => (
-        <root>
-          <div className="shopping-list">
-            <h2>Grocery Items</h2>
+```jsx
+import Ura from "ura";
 
-            {/* Tag syntax with <ura-loop> tag won't be shown in the view*/}
-            <ura-loop on={getItems()}>
-              {(item, index) => (
-                <div key={index} className="item">
-                  <span>{index + 1}. {item}</span>
-                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
-                    Remove
-                  </button>
-                </div>
-              )}
-            </ura-loop>
-            
-            {/* ura-loop as attribute div tag will be shown in the view even if the array is empty */}
-            <div ura-loop={getItems()}>
-              {(item, index) => (
-                <div key={index} className="item">
-                  <span>{index + 1}. {item}</span>
-                  <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
-                    Remove
-                  </button>
-                </div>
-              )}
-            </div>
+function ShoppingList() {
+  const [items, setItems] = Ura.State(["Milk", "Eggs", "Bread", "Fruits"]);
 
-            {/* use map method */}
-            {getItems().map((item, index) => (
-              <div key={index} className="item">
-                <span>{index + 1}. {item}</span>
-                <button onClick={() => setItems(getItems().filter((_, i) => i !== index))}>
-                  Remove
-                </button>
-              </div>
-            ))}
+  return (
+    <div className="shopping-list">
+      <h2>Grocery Items</h2>
 
-            <button onClick={() => setItems([...getItems(), "New Item"])}>
-              Add Item
+      {/* Tag syntax - <ura-loop> won't be shown in DOM */}
+      <ura-loop on={items()}>
+        {(item, index) => (
+          <div key={index} className="item">
+            <span>{index + 1}. {item}</span>
+            <button onclick={() => setItems(items().filter((_, i) => i !== index))}>
+              Remove
             </button>
           </div>
-        </root>
-      ));
-    }
+        )}
+      </ura-loop>
+      
+      {/* Attribute syntax - div will be shown even if array is empty */}
+      <div ura-loop={items()}>
+        {(item, index) => (
+          <div key={index} className="item">
+            <span>{index + 1}. {item}</span>
+            <button onclick={() => setItems(items().filter((_, i) => i !== index))}>
+              Remove
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Using map method */}
+      {items().map((item, index) => (
+        <div key={index} className="item">
+          <span>{index + 1}. {item}</span>
+          <button onclick={() => setItems(items().filter((_, i) => i !== index))}>
+            Remove
+          </button>
+        </div>
+      ))}
+
+      <button onclick={() => setItems([...items(), "New Item"])}>
+        Add Item
+      </button>
+    </div>
+  );
+}
+
+export default ShoppingList;
 ```
 
 ## Component Composition
-+ example card component
-```js
-  import Ura from 'ura';
-  
-  function Card(props, children) {
-    const [render] = Ura.init();
-  
-    return render(() => (
-      <div className="card">
-        <h2>{props.title}</h2>
-        {children}
-      </div>
-    ));
-  }
-  export default Card;
-```
-```js
-  import Ura from 'ura';
-  import Card from '../../components/Card.js';
-  
- function Dashboard() {
-    const [render] = Ura.init();
-  
-    return render(() => (
-      <root>
-        <Card title="User Info">
-          <p>Name: John Doe</p>
-          <p>Email: john@example.com</p>
-        </Card>
-  
-        <Card title="Stats">
-          <ul>
-            <li>Posts: 34</li>
-            <li>Followers: 120</li>
-          </ul>
-        </Card>
-      </root>
-    ));
-  }
- export default Dashboard;
+
+### Card Component Example
+```jsx
+import Ura from 'ura';
+
+function Card(props, children) {
+  return (
+    <div className="card">
+      <h2>{props.title}</h2>
+      {children}
+    </div>
+  );
+}
+
+export default Card;
 ```
 
-## Deploy using docker
+### Using the Card Component
+```jsx
+import Ura from 'ura';
+import Card from '../../components/Card.js';
 
-1. Build the Project
-+ To build the project and generate the necessary Docker configuration files, run the following command:
+function Dashboard() {
+  return (
+    <div>
+      <Card title="User Info">
+        <p>Name: John Doe</p>
+        <p>Email: john@example.com</p>
+      </Card>
+
+      <Card title="Stats">
+        <ul>
+          <li>Posts: 34</li>
+          <li>Followers: 120</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+export default Dashboard;
+```
+
+## Deploy using Docker
+
+### 1. Build the Project
+To build the project and generate the necessary Docker configuration files:
+
 ```bash
-    npm run build
-```
-This command will use Nginx to serve your static files and generate a docker directory with the following structure:
-```
-    docker/
-    ├── app/                # Contains all transpiled files (e.g., JavaScript, CSS, etc.)
-    ├── nginx/              # Contains the nginx configuration file
-    │   └── nginx.conf
-    ├── Dockerfile          # Dockerfile to build the application container
-    ├── docker-compose.yml  # Docker Compose file to set up and run the container
-    └── Makefile            # Makefile to run Docker container
+npm run build
 ```
 
-2. Build and Run the Container
+This command generates a `docker` directory with the following structure:
+```
+docker/
+├── app/                # All transpiled files
+├── nginx/             # Nginx configuration
+│   └── nginx.conf
+├── Dockerfile         # Docker image configuration
+├── docker-compose.yml # Docker Compose setup
+└── Makefile          # Helper commands
+```
 
-+ After running npm run build, navigate to the docker directory:
+### 2. Build and Run the Container
+Navigate to the docker directory:
 ```bash
-    cd docker
-```
-+ To start the Docker container, run:
-```bash
-    make
-```
-3. Stop the Container
-```bash
-    make down
+cd docker
 ```
 
-4. Clean Up Volumes and Remove Docker Images
-```
-    make clean
+Start the Docker container:
+```bash
+make
 ```
 
-5. Check Nginx Configuration
-+ The Nginx configuration is in docker/nginx/nginx.conf. It serves the transpiled files
-+ Check the port in nginx.conf (e.g., listen 17000). The port is automatically selected during the build process by choosing the available one.
-+ After starting the container, open your browser and go to:
+### 3. Stop the Container
+```bash
+make down
 ```
-    http://localhost:17000
+
+### 4. Clean Up Volumes and Remove Docker Images
+```bash
+make clean
 ```
+
+### 5. Access Your Application
+After starting the container, open your browser and go to:
+```
+http://localhost:17000
+```
+
+The port is automatically configured during the build process based on your `ura.config.js` settings.

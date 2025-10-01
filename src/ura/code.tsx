@@ -1,52 +1,80 @@
 import {
-   IF, ELSE, LOOP, EXEC, CREATE, REPLACE, REMOVE,
-   ELEMENT, FRAGMENT, TEXT, deepEqual, loadCSS, svgElements, deepCopy,
+   EXEC, CREATE, REPLACE, REMOVE,
+   ELEMENT, TEXT,
+   deepEqual, deepCopy, loadCSS, 
+   svgElements,
 } from "./utils.js";
-import { VDOM, Props, Tag } from "./types.js";
+import { VDOM, Props, Tag, TaskQueue } from "./types.js";
+
+const taskQueue = new TaskQueue(5);
 
 // JSX
 function check(children: any): any {
    let result = [];
-   children.forEach((child) => {
-      if (typeof child === "string" || typeof child === "number") {
+   children.forEach((child: any) => {
+      const types = ["string", "number", "boolean", "bigint", "symbol"];
+      if (types.includes(typeof child)) {
          result.push({
             type: TEXT,
             props: {
-               value: child,
+               value: String(child),
             },
          });
-      }
-      else if (Array.isArray(child)) {
+      } else if (Array.isArray(child)) {
          result.push(...check(child));
+      } else if (child !== null && child !== undefined) {
+         result.push(child);
       }
-      else if (child != undefined && child) result.push(child);
    });
    return result;
 }
 
-function fr(props: Props = {}, ...children: any) {
-   return children;
+let conds = [];
+const StatesManager = [];
+let curr_comp = null;
+
+function e2(curr_comp2: VDOM, tag: Tag, props: Props = {}, ...children: any) {
+   if (typeof tag === "function") {
+      // let tmp = deepCopy(conds);
+      // conds = [];
+
+      let old_comp = curr_comp;
+      curr_comp = curr_comp2;
+      let vdom = tag(props, children);
+      curr_comp = old_comp;
+      // conds = tmp;
+
+      return vdom;
+   }
+   return {
+      type: ELEMENT,
+      tag: tag,
+      dom: null,
+      props: props,
+      children: check(children),
+   };
 }
 
-let uraifTag = null;
-let conds = [];
 function e(tag: Tag, props: Props = {}, ...children: any) {
    if (typeof tag === "function") {
-      let functag = null;
-      let tmp = deepCopy(conds);
-      conds = [];
-      try {
-         functag = tag(props, children);
-         if (!functag) throw `function must return render(()=>(JSX)): ${tag}`;
-      } catch (error) {
-         console.error(error);
-      }
-      conds = tmp;
-      if (!functag) return [];
-      functag.isfunc = true;
-      functag.funcProps = props;
-      functag.func = tag;
-      return functag;
+      // let tmp = deepCopy(conds);
+      // conds = [];
+
+      let old_comp = curr_comp;
+      StatesManager.push({
+         func: tag,
+         states: [],
+         props: props,
+         children: children,
+         index: 0,
+      });
+      curr_comp = StatesManager[StatesManager.length - 1];
+      curr_comp.vdom = tag(props, children);
+      let vdom = curr_comp.vdom;
+      curr_comp = old_comp;
+      // conds = tmp;
+
+      return vdom;
    }
 
    if (tag === "ura-if") {
@@ -56,7 +84,9 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
    } else if (tag === "ura-elif") {
       const last = conds[conds.length - 1];
       if (!last) {
-         console.error("ura-elif tag should have a previous ura-if/ura-elif statament tag");
+         console.error(
+            "ura-elif tag should have a previous ura-if/ura-elif statament tag"
+         );
          return [];
       }
 
@@ -68,7 +98,9 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
    } else if (tag === "ura-else") {
       const last = conds[conds.length - 1];
       if (!last) {
-         console.error("ura-else tag should have a previous ura-if/ura-elif statament tag");
+         console.error(
+            "ura-else tag should have a previous ura-if/ura-elif statament tag"
+         );
          return [];
       }
       conds.pop(); // remove last if/elif statament
@@ -99,7 +131,7 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          type: ELEMENT,
          tag: tag,
          props: props,
-         children: check(children || [])
+         children: check(children || []),
       };
    }
    // @ts-ignore
@@ -109,7 +141,7 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          console.error("ura-elif tag should have a previous ura-if/ura-elif statament tag");
          return [];
       }
-      
+
       if (last.cond) return []; // if last if/elif is true
 
       conds.pop(); // remove last if/elif statament
@@ -120,7 +152,7 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          type: ELEMENT,
          tag: tag,
          props: props,
-         children: check(children || [])
+         children: check(children || []),
       };
    }
    // @ts-ignore
@@ -140,7 +172,7 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
          props: props,
          children: check(children || []),
       };
-   }
+   } 
    else if (tag === "ura-loop") {
       let loopChildren = (props["on"] || []).flatMap((elem, id) =>
          (children || []).map((child) => {
@@ -171,6 +203,10 @@ function e(tag: Tag, props: Props = {}, ...children: any) {
       props: props,
       children: check(children || []),
    };
+}
+
+function fr(props: Props = {}, ...children: any) {
+   return check(children);
 }
 
 // DOM
@@ -227,33 +263,15 @@ function createDOM(vdom): VDOM {
                   console.error("vdom already has dom"); // TODO: to be removed
                } else {
                   if (svgElements.has(vdom.tag))
-                     vdom.dom = document.createElementNS(
-                        "http://www.w3.org/2000/svg",
-                        vdom.tag
-                     );
+                     vdom.dom = document.createElementNS("http://www.w3.org/2000/svg", vdom.tag);
                   else vdom.dom = document.createElement(vdom.tag);
                }
                break;
          }
          break;
       }
-      case FRAGMENT: {
-         vdom.dom = document.createElement("container");
-         break;
-      }
       case TEXT: {
-         if (vdom.props.value === undefined || vdom.props.value === "undefined") {
-            console.error("TEXT: found undefiend");
-         }
          vdom.dom = document.createTextNode(vdom.props.value);
-         break;
-      }
-      case IF:
-      case ELSE:
-      case LOOP: {
-         vdom.dom = document.createElement(vdom.tag);
-         // keep it commented it causes problem when condition change
-         // vdom.dom = document.createDocumentFragment();
          break;
       }
       case EXEC: {
@@ -271,7 +289,7 @@ function removeProps(vdom: VDOM) {
    try {
       const props = vdom.props;
       for (const key of Object.keys(props || {})) {
-         if (key == "func" || key == "call") continue;
+         if (key == "call") continue;
          if (vdom.dom) {
             if (key.startsWith("on")) {
                const eventType = key.slice(2).toLowerCase();
@@ -292,58 +310,58 @@ function removeProps(vdom: VDOM) {
    }
 }
 
-function destroy(vdom: VDOM): void {
+function destroyDOM(vdom: VDOM): void {
    removeProps(vdom);
    vdom.dom?.remove();
    vdom.dom = null;
-   vdom.children?.map(destroy);
+   vdom.children?.map(destroyDOM);
 }
 
 // RENDERING
-function execute(mode: number, prev: VDOM, next: VDOM = null) {
+function execute(mode, prev, next = null) {
    switch (mode) {
       case CREATE: {
          createDOM(prev);
-         prev.children?.map((child) => {
-            if (child) {
-               child = execute(mode, child as VDOM);
-               prev.dom.appendChild((child as VDOM).dom);
-            }
-         });
+         if (prev.type === ELEMENT && prev.children?.length) {
+            prev.children.forEach(child => {
+               execute(CREATE, child);
+               if (child.dom) prev.dom.appendChild(child.dom);
+            });
+         }
+         break;
+      }
+      case REMOVE: {
+         destroyDOM(prev);
          break;
       }
       case REPLACE: {
          removeProps(prev);
+
          execute(CREATE, next);
-
-         if (prev.dom && next.dom) prev.dom.replaceWith(next.dom);
-
+         prev.dom.replaceWith(next.dom);
          prev.dom = next.dom;
          prev.children = next.children;
-         // I commented it because it caused me an error
-         // in the slider
-         // removeProps(prev);
          prev.props = next.props;
-         break;
-      }
-      case REMOVE: {
-         destroy(prev);
          break;
       }
       default:
          break;
    }
-   return prev;
+}
+
+function createTask(task, highPriority = false) {
+   taskQueue.enqueue({ work: task }, highPriority);
 }
 
 // RECONCILIATION
 function reconciliate(prev: VDOM, next: VDOM) {
-
-   if (prev.type != next.type || prev.tag != next.tag || !deepEqual(prev.props, next.props))
-      return execute(REPLACE, prev, next);
+   if (prev.type != next.type || prev.tag != next.tag || !deepEqual(prev.props, next.props)) {
+      createTask(() => execute(REPLACE, prev, next));
+      return
+   }
 
    if (next.type === EXEC) {
-      prev.call();
+      // prev.call(); // TODO: to be checked later
       next.call();
    }
 
@@ -353,115 +371,84 @@ function reconciliate(prev: VDOM, next: VDOM) {
       let child1 = prevs[i];
       let child2 = nexts[i];
 
-      if (child1 && child2 && (child1.isfunc || child2.isfunc)) {
-         if (!deepEqual(child1.func, child2.func)) {
-            execute(REPLACE, child1, child2);
-            prevs[i] = child2;
-         } else if (!deepEqual(child1.funcProps, child2.funcProps)) {
-            execute(REPLACE, child1, child2);
-            prevs[i] = child2;
-         }
-      } else if (child1 && child2) {
+      if (child1 && child2) {
          reconciliate(child1 as VDOM, child2 as VDOM);
-      } else if (!child1 && child2) {
-         if (i >= prevs.length) { // append
-            execute(CREATE, child2 as VDOM);
-            prevs.push(child2);
-            prev.dom.appendChild(child2.dom);
-         }
-         else { // replace
-            execute(CREATE, child2 as VDOM);
-            prevs[i] = child2;
+      }
+      else if (!child1 && child2) {
+         if (i >= prevs.length) {
+            // append
+            createTask(() => {
+               execute(CREATE, child2)
+               prevs.push(child2);
+               if (child2.dom) prev.dom.appendChild(child2.dom)
+            });
+
+         } else {
+            // replace
+            createTask(() => {
+               execute(CREATE, child2)
+               prevs[i] = child2;
+               if (child2.dom) prev.dom.appendChild(child2.dom)
+            });
          }
       } else if (child1 && !child2) {
-         execute(REMOVE, child1 as VDOM);
-         prevs[i] = null;
+         createTask(() => {
+            execute(REMOVE, child1 as VDOM)
+            prevs[i] = null;
+         });
       }
    }
 }
 
+let globalVODM = null;
 function display(vdom: VDOM) {
-   if (GlobalVDOM !== null) reconciliate(GlobalVDOM, vdom);
-   else {
+   if (!globalVODM) {
       execute(CREATE, vdom);
-      GlobalVDOM = vdom;
-   }
-   return GlobalVDOM;
+      globalVODM = vdom;
+   } else reconciliate(globalVODM, vdom);
+   return vdom;
 }
 
-export function create(vdom: VDOM) {
-   return execute(CREATE, vdom);
-}
 
-export function init() {
-   let index = 1;
-   let vdom = null;
-   let states = {};
 
-   let View = () => <empty></empty>;
+const State = (initValue) => {
+   let local = curr_comp;
+   const index = local.index;
+   const states = local.states;
+   const func = local.func;
+   const props = local.props;
+   const children = local.children;
 
-   const State = (initValue) => {
-      const stateIndex = index++;
-      states[stateIndex] = initValue;
+   if (states[index] === undefined) states[index] = initValue;
 
-      const getter = () => states[stateIndex];
-      const setter = (newValue) => {
-         if (!deepEqual(states[stateIndex], newValue)) {
-            states[stateIndex] = newValue;
-            updateState();
-         }
-      };
-      return [getter, setter];
+   const getter = () => states[index];
+   const setter = (newValue) => {
+      states[index] = newValue;
+      local.index = 0;
+      const nvdom = e2(local, func, props, children);
+      reconciliate(local.vdom, nvdom);
    };
-
-   const ForcedState = (initValue) => {
-      const stateIndex = index++;
-      states[stateIndex] = initValue;
-
-      const getter = () => states[stateIndex];
-      const setter = (newValue) => {
-         states[stateIndex] = newValue;
-         updateState();
-      };
-      return [getter, setter];
-   };
-
-   const WeakState = (initValue) => {
-      const stateIndex = index++;
-      states[stateIndex] = initValue;
-
-      const getter = () => states[stateIndex];
-      const setter = (newValue) => {
-         states[stateIndex] = newValue;
-      };
-      return [getter, setter];
-   };
-
-   const updateState = () => {
-      const newVDOM = View();
-      if (vdom !== null) reconciliate(vdom, newVDOM);
-      else vdom = newVDOM;
-   };
-
-   const render = (call) => {
-      View = call;
-      updateState();
-      return vdom;
-   };
-   return [render, State, ForcedState, WeakState];
-}
+   local.index++;
+   return [getter, setter];
+};
 
 // ROUTING
 function ErrorPage(props: Props | null) {
-   const [render, State] = init();
-   return render(() => (
-      <h4 style={{
-         fontFamily: "sans-serif", fontSize: "6vw", display: "flex",
-         justifyContent: "center", alignItems: "center", textAlign: "center", height: "100%"
-      }}>
+   return (
+      <h4
+         style={{
+            fontFamily: "sans-serif",
+            fontSize: "6vw",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            height: "100%",
+         }}
+      >
          Error: [{props.message}] Not Found, check browser console for any details
       </h4>
-   ));
+   );
 }
 
 const Routes: { [path: string]: Function } = {};
@@ -531,12 +518,16 @@ export function setQuery(key, value) {
 }
 
 function refresh(params = null) {
-   // console.log("call refresh", params);
    if (navigate_handler) navigate_handler();
    let path = window.location.pathname || "*";
    path = normalizePath(path);
    const RouteConfig = getRoute(path);
-   return display(<RouteConfig props={params} />);
+   // console.log("call refresh display", RouteConfig);
+   display(
+      <root>
+         <RouteConfig props={params} />
+      </root>
+   );
 }
 
 export function navigate(route, params = {}) {
@@ -549,50 +540,11 @@ export function navigate(route, params = {}) {
    return refresh(params);
 }
 
-// loadfiles
-async function loadRoutes() {
-   try {
-      const response = await fetch("/pages/routes.json");
-      const data = await response.json();
-      return data;
-   } catch (error) {
-      console.error("Error loading routes.json:", error);
-      throw error;
-   }
-}
-
-function loadCSSFiles(styles) {
-   styles?.forEach((style) => {
-      Ura.loadCSS(Ura.normalizePath(style));
-   });
-}
-
-async function loadJSFiles(routes, base) {
-   for (const route of Object.keys(routes)) {
-      try {
-         const module = await import(routes[route]);
-         if (!module.default) {
-            throw new Error(
-               `${route}: ${routes[route]} must have a default export`
-            );
-         }
-         Ura.setRoute(Ura.normalizePath(route), module.default);
-         if (base && route === base) {
-            Ura.setRoute("*", module.default);
-         }
-      } catch (error) {
-         console.error("Error loading JavaScript module:", error);
-      }
-   }
-}
-
 function setEventListeners() {
    window.addEventListener("DOMContentLoaded", () => {
-      // console.error("load dom");
       Ura.refresh();
    });
    window.addEventListener("popstate", () => {
-      // console.error("popstate");
       Ura.refresh();
    });
 }
@@ -607,7 +559,7 @@ function handleCSSUpdate(filename) {
          found = true;
          const newLink = link.cloneNode();
          //@ts-ignore
-         newLink.href = link.href.split("?")[0] + "?t=" + new Date().getTime(); // Append timestamp to force reload
+         newLink.href = link.href.split("?")[0] + "?t=" + new Date().getTime();
          link.parentNode.replaceChild(newLink, link);
          return;
       }
@@ -649,18 +601,20 @@ async function sync() {
    };
 }
 
-async function setStyles(list) {
+function setStyles(list) {
    list.forEach((elem) => {
       handleCSSUpdate(elem);
    });
 }
 
-async function start() {
+function start() {
    setEventListeners();
    console.log(Ura.Routes);
-   //@ts-ignore
+   // @ts-ignore
    if (window.location.protocol == "http:") sync();
    else console.warn("protocol is not HTTP", window.location.protocol);
+   // document.getElementById("root").appendChild(globalVODM.dom);
+
 }
 
 export function getCookie(name) {
@@ -693,10 +647,30 @@ window.seeTree = function () {
 };
 
 const Ura = {
-   e, fr, setRoute, getRoute, display, create, sync, loadCSS, init, Routes,
-   reconciliate, deepEqual, normalizePath, refresh, navigate, setRoutes,
-   setStyles, In, start, getCookie, rmCookie, onNavigate, getParams,
-   setQuery, getCurrentRoute,
+   e,
+   fr,
+   setRoute,
+   getRoute,
+   display,
+   sync,
+   loadCSS,
+   State,
+   Routes,
+   reconciliate,
+   deepEqual,
+   normalizePath,
+   refresh,
+   navigate,
+   setRoutes,
+   setStyles,
+   In,
+   start,
+   getCookie,
+   rmCookie,
+   onNavigate,
+   getParams,
+   setQuery,
+   getCurrentRoute,
 };
 
 export default Ura;

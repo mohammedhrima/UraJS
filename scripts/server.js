@@ -14,10 +14,16 @@ function get_file(uri) {
   if (existsSync(filePath)) return filePath;
 
   let ext = extension(uri);
+  
   if ([".jsx", ".tsx", ".ts"].includes(ext)) {
     let newUri = uri.replace(ext, ".js");
     let newFilePath = join(outdir, newUri);
     if (existsSync(newFilePath)) return newFilePath;
+  }
+
+  if (!ext || ext === uri) {
+    let jsFilePath = filePath + ".js";
+    if (existsSync(jsFilePath)) return jsFilePath;
   }
 
   logerror(filePath, "Not found");

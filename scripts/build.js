@@ -29,7 +29,7 @@ http {
      }
 
      location / {
-       try_files $uri $uri/ /index.html;
+       try_files $uri $uri.js $uri/ /index.html;
      }
   }
 }
@@ -41,7 +41,7 @@ RUN apt-get update && \\
   apt-get install -y nginx && \\
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY . .
 
 WORKDIR /app
 
@@ -58,6 +58,7 @@ services:
       - "${port}:${port}"
     volumes:
       - ./app:/app
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     restart: always
 
 `;
