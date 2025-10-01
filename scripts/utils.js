@@ -409,6 +409,7 @@ export default function updateStyles() {
   }
   traverseDirectory(join(source, "./pages"));
   traverseDirectory(join(source, "./components"));
+  if(config.tailwind === "enable") styles.push("pages/tailwind.css")
 }
 
 function generateRoutes(dir, parent, adding) {
