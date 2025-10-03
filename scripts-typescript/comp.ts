@@ -11,7 +11,7 @@ if (process.argv.length < 3) {
   process.exit(1);
 }
 
-async function createComponentFiles(name) {
+async function createComponentFiles(name: string): Promise<void> {
   const holder = await import(join(root, "ura.config.js"));
   await holder.default();
 

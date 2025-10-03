@@ -14,7 +14,7 @@ if (process.argv.length < 3) {
   process.exit(1);
 }
 
-export async function createRouteFiles(name) {
+export async function createRouteFiles(name: string): Promise<void> {
   const holder = await import(join(root, "ura.config.js"));
   await holder.default();
 

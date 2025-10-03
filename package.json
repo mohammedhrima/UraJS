@@ -10,7 +10,7 @@
     "clear": "rm -rf ./out/*",
     "build": "node ./scripts/build.js",
     "config": "node ./scripts/config.js",
-    "reset": ""
+    "reset": "node ./scripts/reset-config.js"
   },
   "bin": {
     "urastart": "node ./scripts/server.js",

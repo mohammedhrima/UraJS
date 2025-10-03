@@ -1,7 +1,7 @@
 import { logmsg } from "./debug.js";
 import { capitalize, config } from "./utils.js";
 
-export const generateJSX = (name, type = "component") => {
+export const generateJSX = (name: string, type: "component" | "route" = "component"): string => {
   logmsg("Generate", name, type)
   name = name.replace("/", "_");
   const isTS = config.typescript === "enable";
@@ -50,7 +50,7 @@ export default ${JSXname}`;
   return content;
 };
 
-export const generateHeader = (name) => {
+export const generateHeader = (name: string): string => {
   const isTS = config.typescript === "enable";
   const istailwind = config.styling === "Tailwind CSS";
   
@@ -98,7 +98,7 @@ function Header(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
 export default Header`;
 };
 
-export const generateMain = (name) => {
+export const generateMain = (name: string): string => {
   const isTS = config.typescript === "enable";
   const JSXname = capitalize(name);
   const istailwind = config.styling === "Tailwind CSS";
@@ -123,7 +123,7 @@ function Main(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
 export default Main`;
 };
 
-export const generateFooter = (name) => {
+export const generateFooter = (name: string): string => {
   const isTS = config.typescript === "enable";
   const istailwind = config.styling === "Tailwind CSS";
   
@@ -140,7 +140,7 @@ function Footer(props${isTS ? ": Props" : ""})${isTS ? ": VDOM" : ""} {
 export default Footer`;
 };
 
-export const generateStyle = (name, type = 'component') => {
+export const generateStyle = (name: string, type: 'component' | 'route' = 'component'): string => {
   name = name.replace("/", "_");
   if (config.styling === "Tailwind CSS") return "";
   if (type === 'route')

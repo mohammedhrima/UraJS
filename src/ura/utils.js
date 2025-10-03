@@ -90,3 +90,4 @@ export const svgElements = new Set([
   "foreignObject", // Embeds external content, such as HTML
   // add other elements as needed
 ]);
+

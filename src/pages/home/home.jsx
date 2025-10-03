@@ -1,9 +1,9 @@
-import Ura from 'ura';
+import { State } from 'ura';
 
 function Home(props) {
   document.title = "UraJS - Modern Web Revolution";
-  const [count, setCount] = Ura.State(0);
-  const [darkMode, setDarkMode] = Ura.State(true);
+  const [count, setCount] = State(0);
+  const [darkMode, setDarkMode] = State(true);
   return (
     <div className={`home ${darkMode() ? 'dark' : 'light'}`}>
       <header className="navbar">

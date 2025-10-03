@@ -9,7 +9,7 @@ import chokidar from "chokidar";
 import { WebSocketServer } from "ws";
 import { logerror, loginfo, logmsg, logwarn } from "./debug.js";
 
-function get_file(uri) {
+function get_file(uri: string): string {
   let filePath = join(outdir, uri);
   if (existsSync(filePath)) return filePath;
 
@@ -30,14 +30,14 @@ function get_file(uri) {
   return join(outdir, "index.html");
 }
 
-function create_request(action, pathname) {
+function create_request(action: string, pathname: string): string {
   return JSON.stringify({ action: action, pathname: relative(source, pathname), ext: extension(pathname) });
 }
 
-const debounceTimers = new Map();
-const pendingDeletions = new Set();
+const debounceTimers = new Map<string, NodeJS.Timeout>();
+const pendingDeletions = new Set<string>();
 
-function watch_path(watchPath, events, callback) {
+function watch_path(watchPath: string, events: string[], callback: (pathname: string, event: string) => Promise<void>): any {
   const watcher = chokidar.watch(watchPath, {
     ignoreInitial: true,
     awaitWriteFinish: {
@@ -50,7 +50,7 @@ function watch_path(watchPath, events, callback) {
   });
 
   events.forEach((event) => {
-    watcher.on(event, async (pathname) => {
+    (watcher as any).on(event, async (pathname: string) => {
       if ((event === 'unlink' || event === 'unlinkDir') && pendingDeletions.has(pathname)) {
         return;
       }
@@ -58,7 +58,7 @@ function watch_path(watchPath, events, callback) {
         pendingDeletions.add(pathname);
       }
       if (debounceTimers.has(pathname)) {
-        clearTimeout(debounceTimers.get(pathname));
+        clearTimeout(debounceTimers.get(pathname)!);
         debounceTimers.delete(pathname);
       }
       debounceTimers.set(pathname, setTimeout(async () => {
@@ -69,7 +69,7 @@ function watch_path(watchPath, events, callback) {
               await promises.access(outputPath);
               // loginfo("Processing deletion:", pathname);
               await callback(pathname, event);
-            } catch (err) {
+            } catch (err: any) {
               if (err.code === 'ENOENT') {
                 // loginfo("File already deleted, skipping:", pathname);
               } else {
@@ -90,18 +90,18 @@ function watch_path(watchPath, events, callback) {
       }, event === 'unlink' || event === 'unlinkDir' ? 50 : 100))
     });
   });
-  watcher.on("error", (error) => logerror(`watch_path error: ${error}`));
+  (watcher as any).on("error", (error: any) => logerror(`watch_path error: ${error}`));
   return watcher;
 }
 
-let currSocket = null;
-function open_websocket(app) {
+let currSocket: any = null;
+function open_websocket(app: any): http.Server {
   const server = http.createServer(app);
   const wss = new WebSocketServer({ server });
 
-  wss.on("connection", (socket) => {
+  wss.on("connection", (socket: any) => {
     loginfo("WebSocket connected");
-    socket.on("message", (message) => {
+    socket.on("message", (message: Buffer) => {
       logmsg("Received:", message.toString());
     });
     socket.on("close", () => {
@@ -110,7 +110,7 @@ function open_websocket(app) {
     currSocket = socket;
   });
 
-  watch_path(source, ["add", "addDir", "change", "unlink", "unlinkDir"], async (pathname, event) => {
+  watch_path(source, ["add", "addDir", "change", "unlink", "unlinkDir"], async (pathname: string, event: string) => {
     try {
       switch (event) {
         case "add": case "addDir": case "change": {
@@ -121,7 +121,7 @@ function open_websocket(app) {
         case "unlink": case "unlinkDir": {
           await handleDelete(pathname)
           updateRoutes();
-          currSocket?.send(create_request("reload"));
+          currSocket?.send(create_request("reload", ""));
           break;
         }
         default:
@@ -135,17 +135,16 @@ function open_websocket(app) {
   return server;
 }
 
-function createServer(port) {
-  const app = express();
-  open_websocket(app);
+function createServer(port: number): http.Server {
+  const app = express() as any;
+  const server = open_websocket(app);
 
   // app.use(express.static(outdir));
-  app.get(["/*path", "/"], (req, res) => {
+  app.get(["/*path", "/"], (req: any, res: any) => {
     let pathname = get_file(req.path);
     logmsg("send", pathname.replace(outdir, ""))
     res.sendFile(pathname);
   });
-  const server = open_websocket(app);
 
   server.listen(port, () => {
     // console.clear();
@@ -157,20 +156,21 @@ function createServer(port) {
 \x1b[1m\x1b[32m--------------------------------------------------\x1b[0m
       `);
   });
+  return server;
 }
 
-async function startServer(startPort = 17000) {
+async function startServer(startPort: number = 17000): Promise<void> {
   const server = net.createServer();
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       server.once("error", reject);
       server.listen(startPort, () => resolve());
     });
-    const port = server.address().port;
-    await new Promise((resolve) => server.close(resolve));
+    const port = (server.address() as net.AddressInfo).port;
+    await new Promise<void>((resolve) => server.close(() => resolve()));
     createServer(port);
-  } catch (err) {
-    await new Promise((resolve) => server.close(resolve));
+  } catch (err: any) {
+    await new Promise<void>((resolve) => server.close(() => resolve()));
 
     if (err.code === "EADDRINUSE") {
       return await startServer(startPort + 1);

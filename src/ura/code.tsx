@@ -409,8 +409,6 @@ function display(vdom: VDOM) {
    return vdom;
 }
 
-
-
 const State = (initValue) => {
    let local = curr_comp;
    const index = local.index;
@@ -433,22 +431,19 @@ const State = (initValue) => {
 };
 
 // ROUTING
-function ErrorPage(props: Props | null) {
-   return (
-      <h4
-         style={{
-            fontFamily: "sans-serif",
-            fontSize: "6vw",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            textAlign: "center",
-            height: "100%",
-         }}
-      >
-         Error: [{props.message}] Not Found, check browser console for any details
-      </h4>
-   );
+function ErrorPage(props) {
+   return (e("h4", { style: {
+           fontFamily: "sans-serif",
+           fontSize: "6vw",
+           display: "flex",
+           justifyContent: "center",
+           alignItems: "center",
+           textAlign: "center",
+           height: "100%",
+       } },
+       "Error: [",
+       props.message,
+       "] Not Found, check browser console for any details"));
 }
 
 const Routes: { [path: string]: Function } = {};
@@ -500,7 +495,7 @@ function normalizePath(path) {
    return path;
 }
 
-export function getParams() {
+function getParams() {
    const res = {};
    const urlParams = new URLSearchParams(window.location.search);
    for (const [key, value] of urlParams) {
@@ -509,7 +504,7 @@ export function getParams() {
    return res;
 }
 
-export function setQuery(key, value) {
+function setQuery(key, value) {
    const url = new URL(window.location.href);
    const urlParams = url.searchParams;
    if (value === null || value === undefined) urlParams.delete(key);
@@ -523,14 +518,10 @@ function refresh(params = null) {
    path = normalizePath(path);
    const RouteConfig = getRoute(path);
    // console.log("call refresh display", RouteConfig);
-   display(
-      <root>
-         <RouteConfig props={params} />
-      </root>
-   );
+   display(e("root", null, e(RouteConfig, { props: params })));
 }
 
-export function navigate(route, params = {}) {
+function navigate(route, params = {}) {
    route = normalizePath(route);
    if (Object.keys(params).length > 0) {
       const queryString = new URLSearchParams(params).toString();
@@ -647,30 +638,32 @@ window.seeTree = function () {
 };
 
 const Ura = {
-   e,
-   fr,
-   setRoute,
-   getRoute,
-   display,
-   sync,
-   loadCSS,
-   State,
-   Routes,
-   reconciliate,
-   deepEqual,
-   normalizePath,
-   refresh,
-   navigate,
-   setRoutes,
-   setStyles,
-   In,
-   start,
-   getCookie,
-   rmCookie,
-   onNavigate,
-   getParams,
-   setQuery,
-   getCurrentRoute,
+  e,
+  fr,
+  setRoute,
+  getRoute,
+  display,
+  sync,
+  loadCSS,
+  State,
+  Routes,
+  reconciliate,
+  deepEqual,
+  normalizePath,
+  refresh,
+  navigate,
+  setRoutes,
+  setStyles,
+  In,
+  start,
+  getCookie,
+  rmCookie,
+  onNavigate,
+  getParams,
+  setQuery,
+  getCurrentRoute,
 };
 
+export { State, e, fr, navigate, getParams, setQuery, getCurrentRoute, In };
+export { Ura };
 export default Ura;
