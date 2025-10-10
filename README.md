@@ -17,6 +17,7 @@ With built-in support for **live reloading**, **state-driven UI updates**.
 - [Configuration](#configuration)
 - [Navigate between routes](#navigate-between-routes)
 - [Navigate with Parameters](#navigate-with-parameters)
+- [Server side rendering](in progress)
 - [Tailwind](#tailwind)
 - [Conditions `<ura-if>/<ura-elif>/<ura-else>`](#conditions)
 - [Loops `<ura-loop>`](#loops)
